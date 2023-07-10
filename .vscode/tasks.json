@@ -1,0 +1,84 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build ",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "command": "ponyc --debug ~/mqtt -o bin",
+            "problemMatcher": "$ponyc-matcher"
+        },
+        {
+            "label": "build tests",
+            "group": {
+              "kind": "build",
+            },
+            "type": "shell",
+            "options": {
+              "cwd": "${workspaceFolder}"
+            },
+            "command": "ponyc --debug ~/mqtt/tests -o bin",
+            "problemMatcher": "$ponyc-matcher"
+        },
+        {
+            "label": "run",
+            "group": "build",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "command": "~/mqtt/bin/mqtt",
+            "problemMatcher": "$ponyc-matcher"
+        },
+        {
+            "label": "test",
+            "group": "test",
+            "type": "shell",
+            "options": {
+              "cwd": "${workspaceFolder}/tests"
+            },
+            "command": "${workspaceFolder}/bin/tests",
+            "dependsOn": ["build tests"],
+            "problemMatcher": "$ponyc-matcher"
+        },
+        {
+            "label": "build-run",
+            "group": "build",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "command": "echo ${workspaceFolder}${pathSeparator}bin${pathSeparator}${workspaceFolderBaseName}",
+            "dependsOn": [
+                "build",
+                "run"
+            ],
+            "problemMatcher": "$ponyc-matcher"
+        },
+        {
+            "label": "docs ",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "command": "ponyc --docs ${workspaceFolder} -o docs",
+            "problemMatcher": "$ponyc-matcher"
+        },
+        {
+            "label": "echo",
+            "type": "shell",
+            "command": "echo ${workspaceFolder}${pathSeparator}${workspaceFolderBasename} ",
+            "problemMatcher": []
+        }
+    ]
+}
