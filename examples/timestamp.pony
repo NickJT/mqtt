@@ -9,10 +9,12 @@ class Timestamp is TimerNotify
   var _count: U64 = 0
   var _reg : Registrar
   var _pub : Publisher
+  var _topic : String val 
 
-  new iso create(reg: Registrar, pub : Publisher) =>
+  new iso create(reg: Registrar, pub : Publisher, topic : String val) =>
     _reg = reg
     _pub = pub
+    _topic = topic
 
   fun ref apply(timer: Timer,count: U64): Bool =>
     _count = _count + count
@@ -29,7 +31,8 @@ class Timestamp is TimerNotify
       //Debug(stg)
       consume stg
      end
-    _pub.publish(timestring.array(), Qos2)
+     var args = PublishArgs(_topic, timestring.array())
+    _pub.publish(args)
     _count < 10
 
   fun ref cancel(timer: Timer) =>
@@ -38,12 +41,13 @@ class Timestamp is TimerNotify
 actor Timestamper
   let _reg : Registrar
   let _pub : Publisher
+  let _topic : String val = "timestamp"
   new create(reg : Registrar) =>
     _reg = reg
-    _pub = Publisher(_reg,"timestamp")
+    _pub = Publisher(_reg,_topic)
     
     let timers = Timers
-    let timer : Timer iso = Timer(Timestamp(_reg, _pub),5000000000, 5000000000)
+    let timer : Timer iso = Timer(Timestamp(_reg, _pub, _topic),5000000000, 5000000000)
     timers(consume timer)
 
     

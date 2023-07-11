@@ -37,42 +37,48 @@ class iso _Publish1 is UnitTest
   fun name() : String => "Publish - id=1"
   fun apply(h: TestHelper) =>
   //Publish id =1 Topic= a/b QoS 0  - 10 bytes
-    var result : Array[U8] val = PublishPacket.compose(where id' =1, topic' = "a/b", data = ['a';'b';'c'])  
+    var args : PublishArgs val = PublishArgs(where id' =1, topic' = "a/b", payload' = ['a';'b';'c'])  
+    var result : Array[U8] val = PublishPacket.compose(args)  
     var expected : Array[U8]  = [48;8;0;3;97;47;98;97;98;99]
     h.assert_array_eq[U8](expected , result)
 
 class iso _Publish2 is UnitTest 
   fun name() : String => "Publish - id=65281"    //Publish id =65281 Topic= a/b QoS 0  - 10 bytes
   fun apply(h: TestHelper) =>
-    var result  = PublishPacket.compose(where id' =65281, topic' = "a/b", data = ['a';'b';'c'])  
+    var args : PublishArgs val = PublishArgs(where id' =65281, topic' = "a/b", payload' = ['a';'b';'c'])  
+    var result  = PublishPacket.compose(args)  
     var expected  : Array[U8] = [48;8;0;3;97;47;98;97;98;99]
     h.assert_array_eq[U8](expected , result)
 
 class iso _Publish3 is UnitTest
   fun name() : String => "Publish - QoS1"  
     fun apply(h: TestHelper) => //Publish id = 2  Topic= a/b QoS 1  - 12 bytes
-    var result  = PublishPacket.compose(where id' =2, topic' = "a/b", data = ['a';'b';'c'], q = Qos1)  
+    var args : PublishArgs val = PublishArgs(where id' =2, topic' = "a/b", payload' = ['a';'b';'c'], qos' = Qos1)  
+    var result  = PublishPacket.compose(args)  
     var expected  : Array[U8] = [50;10;0;3;97;47;98;0;2;97;98;99]
     h.assert_array_eq[U8](expected , result)
 
 class iso _Publish4 is UnitTest
   fun name() : String => "Publish - QoS2"     //Publish id = 65281  Topic= a/b QoS 2  - 12 bytes
     fun apply(h: TestHelper) =>
-      var result  = PublishPacket.compose(where id' =65281, topic' = "a/b", data = ['a';'b';'c'], q = Qos2)  
+      var args : PublishArgs val = PublishArgs(where id' =65281, topic' = "a/b", payload' = ['a';'b';'c'], qos' = Qos2)  
+      var result  = PublishPacket.compose(args)  
     var expected  : Array[U8] = [52;10;0;3;97;47;98;0xff;0x01;97;98;99]
     h.assert_array_eq[U8](expected , result)
 
 class iso _Publish5 is UnitTest
   fun name() : String => "Publish - DUP"     // Publish id = 1  Topic= a/b Dup  - 10 bytes
     fun apply(h: TestHelper) =>
-      var result  = PublishPacket.compose(where id' =1, topic' = "a/b", data = ['a';'b';'c'], d = true)  
+       var args : PublishArgs val = PublishArgs(where id' =1, topic' = "a/b", payload' = ['a';'b';'c'], d' = true)  
+      var result  = PublishPacket.compose(args)  
     var expected  : Array[U8] = [56;8;0;3;97;47;98;97;98;99]
     h.assert_array_eq[U8](expected , result)
 
 class iso _Publish6 is UnitTest
   fun name() : String => "Publish - Retain"    //Publish id = 65281  Topic= aa/bb retain  - 10 bytes
     fun apply(h: TestHelper) =>
-      var result   = PublishPacket.compose(where id' =65281, topic' = "aa/bb", data = ['a';'b';'c'] , r = true)  
+       var args : PublishArgs val = PublishArgs(where id' =65281, topic' = "aa/bb", payload' = ['a';'b';'c'] , r' = true)  
+      var result   = PublishPacket.compose(args)  
     var expected  : Array[U8] = [49;10;0;5;97;97;47;98;98;97;98;99]
     h.assert_array_eq[U8](expected , result)
 
@@ -80,7 +86,8 @@ class iso _Publish7 is UnitTest
   fun name() : String => "Publish - Long Topic"
   fun apply(h: TestHelper) =>
   //Publish id 1: $SYS/broker/subscriptions/count = 0 , qos = 1 retain = true
-    var result   = PublishPacket.compose(where id' =1, topic' = "$SYS/broker/subscriptions/count", data = ['0'], q = Qos1, r = true)  
+    var args : PublishArgs val = PublishArgs(where id' =1, topic' = "$SYS/broker/subscriptions/count", payload' = ['0'], qos' = Qos1, r' = true)  
+    var result   = PublishPacket.compose(args)  
     var expected : Array[U8] val = [51; 36; 0; 31; 36; 83; 89; 83; 47; 98; 114; 111; 107; 101; 114; 47; 115; 117; 98; 115; 99; 114; 105; 112; 116; 105; 111; 110; 115; 47; 99; 111; 117; 110; 116; 0; 1; 48]
     h.assert_array_eq[U8](expected , result)
 
@@ -89,7 +96,8 @@ class iso _Publish8 is UnitTest
   fun apply(h: TestHelper) =>
   //Publish id 1: $SYS/broker/subscriptions/count = 0 , qos = 1 retain = true
     var empty : Array[U8] val =  Array[U8]
-    var result   = PublishPacket.compose(where id' =1, topic' = "$SYS/broker/subscriptions/count", data = empty, q = Qos1, r = true)  
+     var args : PublishArgs val = PublishArgs(where id' =1, topic' = "$SYS/broker/subscriptions/count",  payload' = empty, qos' = Qos1, r' = true)  
+    var result   = PublishPacket.compose(args)  
     var expected : Array[U8] val = [51; 35; 0; 31; 36; 83; 89; 83; 47; 98; 114; 111; 107; 101; 114; 47; 115; 117; 98; 115; 99; 114; 105; 112; 116; 105; 111; 110; 115; 47; 99; 111; 117; 110; 116; 0; 1]
     h.assert_array_eq[U8](expected , result)
 
@@ -98,7 +106,8 @@ class iso _Publish9 is UnitTest
   fun apply(h: TestHelper) =>
   //Publish one character topic, qos 0 (no id)
     var empty : Array[U8] val =  Array[U8]
-    var result   = PublishPacket.compose(where id' =1, topic' = "a", data = empty)  
+    var args : PublishArgs val = PublishArgs(where id' =1, topic' = "a",  payload' = empty)  
+    var result   = PublishPacket.compose(args)  
     var expected : Array[U8] val = [48; 3; 0; 1; 97]
     h.assert_array_eq[U8](expected , result)
 

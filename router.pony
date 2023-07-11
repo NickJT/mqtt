@@ -220,14 +220,29 @@ be onTick(sec : I64) =>
   end
 
 /*********************************************************************************/
-be onIdComplete(id: IdType) =>
+be onSubscribeComplete(id: IdType) =>
   """
   Called by a subscriber when an id has completed its processing. This tells router
   to remove the link between the id and the subscriber
   """
   try
     _subscriberById.remove(id)?
-    //Debug("Completed processing id " + id.string())
+    _issuer.checkIn(id)
+    Debug("Completed processing subscription id " + id.string())
+  else
+    Debug("Router can't remove id " + id.string() + "at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+  end  
+
+/*********************************************************************************/
+be onPublishComplete(id: IdType) =>
+  """
+  Called by a publisher when an id has completed its processing. This tells router
+  to remove the link between the id and the publisher
+  """
+  try
+    _publisherById.remove(id)?
+    _issuer.checkIn(id)
+    Debug("Completed processing publish id " + id.string())
   else
     Debug("Router can't remove id " + id.string() + "at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
   end  

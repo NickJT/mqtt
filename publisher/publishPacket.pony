@@ -159,12 +159,12 @@ fun ref _build(basePacket : BasePacket val) =>
   _isValid = true
 
 /********************************************************************************/
-fun compose(id' : U16 = 0, topic' : String = "", data : Array[U8] val, q : Qos = Qos0, d : Bool = false, r : Bool = false )  : ArrayVal => 
+fun compose(args : PublishArgs val)  : ArrayVal => 
   """
   Returns a publish packet ready to send to the broker. 
   """
 
-  if (id' == 0 ) then  
+  if (args.id == 0 ) then  
     Debug ("Error - Publish with id = 0  at" + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
   end
 
@@ -174,18 +174,18 @@ fun compose(id' : U16 = 0, topic' : String = "", data : Array[U8] val, q : Qos =
     var packet : Array[U8]   = Array[U8].create()
    
     // Publish packets have topic before id
-    variable.append(MqString(topic'))
+    variable.append(MqString(args.topic))
     // id is only appended for QoS 1 and 2
-    if (not (q is Qos0) ) then
-      (var msb : U8, var lsb:U8) = U16ToBytes(id')
+    if (not (args.qos is Qos0) ) then
+      (var msb : U8, var lsb:U8) = U16ToBytes(args.id)
       variable.push_u8(msb) 
       variable.push_u8(lsb)
     end 
 
-    payload'.append(data)
+    payload'.append(args.payload)
 
     var len : USize = variable.size() + payload'.size()
-    var fixed : Array[U8] val = FixedHeader.makePubHeader(len, q, d, r)
+    var fixed : Array[U8] val = FixedHeader.makePubHeader(len, args.qos, args.dup, args.retain)
 
     packet.append(fixed)
     packet.append(variable)

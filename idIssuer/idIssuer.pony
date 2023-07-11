@@ -14,7 +14,7 @@ interface IdNotifyArgs
   """
   Notifications for issuance of a packet Id.
   """
-  be apply(id: U16, payload : ArrayVal,  qos : Qos, retain: Bool )
+  be apply(args: PublishArgs val )
 
 
 actor IdIssuer
@@ -73,12 +73,12 @@ Reissuing Returned Ids
   notify(_nextId())
 
 /********************************************************************************/
-  be checkOutArgs(notifyArgs : IdNotifyArgs tag, payload : ArrayVal,  qos : Qos, retain: Bool ) =>
+  be checkOutArgs(notifyArgs : IdNotifyArgs tag, args : PublishArgs val) =>
   """
   A request for an id to be returned with arguments in the provided callback. Because ids are returned  
   and reassigned subsequent calls to checkOut may not return consecutive values
   """
-  notifyArgs(_nextId(), payload, qos, retain) 
+  notifyArgs(PublishArgs.createWithId(args,_nextId())) 
 
 /********************************************************************************/
  be checkIn(id : U16) =>

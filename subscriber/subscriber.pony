@@ -146,7 +146,7 @@ fun ref onPublish(basePacket: BasePacket val) : None =>
 
   match pubPacket.qos()
   | Qos0 => releasePkt(pubPacket)
-  | Qos1 => doPubAck(id); releasePktById(id); removePkt(id)
+  | Qos1 => doPubAck(id); releasePktById(id); subscribeComplete(id)
   | Qos2 => doPubRec(id)
   end
 
@@ -194,7 +194,7 @@ fun ref onPubRel(basePacket : BasePacket val) =>
   doPubComp(pubRelPacket.id())
 
   releasePktById(pubRelPacket.id())
-  removePkt(pubRelPacket.id())
+  subscribeComplete(pubRelPacket.id())
   // TODO - We have finished with this id so we can check it in
   // Don't use this while testing as re-using ids may be confusing in the log
   //_reg[IdIssuer](KeyRouter()).next[None]({(idi: IdIssuer)=>idi.checkIn(pubRelPacket.id())})
@@ -288,7 +288,7 @@ fun releasePkt(pubPacket : PublishPacket val) =>
 
 
 /********************************************************************************/
-fun ref removePkt(id : IdType) =>
+fun ref subscribeComplete(id : IdType) =>
   """
   Removes the packet with this id from the map of in-flight packets and informs 
   router to do the same
@@ -300,7 +300,7 @@ fun ref removePkt(id : IdType) =>
 
   try
     _pktMap.remove(id)?
-    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onIdComplete(id)})
+    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onSubscribeComplete(id)})
     
   else
     Debug("Id " + id.string() + " not found at " + __loc.file() + ":" +__loc.method_name())
