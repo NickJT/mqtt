@@ -35,7 +35,7 @@ type PublicationMap is Map[IdType, Publisher tag]
   """
 
 /********************************************************************************/
-actor Router
+actor Router is Routable
   """
   Router accepts incomming MQTT packets and routes these by type to the appropriate 
   handler actor. Router is also responsible for writing bytes back out to the Broker
@@ -119,6 +119,7 @@ be route(basePacket : BasePacket val) =>
     end
     
     //Debug("Router got a " + basePacket.controlType().string())
+    //Debug(basePacket.data())
 
     // This should be all of the incomming packet types.
     // TODO - Subtype to remove duplication 
@@ -260,8 +261,7 @@ be onTcpConnect(tcp : TCPConnection) =>
     via a call to our .route behaviour from assemblr
   """
     _connector.connect(_config)
-    _tcpMaybe = tcp
-      
+    _tcpMaybe = tcp    
 
 /*********************************************************************************/
 be onBrokerConnect() =>
@@ -352,7 +352,6 @@ be send(data : ArrayVal) =>
   """
   Check the TCP connection is valid and use it to send our packet
   """
-
   try
     var tcp : TCPConnection 
     tcp = _tcpMaybe as TCPConnection

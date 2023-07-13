@@ -37,6 +37,18 @@
             "problemMatcher": "$ponyc-matcher"
         },
         {
+          "label": "build broker",
+          "group": {
+            "kind": "build",
+          },
+          "type": "shell",
+          "options": {
+            "cwd": "${workspaceFolder}"
+          },
+          "command": "ponyc --debug ~/mqtt/broker -o bin",
+          "problemMatcher": "$ponyc-matcher"
+        },
+        {
             "label": "test",
             "group": "test",
             "type": "shell",

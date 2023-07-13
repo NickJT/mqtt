@@ -1,4 +1,5 @@
 use "collections"
+use "../utilities"
 
 /********************************************************************************/
 type ArrayVal is Array[U8 val] val
@@ -28,6 +29,9 @@ type Qos is (Qos0 | Qos1| Qos2)
 A typeDef for the three quality of service flags 
 """
 
+/********************************************************************************/
+trait Routable
+  be route(basePacket : BasePacket val)
 
 /********************************************************************************/
 trait Packet

@@ -44,32 +44,49 @@ multiple topics in one subscribe message.
   var _qos : Qos  = Qos0
   var _id : U16 = 0
   var _isValid : Bool = false
-    
+
   new create(basePacket : BasePacket val) =>
+    var result : U8 = 0x80  // Default to rejected
+
     if (basePacket.isNotValid()or (basePacket.isNotA(ControlSubAck))) then 
            Debug("Invalid packet at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
         return
     end
 
+    try 
+      result = basePacket.data()(4)?
+    else
+      Debug("Can't read SubAck code at at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+      return
+    end
+
+    if (result == SubAckFailure()) then
+      Debug("Subscription request rejected")
+      return
+    end
+  
+    match U8ToQos(result)
+    | let q : Qos => _qos = q
+    | None => return
+    end
+    
     // (b,b] remember
     _id = BytesToU16(basePacket.data().trim(2, 4)) 
     _isValid = (_id != 0)
 
-    try 
-      _qos = U8ToQos(basePacket.data()(4)?) as Qos
-    else
-      Debug("Can't read SubAck code at at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
-      _isValid = false
-    end  
-
-
-
+/********************************************************************************/
   fun isValid() : Bool =>
   _isValid
     
-  fun approvedQos() : Qos =>
-    _qos
+/********************************************************************************/
+  fun approvedQos() : (Qos | None )=>
+    if (_isValid) then
+      _qos
+    else
+      None
+    end    
 
+/********************************************************************************/
   fun id() : IdType =>
     _id
 

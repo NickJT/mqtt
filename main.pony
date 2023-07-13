@@ -63,8 +63,8 @@ be onBrokerConnect(message: String val) =>
   """
   Called once router has confirmed that we have a valid connection to the broker
   """
-    Debug("Starting timestamp publication")
-    Timestamper(_reg)
+    //Debug("Starting timestamp publication")
+    //Timestamper(_reg)
 
 
 /************************************************************************/
@@ -80,9 +80,17 @@ fun ref _initialise(env: Env, reg : Registrar) : Bool =>
     var config = configReader.getConfig()
     var subs = configReader.getSubscriptions()
     var address :String val = config(IniAddress())? 
+    var ipv4Address : String val = ""
+    try
+      ipv4Address = toIPv4(env, address) as String val
+    else
+      Debug("Unable to resolve an IPv4 address from " + address)
+      return false
+    end  
+
     var port: String val = config(IniPort())?
-    //Debug("Connecting to " + address + ":" + port)
-    TCPConnection(TCPConnectAuth(env.root), recover Client(env, _reg, config, subs )end, address, port)  
+    Debug("Connecting to " + address + ":" + port)
+    TCPConnection(TCPConnectAuth(env.root), recover Client(env, _reg, config, subs )end, ipv4Address, port)  
   else
     Debug("Unable to read address and port config in " + ConfigFile())
     return false
@@ -90,3 +98,19 @@ fun ref _initialise(env: Env, reg : Registrar) : Bool =>
 
   reg.update(KeyMain(), this)
   true
+
+
+
+  /************************************************************************/
+  fun toIPv4(env : Env, arg : String val) : (String val | None) =>
+  """
+  This doesn't fit comfortably anywhere yet so we'll leave it in main for now
+  """  if (DNS.is_ip4(arg)) then return arg
+    end
+    
+    try
+      var addrs : Array[NetAddress val] = DNS.ip4(DNSAuth(env.root), arg, "")
+      (var addr, var port) = addrs(0)?.name()?
+      return addr
+    end
+    None
