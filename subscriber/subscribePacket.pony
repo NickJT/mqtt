@@ -26,17 +26,46 @@ B.. Requested Qos (0b000000xx) 0, 1 or 2
     if topic is "$SYS/#" = qos0
     Packet =  130, 11, 0, 1, 0, 6, 36, 83, 89, 83, 47, 35, 0
 """
-  var _allGood : Bool 
-  
-  new create() =>
-    _allGood = false
+  var _isValid : Bool = false
+  var _id : IdType = 0
 
-  fun ref compose(id : U16, topic : String, qosString : String) : ArrayVal =>
+  new create() =>
+  """
+  Only intended to enable SubscribePacket.compose(<<args>>) 
+  """
+    None
+
+  new val createFromPacket(basePacket : BasePacket val) =>
+    """
+    Creates a Subscribe Packet with the fields set from the passed BasePacket. Only
+    used for Mock Broker 
+    """  
+    if (basePacket.isNotA(ControlSubscribe)) then
+    return 
+  end  
+
+  _id = BytesToU16(basePacket.data().trim(2,4)) 
+  _isValid = (_id != 0)
+
+
+/********************************************************************************/
+fun isValid() : Bool =>
+  _isValid
+
+
+/************************************************************************/  
+fun id() : (IdType val | None) =>
+  if (_id != 0) then return _id end
+  None  
+
+
+/*********************************************************************************/
+  fun ref compose(id' : U16, topic : String, qosString : String) : ArrayVal =>
     """
   Return a subscribe packet ready to send to the broker
   """
 
-    _allGood = ((topic.size() > 0) and (id > 0) ) // id == zero is an error marker
+    _isValid = ((topic.size() > 0) and (id' > 0) ) // id' == zero is an error marker
    
     recover val
 
@@ -44,7 +73,7 @@ B.. Requested Qos (0b000000xx) 0, 1 or 2
       var payload :  Array[U8]  =  Array[U8].create()
       var packet :  Array[U8]  =  Array[U8].create()
    
-      (var msb : U8, var lsb:U8) = U16ToBytes(id)
+      (var msb : U8, var lsb:U8) = U16ToBytes(id')
    
       variable.push_u8(msb)
       variable.push_u8(lsb)

@@ -27,6 +27,6 @@ class Listener is TCPListenNotify
 
   fun ref connected(listen: TCPListener ref): TCPConnectionNotify iso^ =>
     _env.out.print("Broker starting")
-    let broker = Broker(_env, _delay)
+    let broker = Broker(_env)
     broker
 

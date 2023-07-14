@@ -92,6 +92,12 @@ appear in the order
    """
   The password of the user credentials held by the broker
   """
+
+  var _isValid : Bool = false
+  """
+  We're using this to enable testing with the Mock Broker - It can probably be optimised
+  out later
+  """
   
   new create(config : Map[String val, String val] val) =>
   """
@@ -105,7 +111,9 @@ appear in the order
     _keepAlive = _makeKeepAlive(config(IniKeepalive())?)
 
     _setWill(config(IniTopic())?, config(IniMessage())?, config(IniQos())?)    
-    
+
+    _isValid = true
+
     else
       Debug("Couldn't create a ConnectPacket")
     end
@@ -117,6 +125,11 @@ appear in the order
   """
     _assemble()
 
+  fun isValid() : Bool =>
+  """
+  This is set false on instantiation and only set true if we have valid data
+  """
+    _isValid
 
   fun _assemble() : ArrayVal =>
   """

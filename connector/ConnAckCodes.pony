@@ -27,11 +27,11 @@ Decodes the Connection rejection code from the Broker and add some text to the r
 """
      match flags
     | ConnAckAccepted() => (InvalidControl.string() + ":" + "ConnAckAccepted control passed to Rejection actor")
-    | ConnAckRefusedProtocolVersion() => (ConnectionRefused.string() + ":" + ConnAckRefusedProtocolVersion.string())
-    | ConnAckRefusedIdentifierRejected() => (ConnectionRefused.string() + ":" + ConnAckRefusedIdentifierRejected.string())
-    | ConnAckRefusedServerUnavailable()  => (ConnectionRefused.string() + ":" + ConnAckRefusedServerUnavailable.string())
-    | ConnAckRefusedBadUserNameOrPassword()  =>(ConnectionRefused.string() + ":" + ConnAckRefusedBadUserNameOrPassword.string())
-    | ConnAckRefusedNotAuthorised()   => (ConnectionRefused.string() + ":" + ConnAckRefusedNotAuthorised.string())
+    | ConnAckRefusedProtocolVersion() => (ConnectionRefused.string() + " (" + ConnAckRefusedProtocolVersion.string() + ")")
+    | ConnAckRefusedIdentifierRejected() => (ConnectionRefused.string()+ " (" + ":" + ConnAckRefusedIdentifierRejected.string()+ ")")
+    | ConnAckRefusedServerUnavailable()  => (ConnectionRefused.string() + " ("+ ":" + ConnAckRefusedServerUnavailable.string()+ ")")
+    | ConnAckRefusedBadUserNameOrPassword()  =>(ConnectionRefused.string() + " ("+ ":" + ConnAckRefusedBadUserNameOrPassword.string()+ ")")
+    | ConnAckRefusedNotAuthorised()   => (ConnectionRefused.string() + ":" + " ("+ ConnAckRefusedNotAuthorised.string()+ ")")
     else
       (UnknownError.string() +  "Unknown CONNACK flags passed to Rejection actor")
     end

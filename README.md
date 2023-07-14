@@ -1,6 +1,6 @@
 # Pony MQTT Client #
 
-One day, this may grow-up to be a MQTT 3.1 client. It is currently part-way through release 0.1, supporting QoS 0/1/2 but
+One day, this may grow-up to be a MQTT 3.1.1 client. It is currently part-way through release 0.1, supporting QoS 0/1/2 but
  not yet implementing session restoration (or a lot else besides). 
 
 If you haven't used Pony, this is the best starting point -> [Pony Tutorial](https://tutorial.ponylang.io/index.html)

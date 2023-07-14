@@ -44,19 +44,21 @@ var _isSessionPresent: Bool = false
       return
     end  
 
-
     try
       _returnCode = basePacket.data()(_returnCodeByte)?
-      _isSessionAccepted = (_returnCode ==ConnAckAccepted())
+      _isSessionAccepted = (_returnCode == ConnAckAccepted())
       _isSessionPresent = ((basePacket.data()(_sessionPresentByte)? and 0b00000001) ==1)
       _isValid = true
     else
       Debug("Couldn't read return code in ConAckPacket")
-      return
+       return
     end 
        
     if (_isValid and (not _isSessionAccepted)) then 
-      Debug(RejectionCode(_returnCode))
+      Debug("Return code = " + _returnCode.string() + " Present = " + _isSessionPresent.string() + "  " + RejectionCode(_returnCode) + " at " + __loc.file() + ":" +__loc.method_name())
+      Debug(basePacket.data())
+      Debug("at " + __loc.file() + ":" +__loc.method_name() + " line")
+  
     end
      
   fun sessionAccepted() : Bool => _isSessionAccepted

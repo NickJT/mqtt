@@ -1,21 +1,22 @@
+use "bureaucracy"
+use "collections"
 use "debug"
 use "net"
 
+use ".."
 use "../assembler"
 use "../primitives"
 
 class Broker is TCPConnectionNotify 
   let _env: Env
-  let _delay: USize
-  var _brouter : Brouter
+  var _router : Router
   var _assembler : Assembler
 
-new iso create(env: Env, delay : USize) =>
+new iso create(env: Env) =>
     _env = env
-    _delay = delay
     Debug("Broker started")
-    _brouter = Brouter(delay)
-    _assembler = Assembler(_brouter)
+    _router = Router(Registrar, Map[String val, String val],Map[String val, String val])
+    _assembler = Assembler(_router)
 
 fun ref connecting(conn: TCPConnection ref, count: U32) =>
   Debug("Connecting (attempt " + count.string() + ")")
@@ -24,7 +25,7 @@ fun ref accepted(conn: TCPConnection ref) =>
   try
     (let host, let service) = conn.remote_address().name()?
     _env.out.print("Broker accepted connection from " + host + ":" + service)
-    _brouter.onTCPConnect(conn)
+    _router.onTcpConnect(conn)
   end
 
 fun ref connected(conn: TCPConnection ref) =>
@@ -35,7 +36,7 @@ fun ref connected(conn: TCPConnection ref) =>
 
 fun ref received(conn: TCPConnection ref, data: Array[U8] iso,  times: USize): Bool  =>
   // send data to assembler here
-  _env.out.print("received count = " + times.string())
+  _env.out.print("Received count = " + times.string())
   _assembler.assemble(consume data)
   false  // to yield instead of waiting for max_size bytes from TCP 
 

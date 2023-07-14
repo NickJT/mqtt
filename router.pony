@@ -69,6 +69,8 @@ actor Router is Routable
   let _pinger : Pinger
   let _ticker : Ticker
   var _connector : Connector
+  var _pingTokens : USize = 3
+  var _pingTokenCount : USize = _pingTokens
 
   let _subscriberByTopic : SubscriberMap = SubscriberMap
   let _subscriberById : IdMap = IdMap
@@ -76,8 +78,6 @@ actor Router is Routable
 
   let _subscriptions :  Map[String val, String val] val
   let _config :  Map[String val, String val] val
-
-  var _brokerConnected : Bool = false
 
   var _tcpMaybe : (TCPConnection | None) = None
 
@@ -121,18 +121,25 @@ be route(basePacket : BasePacket val) =>
     //Debug("Router got a " + basePacket.controlType().string())
     //Debug(basePacket.data())
 
-    // This should be all of the incomming packet types.
-    // TODO - Subtype to remove duplication 
+    // Currently including the broker packets so we can use the same actor 
+    // to mock a broker for testing
     match basePacket.controlType()
+      | ControlConnAck => _connector.onAck(basePacket)
       | ControlPublish => _findSubscriberByTopic(basePacket)  // goes to subscriber but may not have an id so find by topic
-      | ControlPubRel  => _findSubscriberById(basePacket) // goes to subscriber and has id at bytes 2 and 3 
-      | ControlUnsubAck => _findSubscriberById(basePacket) // goes to subscriber and has id at bytes 2 and 3
       | ControlPubAck => _findPublisherById(basePacket) //  PubAck, PubRec, PubComp goes to publisher 
       | ControlPubRec => _findPublisherById(basePacket) // PubAck, PubRec, PubComp goes to publisher 
+      | ControlPubRel  => _findSubscriberById(basePacket) // goes to subscriber and has id at bytes 2 and 3 
       | ControlPubComp => _findPublisherById(basePacket) // PubAck, PubRec, PubComp goes to publisher 
       | ControlSubAck => _findSubscriberById(basePacket) // Note: We are not implementing multisubscribe 
+      | ControlUnsubAck => _findSubscriberById(basePacket) // goes to subscriber and has id at bytes 2 and 3
       | ControlPingResp => _onPingResp() 
-      | ControlConnAck => _connector.onAck(basePacket)
+      /*   BROKER PACKETS FOR TESTING ONLY  */
+      | ControlConnect => onControlConnect(basePacket)
+      | ControlSubscribe => onControlSubscribe(basePacket)
+      | ControlUnsubscribe => onControlUnsubscribe(basePacket)
+      | ControlPingReq => onControlPingReq(basePacket)
+      | ControlDisconnect => onControlDisconnect(basePacket)
+      /*   BROKER PACKETS FOR TESTING ONLY  */
     else
       Debug("Shouldn't get to " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
     end
@@ -203,11 +210,36 @@ fun _findPublisherById(basePacket : BasePacket val) =>
     Debug("Id was " + BytesToU16(basePacket.data().trim(2,4)).string())
   end
 
+/*********************************************************************************/
+fun saveState() =>
+  """
+  Called when we have lost connection with the Broker and need to save our state in
+  the sure and certain hope of a ressurection
+  """
+  Debug("Save state not implemented at " + __loc.file() + ":" +__loc.method_name())
 
 /*********************************************************************************/
-fun _onPingResp() =>
-  None
-  //Debug("Got Ping reponse")
+fun ref _onPingResp() =>
+  """
+  When the broker responds to a ping response we credit the token count. This value 
+  is debited by doPing() each time we ask for a ping and we quit when it reaches zero.
+  """
+  _pingTokenCount = _pingTokenCount + 1
+/*********************************************************************************/
+be doPing() =>
+  """
+  Ask the Broker for a pingResp and debit the number of times we have asked without
+  a response. If we have asked three times with no response then assume the broker
+  has gone away and start the clean-up process.  
+  We also send a disconnect packet just in case the Broker comes back in the meantime
+  and wonders where we are.
+  """
+  send(PingReqPacket.compose())
+  _pingTokenCount = _pingTokenCount - 1
+  if (_pingTokenCount == 0) then // The Broker has missed three pings - time to quit
+    Debug("Broker has missed three pings - quitting")
+    disconnectBroker()
+  end  
 
 /*********************************************************************************/
 be onTick(sec : I64) =>
@@ -247,11 +279,6 @@ be onPublishComplete(id: IdType) =>
   else
     Debug("Router can't remove id " + id.string() + "at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
   end  
-
-/*********************************************************************************/
-be doPing() =>
-  send(PingReqPacket.compose())
-
 
 /*********************************************************************************/
 be onTcpConnect(tcp : TCPConnection) =>
@@ -345,8 +372,6 @@ be disconnectBroker() =>
   _pinger.cancel()
   send(DisconnectPacket.compose())
 
- 
-
 /*********************************************************************************/
 be send(data : ArrayVal) =>
   """
@@ -363,5 +388,57 @@ be send(data : ArrayVal) =>
 /*********************************************************************************/
 be sendToMain(s1 : String val, s2 : String val) =>
   _reg[Main](KeyMain()).next[None]({(m: Main)=>m.onMessage(s1, s2)})
+
+
+/*********************************************************************************/
+/*************   These mock broker functions are for dev testing only   **********/
+/*********************************************************************************/
+fun onControlConnect(basePacket : BasePacket val) =>
+  """
+  Mock Broker - for testing only
+  """
+  Debug("Mock Broker got a " + basePacket.controlType().string() + " at " + __loc.file() + ":" +__loc.method_name())
+  let connack : ArrayVal = [32; 2; 0; 0]
+  Debug("Mock Broker sending " )
+  Debug(connack)
+  send(connack)
+
+/*********************************************************************************/
+fun ref onControlSubscribe(basePacket : BasePacket val)  => 
+  """
+  Mock Broker - for testing only
+  """
+  var subscribePacket = SubscribePacket.createFromPacket(basePacket)
+  if (subscribePacket.isValid()) then
+    let subAck : Array[U8] iso = [144; 3] // ; 0; 1; 0]
+    subAck.append(basePacket.data().trim(2,4))
+    subAck.push_u8(0)
+   send(consume subAck)
+  else  
+    Debug(basePacket.controlType().string())
+  end
+
+/*********************************************************************************/
+fun onControlUnsubscribe(basePacket : BasePacket val) =>
+  """
+  Mock Broker - for testing only
+  """
+  Debug(basePacket.controlType().string())
+
+/*********************************************************************************/
+fun onControlPingReq(basePacket : BasePacket val) =>
+  """
+  Mock Broker - for testing only
+  """
+  let pingResp : ArrayVal = [208; 0]
+  send(pingResp)
+  
+/*********************************************************************************/
+fun onControlDisconnect(basePacket : BasePacket val) =>
+  """
+  Mock Broker - for testing only
+  """
+  Debug("Mock Broker got " + basePacket.controlType().string())
+
 
 

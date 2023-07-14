@@ -28,6 +28,11 @@ directly.
     
   be connect( config : Map[String val, String val] val) =>
     var cp : ConnectPacket = ConnectPacket(config)
+    if (not cp.isValid()) then 
+      Debug("Invalid connect packet (or I'm a Mock Broker) at " + __loc.file() + ":" +__loc.method_name())
+      return
+    end
+
     _router.send(cp.getPacket())
     Debug("Sent connect packet at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
   
