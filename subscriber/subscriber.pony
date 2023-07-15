@@ -110,7 +110,8 @@ fun onSubAck(basePacket : BasePacket val)  =>
   Our subscription has been acknowledged so we need to notify the app of the
   result.
   """
-  var approvedQos : (Qos | None) =  SubAckPacket(basePacket).approvedQos() 
+  var subAckPacket : SubAckPacket val = SubAckPacket(basePacket)
+  var approvedQos : (Qos | None) =  subAckPacket.approvedQos() 
   var subAckResult : String val = recover val
     var resultString : String iso = " QoS: Requested " + ToQos(_qos).string() 
     match approvedQos
@@ -119,6 +120,7 @@ fun onSubAck(basePacket : BasePacket val)  =>
     end
     consume resultString
   end
+  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onSubscribeComplete(subAckPacket.id())})
   _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.sendToMain(_topic, subAckResult)})
 
 

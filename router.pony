@@ -35,7 +35,7 @@ type PublicationMap is Map[IdType, Publisher tag]
   """
 
 /********************************************************************************/
-actor Router is Routable
+actor Router
   """
   Router accepts incomming MQTT packets and routes these by type to the appropriate 
   handler actor. Router is also responsible for writing bytes back out to the Broker
@@ -218,19 +218,24 @@ fun ref _doAssignedSubscription(basePacket : BasePacket val) =>
   We don't remove Subscription from router tables until we get a sub-ack so we should
   be covered for 2 unless the broker continues to send pubRel after an unsubscribe 
   (which it might?).
-  TODO - Does the broker send a PubRel after getting an unsubscribe? If so we probably
+  TODO - Does the broker send a PubRel after getting an unsubscribe? If so, we probably
   have a potential error condition here. 
   
-  So, assuming we only have to handle case 1. We can include the subscription in the
+  Assuming we only have to handle case 1. We can include the subscription in the
   local subscriber map then re-route the packet to let nature take its course. We don't
-  use _addSubscription because we don't want subscriber to send a another subscription
-  request to the Broker.
-  TODO - remember we need to remove this from the maps at some point in the cleanup process
+  use router.subscribe() because we don't want subscriber to send a another subscription
+  request to the Broker.  
+  Note - this section is synchronous so we know that the new subscriber is in the
+  subscriber map before we call router.route(). Keep this in mind when chaning this 
+  function.  
+  TODO - We need to remove this local only subscriber from the maps at some
+  point in the cleanup process
 
-  Also - during dev, this could be because are are a Mock Broker
+  Also - during dev, this could be because are are a Mock Broker. In this event the 
+  acks should just flow as required
   """ 
 
-    var publishPacket : PublishPacket val = PublishPacket.createFromPacket(basePacket)
+  var publishPacket : PublishPacket val = PublishPacket.createFromPacket(basePacket)
   if (not publishPacket.isValid()) then
     Debug("Invalid packet found at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
     return
@@ -242,7 +247,7 @@ fun ref _doAssignedSubscription(basePacket : BasePacket val) =>
     topic = publishPacket.topic() as String val
     var subscriber : Subscriber = Subscriber(_reg, topic, publishPacket.qos().string() )
     _subscriberByTopic.update(topic, subscriber)
-    // now we route it again, safe in the knowledge that there is a subscriber waiting
+    // now we route it again (synchronously), safe in the knowledge that there is a subscriber waiting
     //to provide the acks
     route(basePacket)
   else

@@ -67,12 +67,13 @@ be onBrokerConnect(message: String val) =>
   Called once router has confirmed that we have a valid connection to the broker
   """
     Debug(message)
-    Debug("Starting timestamp publication at " + __loc.file() + " : " +__loc.method_name())
-    Timestamper(_reg)
 
     for (topic , qos) in _subs.pairs() do 
       _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.subscribe(topic,qos)}, {()=>Debug("No router at " + __loc.file() + ":" +__loc.method_name())})
     end
+
+    Debug("Starting timestamp publication at " + __loc.file() + " : " +__loc.method_name())
+    Timestamper(_reg)
 
 
 /************************************************************************/

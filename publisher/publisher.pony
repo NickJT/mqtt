@@ -121,11 +121,12 @@ fun ref onPubAck(basePacket : BasePacket val) =>
   end
   // Our QoS 1 publication has been received so we can remove it from the in-flight 
   // list and check-in the id
-  Debug("Completed QoS 1 publication id " + pubAckPacket.id().string() + " (Id check-in not implemented)")
+  Debug("Completed QoS 1 publication id " + pubAckPacket.id().string())
   
   try 
     var id : IdType = _inFlight.pop()?
     Debug("Popped id " + id.string() + " at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+    publishComplete(id)
   else
     Debug("In-flight queue is empty")
   end

@@ -30,10 +30,6 @@ A typeDef for the three quality of service flags
 """
 
 /********************************************************************************/
-trait Routable
-  be route(basePacket : BasePacket val)
-
-/********************************************************************************/
 trait Packet
 """
 The minum set of functions needed to extract the information in the fixed header
@@ -75,6 +71,7 @@ trait IdPacket
   A trait that returns the id of a packet from the packet types that have an id
   """
   fun id() : IdType
+
 
 /********************************************************************************/
 trait Payloaded

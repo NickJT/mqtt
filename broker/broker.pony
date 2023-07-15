@@ -16,7 +16,7 @@ class Broker is TCPConnectionNotify
 new iso create(env: Env) =>
     _env = env
     Debug("Broker started")
-    _router = Router(_reg, Map[String val, String val],Map[String val, String val])
+    _router = Router(_reg, Map[String val, String val])
     _assembler = Assembler(_router)
     _reg.update(KeyRouter(), _router)
 

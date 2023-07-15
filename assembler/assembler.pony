@@ -30,12 +30,12 @@ TODO - Benchmark the two approaches  the performance release (maybe)
 Assembler should be the only actor that needs to deal with raw Array[U8], 
 other than when router extracts the data in its send behaviour.
 """
-  let _router : Routable tag
+  let _router : Router tag
   var _remainder : ArrayVal = Array[U8]
   var _pkt : ArrayVal = Array[U8]
   var packets : Array[ArrayVal] = packets.create()
 
-  new create(router : Routable tag) =>
+  new create(router : Router tag) =>
     _router = router
 
 

@@ -45,7 +45,7 @@ multiple topics in one subscribe message.
   var _id : U16 = 0
   var _isValid : Bool = false
 
-  new create(basePacket : BasePacket val) =>
+  new val create(basePacket : BasePacket val) =>
     var result : U8 = 0x80  // Default to rejected
 
     if (basePacket.isNotValid()or (basePacket.isNotA(ControlSubAck))) then 
@@ -87,7 +87,7 @@ multiple topics in one subscribe message.
     end    
 
 /********************************************************************************/
-  fun id() : IdType =>
+  fun id() : IdType val =>
     _id
 
    
