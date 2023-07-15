@@ -1,5 +1,5 @@
 
-// TODO - Add strings for the actors in the registrar 
+// Strings for the actors in the registrar 
 // so we don't have string literals in the code
 
 primitive KeyRouter fun apply() : String val => "router"

@@ -66,7 +66,6 @@ var _isSessionPresent: Bool = false
   fun sessionPresent() : Bool => _isSessionPresent
 
   fun returnCode() : ConnAckReturnCode =>
-  // TODO - A bit lazy, should really have None in case there is a broker error
     match _returnCode
     | ConnAckRefusedProtocolVersion() => ConnAckRefusedProtocolVersion
     | ConnAckRefusedIdentifierRejected() => ConnAckRefusedIdentifierRejected
