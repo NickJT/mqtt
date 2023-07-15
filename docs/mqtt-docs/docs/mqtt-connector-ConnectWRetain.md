@@ -1,0 +1,78 @@
+# ConnectWRetain
+<span class="source-link">[[Source]](src/mqtt-connector/connectCodes.md#L-0-5)</span>
+```pony
+primitive val ConnectWRetain
+```
+
+## Constructors
+
+### create
+<span class="source-link">[[Source]](src/mqtt-connector/connectCodes.md#L-0-5)</span>
+
+
+```pony
+new val create()
+: ConnectWRetain val^
+```
+
+#### Returns
+
+* [ConnectWRetain](mqtt-connector-ConnectWRetain.md) val^
+
+---
+
+## Public Functions
+
+### apply
+<span class="source-link">[[Source]](src/mqtt-connector/connectCodes.md#L-0-5)</span>
+
+
+```pony
+fun box apply()
+: U8 val
+```
+
+#### Returns
+
+* [U8](builtin-U8.md) val
+
+---
+
+### eq
+<span class="source-link">[[Source]](src/mqtt-connector/connectCodes.md#L-0-5)</span>
+
+
+```pony
+fun box eq(
+  that: ConnectWRetain val)
+: Bool val
+```
+#### Parameters
+
+*   that: [ConnectWRetain](mqtt-connector-ConnectWRetain.md) val
+
+#### Returns
+
+* [Bool](builtin-Bool.md) val
+
+---
+
+### ne
+<span class="source-link">[[Source]](src/mqtt-connector/connectCodes.md#L-0-5)</span>
+
+
+```pony
+fun box ne(
+  that: ConnectWRetain val)
+: Bool val
+```
+#### Parameters
+
+*   that: [ConnectWRetain](mqtt-connector-ConnectWRetain.md) val
+
+#### Returns
+
+* [Bool](builtin-Bool.md) val
+
+---
+
