@@ -76,15 +76,13 @@ actor Router is Routable
   let _subscriberById : IdMap = IdMap
   let _publisherById : PublicationMap = PublicationMap
 
-  let _subscriptions :  Map[String val, String val] val
   let _config :  Map[String val, String val] val
 
   var _tcpMaybe : (TCPConnection | None) = None
 
-  new create(reg : Registrar, config :  Map[String val, String val] val, subs :  Map[String val, String val] val) =>
+  new create(reg : Registrar, config :  Map[String val, String val] val) =>
     _reg = reg
     _config = config
-    _subscriptions = subs
     _connector = Connector(this)
     _issuer = IdIssuer
     _reg.update(KeyIssuer(), _issuer)
@@ -118,7 +116,7 @@ be route(basePacket : BasePacket val) =>
       return
     end
     
-    //Debug("Router got a " + basePacket.controlType().string())
+    Debug("Router got a " + basePacket.controlType().string())
     //Debug(basePacket.data())
 
     // Currently including the broker packets so we can use the same actor 
@@ -149,36 +147,43 @@ fun ref _findSubscriberByTopic(basePacket : BasePacket val) =>
   """
   Process a Publish Packet and route to the appropriate subscriber. All publish packets
   have a topic and this is how we locate the subscriber. There is always a 1:1 mapping
-  between topics and subscribers (at least in spec 3.1)  
+  between topics and subscribers (at least in spec 3.1.1)  
   Note - From the specification: 
   The Client and Server assign Packet Identifiers independently of each other. As a result,
   Client Server pairs can participate in concurrent message exchanges using the same Packet
   Identifiers. It is possible for a Client to send a PUBLISH Packet with Packet 
   Identifier 0x1234 and then receive a different PUBLISH with Packet Identifier 0x1234
   from its Server before it receives a PUBACK for the PUBLISH that it sent.
-  So - our outgoing publish with Id=3 is not the same as an incomming publish with id =3
+  So - our outgoing publish with Id=3 is not the same as an incomming publish with id=3
   but this is OK because we are using the incomming id as a key into a subscriber map.
-  We will have a separate publisher map to keep track of outgoing ids
+  We will have a separate publisher map to keep track of outgoing ids.
   """     
+
   
   var pubPacket : PublishPacket val = PublishPacket.createFromPacket(basePacket)
-  var topicOrNone : (String val | None) = pubPacket.topic()  // Publish will always have a topic
-  var idOrNone : (IdType | None) = pubPacket.id()  //PublishPacket will return None for QoS 0
-
-  try
-    var topic : String val = topicOrNone as String val
-    _subscriberByTopic(topic)?.onData(basePacket)
-  else 
-    Debug("Can't match topic and subscriber at" + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
-  end
-
-  try
-    // The subscriber to this topic is now working another id. The old id may not be finished with 
-    // yet so we just add the new one (as long as it is not QoS 0)
-    _subscriberById.update(idOrNone as IdType,_subscriberByTopic(topicOrNone as String val)?)    // Fail silently for QoS 0 where id = None
+  if (not pubPacket.isValid()) then
+    Debug("Invalid packet found at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+    return
   end  
 
+  var topicOrNone : (String val | None) = pubPacket.topic()  // Publish will always have a topic
+  var idOrNone : (IdType | None) = pubPacket.id()  //PublishPacket will return None for QoS 0
+  
+  try
+    var topic : String val = topicOrNone as String val
+    var subscriber = _subscriberByTopic(topic)?
+    subscriber.onData(basePacket)
+    if (pubPacket.qos() is Qos0 ) then return end 
+    var id = idOrNone as IdType
+    _subscriberById.insert(id, subscriber)
+   else 
+    Debug("Found an assigned subscription at" + __loc.file() + ":" +__loc.method_name())
+    // either we have been assigned a topic by the Broker, or we are Mock Broker and our client has published a message
+    _doAssignedSubscription(basePacket)
+    return
+  end
 
+ 
 /********************************************************************************/
 fun _findSubscriberById(basePacket : BasePacket val) =>
   """
@@ -196,6 +201,53 @@ fun _findSubscriberById(basePacket : BasePacket val) =>
     Debug("Id was " + BytesToU16(basePacket.data().trim(2,4)).string())
   end
 
+
+/********************************************************************************/
+fun ref _doAssignedSubscription(basePacket : BasePacket val) =>
+  """
+  Only called if we recieve a Publish message and we have no record of a Subscriber that
+  has subscribed to that topic.  
+  From the specification: A Client could receive messages that do not match any of 
+  its explicit Subscriptions. This can happen if the Broker:  
+  1. automatically assigned a subscription to the Client
+  2. send a Publish or PubRel message while the unsubscribe message is in-flight  
+  
+  The Client MUST acknowledge any Publish Packet it receives according to the
+  applicable QoS rules regardless of whether it elects to process the message it contains.  
+  
+  We don't remove Subscription from router tables until we get a sub-ack so we should
+  be covered for 2 unless the broker continues to send pubRel after an unsubscribe 
+  (which it might?).
+  TODO - Does the broker send a PubRel after getting an unsubscribe? If so we probably
+  have a potential error condition here. 
+  
+  So, assuming we only have to handle case 1. We can include the subscription in the
+  local subscriber map then re-route the packet to let nature take its course. We don't
+  use _addSubscription because we don't want subscriber to send a another subscription
+  request to the Broker.
+  TODO - remember we need to remove this from the maps at some point in the cleanup process
+
+  Also - during dev, this could be because are are a Mock Broker
+  """ 
+
+    var publishPacket : PublishPacket val = PublishPacket.createFromPacket(basePacket)
+  if (not publishPacket.isValid()) then
+    Debug("Invalid packet found at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+    return
+  end  
+
+  
+  var topic : String val = ""
+  try 
+    topic = publishPacket.topic() as String val
+    var subscriber : Subscriber = Subscriber(_reg, topic, publishPacket.qos().string() )
+    _subscriberByTopic.update(topic, subscriber)
+    // now we route it again, safe in the knowledge that there is a subscriber waiting
+    //to provide the acks
+    route(basePacket)
+  else
+    Debug("Got a Publish topic and couldn't create subscriber at " + __loc.file() + ":" +__loc.method_name())
+  end
 
 /*********************************************************************************/
 fun _findPublisherById(basePacket : BasePacket val) =>
@@ -254,6 +306,7 @@ be onTick(sec : I64) =>
 
 /*********************************************************************************/
 be onSubscribeComplete(id: IdType) =>
+
   """
   Called by a subscriber when an id has completed its processing. This tells router
   to remove the link between the id and the subscriber
@@ -263,8 +316,40 @@ be onSubscribeComplete(id: IdType) =>
     _issuer.checkIn(id)
     Debug("Completed processing subscription id " + id.string())
   else
-    Debug("Router can't remove id " + id.string() + "at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+    Debug("Router can't remove id " + id.string() + " at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
   end  
+
+/*********************************************************************************/
+be onUnsubscribeComplete(id : IdType) =>
+  """
+  Called when a subscriber has got confirmation that its Unsubscribe request has
+  been acknowledged by the Broker. At this point, router can remove the entry for
+  the topic from the subscriberByTopic map and remove the id from the subscriberById
+  map and check-in the id
+  Subscriber is an actor so we can't get its topic. To
+  """
+
+  var topic : String val = ""
+  try
+    var subscriberToRemove = _subscriberById(id)?
+    for (key, subscriber) in _subscriberByTopic.pairs() do 
+      if (subscriber is subscriberToRemove) then 
+        topic = key
+      end
+    end
+  else
+    Debug("Router can't find subscriber with id of " + id.string() + " to remove at " + __loc.file() + ":" +__loc.method_name())
+  end 
+
+  try
+    _subscriberById.remove(id)?
+    _subscriberByTopic.remove(topic)?
+    Debug("Completed processing subscription id " + id.string())
+  else
+    Debug("Router can't remove id " + id.string() + "or topic " + topic + " at " + __loc.file() + ":" +__loc.method_name())
+  end  
+  // Whatever, we've finished with the id
+  _issuer.checkIn(id)
 
 /*********************************************************************************/
 be onPublishComplete(id: IdType) =>
@@ -294,26 +379,27 @@ be onTcpConnect(tcp : TCPConnection) =>
 be onBrokerConnect() =>
   """
   When this is called we should have a valid Broker connection with our local 
-  state reflecting the (potentially saved) state in Broker. So we can:
-  1. Spawn the set of initial subscribe actors that we got from the config.ini file (what seems like 
-  a long time ago)
-  2. Add the initial Subscribers to the _subscriberByTopic map as tags as they are created
-  3. Tell Main that we have a Broker ready to receive Publish messsages
+  state reflecting the (potentially saved) state in Broker. So we cant tell Main
+  that we have a Broker ready to receive Publish messsages
   """
+  _reg[Main](KeyMain()).next[None]({(m : Main) => m.onBrokerConnect("Broker Connected")},{()=>Debug("No main in registrar")})
 
-    for (topic , qos) in _subscriptions.pairs() do 
-      var subscriber : Subscriber = Subscriber(_reg, this, topic, qos)
-      _subscriberByTopic.update(topic, subscriber)
-      var promise = _reg[IdIssuer tag](KeyIssuer())  // a promise to return a IdIssuer tag
-      promise.next[None](
-        {(issuer) => 
-          issuer.checkOut(subscriber)
-        })
-    end
-
-   _reg[Main](KeyMain()).next[None]({(m : Main) => m.onBrokerConnect("Broker Connected")},{()=>Debug("No main in registrar")})
-
-
+/*********************************************************************************/
+be subscribe(topic : String val, qos : String val) =>
+  """
+  Called when router needs to add a subscription - either for the initial subscriptions
+  or for an assigned subscription.
+  TODO - It might be better to have this in Connector and then router doesn't need
+  to have a special case for handling subscriptions (but then we need to call
+  Connector out of context for assigned subscriptions - so, no)
+  """
+  // create a new subscriber actor
+  var subscriber : Subscriber = Subscriber(_reg, topic, qos)
+  // pass our subscriber to the IdIssuer. IdIssuer will call the apply behaviour of the 
+  // actor and that will make a subscribe packet with the id and pass it to 
+  // router to send to the broker
+  _reg[IdIssuer tag](KeyIssuer()).next[None]({(issuer) =>issuer.checkOut(subscriber)},{()=>Debug("No issuer found")})
+   
 
 /*********************************************************************************/
 be onBrokerRestore() =>
@@ -350,7 +436,7 @@ be onPublish(pub : Publisher tag, topic: String, id : U16, packet : ArrayVal) =>
   a central register of all publishers 
   """
     _publisherById.update(id,pub)
-    //Debug("Publishing id " + id.string())
+    Debug("Publishing id " + id.string())
     send(packet)
 
 /*********************************************************************************/
@@ -362,7 +448,7 @@ be disconnectBroker() =>
   network)
   """
   Debug("Disconnecting Broker")
-    // TODO -  
+    // TODO - Add disconnect cleanup 
     // dispose all of the pubs and subs from reg
     // stop the ping timer
     // dispose issuer from reg// remove tcp from reg to stop any write attempts

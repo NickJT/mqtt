@@ -16,15 +16,13 @@ actor Subscriber is (IdNotify & TickListener)
   the client subscribes to multiple topics in one subscribe message.
   """
   var _reg : Registrar
-  var _router : Router tag
   var _pktMap : Map[IdType, PublishPacket val] 
   var _topic : String
   var _qos : String
   var _id : U16
 
-  new create(reg : Registrar, router: Router tag, topic: String, qos : String) =>
+  new create(reg : Registrar, topic: String, qos : String) =>
     _reg = reg
-    _router = router
     _pktMap = Map[IdType, PublishPacket val]
 
     _topic = topic
@@ -40,7 +38,10 @@ be apply(id : U16) =>
   """
   _id = id
   //Debug("SubscriberBasePacket " + _id.string() + " is subscription to " + _topic + " (" + _qos + ") with id = " + id.string())
-  _router.onSubscribe(this, _topic ,id, SubscribePacket.compose(id, _topic, _qos))
+  //_router.onSubscribe(this, _topic ,id, SubscribePacket.compose(id, _topic, _qos))
+  var subscribePacket = SubscribePacket.compose(id, _topic, _qos)
+  var subscriber : Subscriber tag = this
+  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onSubscribe(subscriber, _topic ,id, subscribePacket)}, {()=>Debug("No router at " + __loc.file() + ":" +__loc.method_name())})
 
 
 /********************************************************************************/
@@ -98,7 +99,7 @@ be onData(basePacket : BasePacket val) =>
   | ControlSubAck => onSubAck(basePacket)
   | ControlPublish => onPublish(basePacket)
   | ControlPubRel => onPubRel(basePacket)
-  | ControlUnsubAck => Debug("UnsubAck not implemented at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+  | ControlUnsubAck => onUnsubAck(basePacket)
   else
     Debug ("Unexpected " + basePacket.controlType().string() + " at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
   end    
@@ -119,6 +120,30 @@ fun onSubAck(basePacket : BasePacket val)  =>
     consume resultString
   end
   _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.sendToMain(_topic, subAckResult)})
+
+
+/********************************************************************************/
+fun ref onUnsubAck(basePacket : BasePacket val)  =>
+  """
+  Our unsubscribe has been acknowledged so we need to tell router to remove us from
+  the map of subscribers.
+  TODO - We may also have some packets in our queue and we need to decide what to do
+  about these
+  """
+  var unsubAckPacket = UnsubscribePacket.createFromPacket(basePacket)
+  if (not unsubAckPacket.isValid()) then
+    Debug("Invalid UnsubAck packet at " + __loc.file() + ":" +__loc.method_name())
+    return
+  end  
+  
+  try 
+    var id = unsubAckPacket.id() as IdType
+    _pktMap.remove(id)?
+    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onUnsubscribeComplete(id)})
+  else
+    Debug("Unknown in in UnsubAck packet at " + __loc.file() + ":" +__loc.method_name())
+  end 
+  
 
 /********************************************************************************/
 fun ref onPublish(basePacket: BasePacket val) : None =>
@@ -159,8 +184,8 @@ fun doPubAck(id : IdType) =>
       Debug("Zero Id found in " + __loc.file() + ":" +__loc.method_name())
       return
   end
-  
-  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.send(PubAckPacket.compose(id))})
+  Debug("Pub ack at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.send(PubAckPacket.compose(id))}, {()=>Debug("No router at " + __loc.file() + ":" +__loc.method_name())})
  
 
 /********************************************************************************/
@@ -195,9 +220,6 @@ fun ref onPubRel(basePacket : BasePacket val) =>
 
   releasePktById(pubRelPacket.id())
   subscribeComplete(pubRelPacket.id())
-  // TODO - We have finished with this id so we can check it in
-  // Don't use this while testing as re-using ids may be confusing in the log
-  //_reg[IdIssuer](KeyRouter()).next[None]({(idi: IdIssuer)=>idi.checkIn(pubRelPacket.id())})
 
 
 /********************************************************************************/
@@ -280,8 +302,8 @@ fun releasePkt(pubPacket : PublishPacket val) =>
   try
     var topic : String val = pubPacket.topic() as String
     var payloadString : String val = pubPacket.payloadAsString() as String
-    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.sendToMain(topic, payloadString)})
-    //Debug (topic.string() + " = " + payloadString.string() + " at " + __loc.method_name())
+    //TODO - This is a temporary kludge to get Mock Broker to print payloads
+    _reg[Router](KeyRouter()).next[None]({ (r: Router)=>r.sendToMain(topic, payloadString)},{()=>Debug("Mock Broker got " + payloadString)})
   else
     Debug ("Packet error in " + __loc.method_name())
   end

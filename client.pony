@@ -37,17 +37,15 @@ class Client is TCPConnectionNotify
   The registrar defined in Main and passed on to router
   """
   let _config : Map[String, String] val
-  let _subs : Map[String, String] val
   var _router : Router
   var _assembler : Assembler
 
-new iso create(env: Env, reg : Registrar, config : Map[String val, String val] val, subs : Map[String val, String val] val) =>
+new iso create(env: Env, reg : Registrar, config : Map[String val, String val] val) =>
   _env = env
   _reg = reg
   _config = config
-  _subs = subs
   
-  _router = Router(_reg, _config, _subs)
+  _router = Router(_reg, _config)
   _reg.update(KeyRouter(), _router)
 
   _assembler = Assembler(_router)

@@ -31,7 +31,7 @@ class Timestamp is TimerNotify
       //Debug(stg)
       consume stg
      end
-     var args = PublishArgs(_topic, timestring.array())
+     var args = PublishArgs(_topic, timestring.array(), Qos1)
     _pub.publish(args)
     _count < 10
 

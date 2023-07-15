@@ -35,15 +35,18 @@ use "publisher"
 use "examples"
 
 actor Main
-"""
-Main is responsible for reading the config.ini file identified in the ConfigFile primitive
-and passing the Client into the TCPConnection
+  """
+  Main is responsible for reading the config.ini file identified in the ConfigFile primitive
+  and passing the Client into the TCPConnection
+  Once the client is established and the Broker is connected, main subscribes to the topics
+  in the .ini file 
 
-Registrar usage  
-- Main adds itself to reg so its onDisconnect behaviour can be called when the client disconnects 
+  Registrar usage  
+  - Main adds itself to reg so its onDisconnect behaviour can be called when the client disconnects 
 
-"""
+  """
   let _reg : Registrar  = Registrar
+  var _subs: Map[String val, String val] val = Map[String val, String val] 
 
   new create(env: Env) =>
     if (not _initialise(env, _reg) ) then 
@@ -63,8 +66,13 @@ be onBrokerConnect(message: String val) =>
   """
   Called once router has confirmed that we have a valid connection to the broker
   """
-    //Debug("Starting timestamp publication")
-    //Timestamper(_reg)
+    Debug(message)
+    Debug("Starting timestamp publication at " + __loc.file() + " : " +__loc.method_name())
+    Timestamper(_reg)
+
+    for (topic , qos) in _subs.pairs() do 
+      _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.subscribe(topic,qos)}, {()=>Debug("No router at " + __loc.file() + ":" +__loc.method_name())})
+    end
 
 
 /************************************************************************/
@@ -78,7 +86,7 @@ fun ref _initialise(env: Env, reg : Registrar) : Bool =>
 
   try
     var config = configReader.getConfig()
-    var subs = configReader.getSubscriptions()
+    _subs = configReader.getSubscriptions()
     var address :String val = config(IniAddress())? 
     var ipv4Address : String val = ""
     try
@@ -90,7 +98,7 @@ fun ref _initialise(env: Env, reg : Registrar) : Bool =>
 
     var port: String val = config(IniPort())?
     Debug("Connecting to " + address + ":" + port)
-    TCPConnection(TCPConnectAuth(env.root), recover Client(env, _reg, config, subs )end, ipv4Address, port)  
+    TCPConnection(TCPConnectAuth(env.root), recover Client(env, _reg, config) end, ipv4Address, port)  
   else
     Debug("Unable to read address and port config in " + ConfigFile())
     return false
@@ -105,6 +113,7 @@ fun ref _initialise(env: Env, reg : Registrar) : Bool =>
   fun toIPv4(env : Env, arg : String val) : (String val | None) =>
   """
   This doesn't fit comfortably anywhere yet so we'll leave it in main for now
+  TODO - Decide where network utilities should go
   """  if (DNS.is_ip4(arg)) then return arg
     end
     

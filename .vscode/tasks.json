@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build ",
+            "label": "build",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -11,7 +11,7 @@
             "options": {
                 "cwd": "${workspaceFolder}"
             },
-            "command": "ponyc --debug ~/mqtt -o bin",
+            "command": "ponyc --debug -o ./bin",
             "problemMatcher": "$ponyc-matcher"
         },
         {
@@ -27,16 +27,6 @@
             "problemMatcher": "$ponyc-matcher"
         },
         {
-            "label": "run",
-            "group": "build",
-            "type": "shell",
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "command": "~/mqtt/bin/mqtt",
-            "problemMatcher": "$ponyc-matcher"
-        },
-        {
           "label": "build broker",
           "group": {
             "kind": "build",
@@ -49,29 +39,14 @@
           "problemMatcher": "$ponyc-matcher"
         },
         {
-            "label": "test",
-            "group": "test",
-            "type": "shell",
-            "options": {
-              "cwd": "${workspaceFolder}/tests"
-            },
-            "command": "${workspaceFolder}/bin/tests",
-            "dependsOn": ["build tests"],
-            "problemMatcher": "$ponyc-matcher"
-        },
-        {
-            "label": "build-run",
-            "group": "build",
-            "type": "shell",
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "command": "echo ${workspaceFolder}${pathSeparator}bin${pathSeparator}${workspaceFolderBaseName}",
-            "dependsOn": [
-                "build",
-                "run"
-            ],
-            "problemMatcher": "$ponyc-matcher"
+          "label": "clean",
+          "group": {
+            "kind": "build",
+            "isDefault": false
+          },
+          "type": "shell",
+          "command": "rm -I -f ~/mqtt/bin/*",
+          "problemMatcher": "$ponyc-matcher"
         },
         {
             "label": "docs ",
@@ -85,6 +60,21 @@
             },
             "command": "ponyc --docs ${workspaceFolder} -o docs",
             "problemMatcher": "$ponyc-matcher"
+        },
+        {
+          "label": "all",
+          "group": "build",
+          "type": "shell",
+          "options": {
+            "cwd": "${workspaceFolder}"
+          },
+          "command": "echo build all complete",
+          "dependsOn": [
+            "build",
+            "build broker",
+            "build tests"
+          ],
+          "problemMatcher": "$ponyc-matcher"
         },
         {
             "label": "echo",

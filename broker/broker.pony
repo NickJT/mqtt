@@ -11,12 +11,14 @@ class Broker is TCPConnectionNotify
   let _env: Env
   var _router : Router
   var _assembler : Assembler
+  var _reg : Registrar = Registrar
 
 new iso create(env: Env) =>
     _env = env
     Debug("Broker started")
-    _router = Router(Registrar, Map[String val, String val],Map[String val, String val])
+    _router = Router(_reg, Map[String val, String val],Map[String val, String val])
     _assembler = Assembler(_router)
+    _reg.update(KeyRouter(), _router)
 
 fun ref connecting(conn: TCPConnection ref, count: U32) =>
   Debug("Connecting (attempt " + count.string() + ")")
@@ -36,7 +38,7 @@ fun ref connected(conn: TCPConnection ref) =>
 
 fun ref received(conn: TCPConnection ref, data: Array[U8] iso,  times: USize): Bool  =>
   // send data to assembler here
-  _env.out.print("Received count = " + times.string())
+  //_env.out.print("Received count = " + times.string())
   _assembler.assemble(consume data)
   false  // to yield instead of waiting for max_size bytes from TCP 
 
