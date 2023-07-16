@@ -392,19 +392,32 @@ be onBrokerConnect() =>
 /*********************************************************************************/
 be subscribe(topic : String val, qos : String val) =>
   """
-  Called when router needs to add a subscription - either for the initial subscriptions
-  or for an assigned subscription.
-  TODO - It might be better to have this in Connector and then router doesn't need
-  to have a special case for handling subscriptions (but then we need to call
-  Connector out of context for assigned subscriptions - so, no)
+  Called when router receives a request for a subscription or when router receives
+  an assigned message and needs to add a subscription to handle this.
   """
   // create a new subscriber actor
   var subscriber : Subscriber = Subscriber(_reg, topic, qos)
   // pass our subscriber to the IdIssuer. IdIssuer will call the apply behaviour of the 
   // actor and that will make a subscribe packet with the id and pass it to 
   // router to send to the broker
-  _reg[IdIssuer tag](KeyIssuer()).next[None]({(issuer) =>issuer.checkOut(subscriber)},{()=>Debug("No issuer found")})
+  _reg[IdIssuer tag](KeyIssuer()).next[None]({(issuer) =>issuer.checkOutSub(subscriber)},{()=>Debug("No issuer found")})
    
+/*********************************************************************************/
+be unsubscribe(topic : String val) =>
+  """
+  Called to request an unsubscribe from the passed topic from the Broker. The actual
+  cleanup of the the subscriber maps is only done once the Broker responds by sending
+  an UnsubAck message
+  """
+  Debug("Unsubscribe not implemented in router")
+  // Get the subscriber for the topic from the map
+  try
+    var subscriber = _subscriberByTopic(topic)?
+    _reg[IdIssuer tag](KeyIssuer()).next[None]({(issuer) =>issuer.checkOutUnsub(subscriber)},{()=>Debug("No issuer found")})
+    Debug("Requested unsubscribe from " + topic + " at " + __loc.file() + ":" +__loc.method_name())
+  else
+    Debug("No subscriber found for topic " + topic + " at " + __loc.file() + ":" +__loc.method_name())
+  end  
 
 /*********************************************************************************/
 be onBrokerRestore() =>

@@ -1,19 +1,27 @@
-use "debug"
-use "collections"
-use "bureaucracy"
-use "../primitives"
-use "../utilities"
-use "../idIssuer"
-use ".."
-use "../publisher"
+/********************************************************************************/
+  use "bureaucracy"
+  use "collections"
+  use "debug"
 
-actor Subscriber is (IdNotify & TickListener)
+  use ".."
+  use "../idIssuer"
+  use "../primitives"
+  use "../publisher"
+  use "../utilities"
+
+actor Subscriber is (IdNotifySub & TickListener)
   """
   Represents an application level subscription to one topic. 
   Note - We're not implementing the multi-subscribe capability in the specification
   because the saving in a few sub/unsub messages is outweighed by losing the one topic:
   one subscriber model. The Broker cannot conflate multiple acks into one SubAck unless
-  the client subscribes to multiple topics in one subscribe message.
+  the client subscribes to multiple topics in one subscribe message so we are protected 
+  from multiple unsub messages.  
+  Clients must continue to ack messages from the Broker while the unsubscribe process is
+  underway so we don't have an unsubscribe behaviour. Instead we have a onUnsubAck 
+  behaviour which is called when the Broker has acknowledged the unsubscirbe request. 
+  Only then, when we know there will be no more messages, do we start our clean-up.
+
   """
   var _reg : Registrar
   var _pktMap : Map[IdType, PublishPacket val] 
@@ -31,17 +39,22 @@ actor Subscriber is (IdNotify & TickListener)
 
 
 /********************************************************************************/
-be apply(id : U16) =>
+be apply(id : U16, sub : Bool) =>
   """
-  The packet id is the last piece of the jigsaw. Once we have this we can build our subscribe packet and
-  send it to the broker
+  The packet id is the last piece of the jigsaw. Once we have this we can build our 
+  subscribe or unsubscribe packet and send it to the broker
+  TODO - Check _id usage. Is it safe to use a field? Can we have multiple ids active
+  with the broker at the same time??
   """
   _id = id
-  //Debug("SubscriberBasePacket " + _id.string() + " is subscription to " + _topic + " (" + _qos + ") with id = " + id.string())
-  //_router.onSubscribe(this, _topic ,id, SubscribePacket.compose(id, _topic, _qos))
-  var subscribePacket = SubscribePacket.compose(id, _topic, _qos)
-  var subscriber : Subscriber tag = this
-  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onSubscribe(subscriber, _topic ,id, subscribePacket)}, {()=>Debug("No router at " + __loc.file() + ":" +__loc.method_name())})
+  if (sub) then 
+    var subscribePacket = SubscribePacket.compose(id, _topic, _qos)
+    var subscriber : Subscriber tag = this
+    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onSubscribe(subscriber, _topic ,id, subscribePacket)}, {()=>Debug("No router at " + __loc.file() + ":" +__loc.method_name())})
+  else
+    var arrayVal = UnsubscribePacket.compose(id, _topic)
+    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.send(arrayVal)}, {()=>Debug("No router at " + __loc.file() + ":" +__loc.method_name())})
+  end
 
 
 /********************************************************************************/
@@ -63,11 +76,6 @@ be onDisconnect() =>
   """
   Debug("Disconnecting " + _topic)
 
-/********************************************************************************/
-be unSubscribe() =>
-  """
-  A controlled unsubscribe behaviour to be used with an active broker connections
-  """
 
 /********************************************************************************/
 be onData(basePacket : BasePacket val) => 

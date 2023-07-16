@@ -21,7 +21,7 @@
 	 	"scope": "pony",
 	 	"prefix": "@",
 	 	"body": [
-	 		"at \" + __loc.file() + \":\" +__loc.method_name() + \" line \" + __loc.line().string())"
+	 		" at \" + __loc.file() + \":\" +__loc.method_name()"
 	 	],
 	 	"description": "Add location trace to source"
 	 }

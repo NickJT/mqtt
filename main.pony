@@ -23,16 +23,16 @@
 2. Load and memory usage
 3. Optimise
 """
+/************************************************************************/
+  use "bureaucracy"
+  use "collections"
+  use "debug"
+  use "net"
 
-use "net"
-use "collections"
-use "bureaucracy"
-use "debug"
-
-use "primitives"
-use "configurator"
-use "publisher"
-use "examples"
+  use "configurator"
+  use "examples"
+  use "primitives"
+  use "publisher"
 
 actor Main
   """
@@ -40,10 +40,6 @@ actor Main
   and passing the Client into the TCPConnection
   Once the client is established and the Broker is connected, main subscribes to the topics
   in the .ini file 
-
-  Registrar usage  
-  - Main adds itself to reg so its onDisconnect behaviour can be called when the client disconnects 
-
   """
   let _reg : Registrar  = Registrar
   var _subs: Map[String val, String val] val = Map[String val, String val] 
@@ -55,25 +51,49 @@ actor Main
 
 /********************************************************************************/    
 be onExit(diagnostic : String val) =>
-    Debug("Exit: " + diagnostic)
+  """
+  Called by Client when the TCP connection is closed or if the network connection request fails 
+  """
+      Debug("Exit: " + diagnostic)
 
 /********************************************************************************/    
 be onMessage(topic : String val, content : String val) =>
+  """
+  This is the primary route into main for messages received over MQTT. It is called
+  by the router for subscription receipts.
+  """
     Debug(topic + " => " + content)
   
 /********************************************************************************/    
 be onBrokerConnect(message: String val) =>
   """
-  Called once router has confirmed that we have a valid connection to the broker
+  Called once when the router has confirmed that we have a valid connection to the
+  broker. This is the location for any app setup such as starting publication actors
+  or subscribing to topics.
   """
     Debug(message)
 
     for (topic , qos) in _subs.pairs() do 
-      _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.subscribe(topic,qos)}, {()=>Debug("No router at " + __loc.file() + ":" +__loc.method_name())})
+      subscribe(topic, qos)    
     end
 
     Debug("Starting timestamp publication at " + __loc.file() + " : " +__loc.method_name())
     Timestamper(_reg)
+
+/************************************************************************/
+fun subscribe(topic : String val, qos : String val) =>  
+  """
+  Requests a Subscription to topic at a Quality of Service of qos. The
+  response is returned via the OnMessage behaviour
+  """
+  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.subscribe(topic,qos)}, {()=>Debug("No router at " + __loc.file() + ":" +__loc.method_name())})
+/************************************************************************/
+fun unsubscribe(topic : String val) =>  
+  """
+  Requests an unsubscription from topic. The response is returned via the OnMessage
+  behaviour
+  """
+  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.unsubscribe(topic)}, {()=>Debug("No router in " + __loc.file())})
 
 
 /************************************************************************/

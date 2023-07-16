@@ -2,15 +2,15 @@ use "debug"
 use "../primitives"
 
 /********************************************************************************/
-interface IdNotify
+interface IdNotifySub
   """
   Notifications for issuance of a packet Id.
   """
-  be apply(id: U16)
+  be apply(id: U16, sub : Bool)
 
 
 /********************************************************************************/
-interface IdNotifyArgs
+interface IdNotifyPub
   """
   Notifications for issuance of a packet Id.
   """
@@ -65,18 +65,26 @@ Reissuing Returned Ids
   
 
 /********************************************************************************/
-  be checkOut(notify :IdNotify tag) =>
+  be checkOutSub(notifySub :IdNotifySub tag) =>
   """
   A request for an id to be returned in the provided callback. Because ids are returned  
-  and reassigned subsequent calls to checkOut may not return consecutive values
+  and reassigned subsequent calls to checkOutSub may not return consecutive values
   """
-  notify(_nextId())
+  notifySub(_nextId(), true)
 
 /********************************************************************************/
-  be checkOutArgs(notifyArgs : IdNotifyArgs tag, args : PublishArgs val) =>
+  be checkOutUnsub(notifySub :IdNotifySub tag) =>
+  """
+  A request for an id to be returned in the provided callback. Because ids are returned  
+  and reassigned subsequent calls to checkOutSub may not return consecutive values
+  """
+  notifySub(_nextId(), false)
+
+/********************************************************************************/
+  be checkOutPub(notifyArgs : IdNotifyPub tag, args : PublishArgs val) =>
   """
   A request for an id to be returned with arguments in the provided callback. Because ids are returned  
-  and reassigned subsequent calls to checkOut may not return consecutive values
+  and reassigned subsequent calls to checkOutSub may not return consecutive values
   """
   notifyArgs(PublishArgs.createWithId(args,_nextId())) 
 

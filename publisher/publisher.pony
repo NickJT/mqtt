@@ -1,18 +1,19 @@
-use "debug"
-use "bureaucracy"
-use "collections"
+/********************************************************************************/
+  use "debug"
+  use "bureaucracy"
+  use "collections"
 
-use ".."
-use "../idIssuer"
-use "../primitives"
-use "../utilities"
+  use ".."
+  use "../idIssuer"
+  use "../primitives"
+  use "../utilities"
 
-actor Publisher is IdNotifyArgs
+actor Publisher is IdNotifyPub
   """
   Represents an application level publication topic. Provides a public Publish topic
   that:
   1. passes its arguments to IdIssuer to get the next unique id
-  2. provides a IdNotifyArgs behaviour that sends the completed publish packet to router
+  2. provides a IdNotifyPub behaviour that sends the completed publish packet to router
 
   Publisher is responsible for managing its in-flight window. For 3.1.1 we will keep this
   to one packet for now but with a view to parameterizing this for MQTT 5 compliance.
@@ -29,7 +30,7 @@ actor Publisher is IdNotifyArgs
   """
   let _reg : Registrar
   let _topic : String val
-  let _idNotify : IdNotifyArgs tag = this 
+  let _idNotify : IdNotifyPub tag = this 
   let _publisher : Publisher tag = this 
 
 
@@ -53,7 +54,7 @@ be publish(args : PublishArgs val) =>
   """
   Public API call to publish a payload
   """
-  _reg[IdIssuer tag](KeyIssuer()).next[None]({(issuer) => issuer.checkOutArgs(_idNotify, args)},
+  _reg[IdIssuer tag](KeyIssuer()).next[None]({(issuer) => issuer.checkOutPub(_idNotify, args)},
     {()=> Debug("No issuer!")})
 
 
