@@ -14,21 +14,21 @@
   use "ticker"
   use "utilities"
 
-/********************************************************************************/
-type IdMap is Map[U16, Subscriber tag]
-  """
-  A map of subscribers keyed by the id of the message they are processing. We need 
-  this because ack messages don't contain topic
-  """
+  /********************************************************************************/
+  type IdMap is Map[U16, Subscriber tag]
+    """
+    A map of subscribers keyed by the id of the message they are processing. We need 
+    this because ack messages don't contain topic
+    """
 
-/********************************************************************************/
-type SubscriberMap is Map[String, Subscriber tag]
-  """
-  A map of subscribers keyed by the topic to which they are subscribed
-  """
+  /********************************************************************************/
+  type SubscriberMap is Map[String, Subscriber tag]
+    """
+    A map of subscribers keyed by the topic to which they are subscribed
+    """
 
-/********************************************************************************/
-type PublicationMap is Map[IdType, Publisher tag]
+  /********************************************************************************/
+  type PublicationMap is Map[IdType, Publisher tag]
   """
   A map of publications in progress and which publisher owns them. This is needed
   because the Ack protocol messages are keyed by id and don't contain topic
@@ -142,6 +142,8 @@ be route(basePacket : BasePacket val) =>
       Debug("Shouldn't get to " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
     end
 
+/*********************************************************************************/
+/*******************   Functions for incomming Payloads   ************************/
 /*********************************************************************************/
 fun ref _findSubscriberByTopic(basePacket : BasePacket val) =>
   """
@@ -257,7 +259,6 @@ fun ref _doAssignedSubscription(basePacket : BasePacket val) =>
 
 /*********************************************************************************/
 be onPayloadComplete(id: IdType) =>
-
   """
   Called by a subscriber when it has completed processing of an incomming message
   This tells router to remove the link between the id and the subscriber.
@@ -272,47 +273,7 @@ be onPayloadComplete(id: IdType) =>
   end  
 
 /*********************************************************************************/
-fun saveState() =>
-  """
-  Called when we have lost connection with the Broker and need to save our state in
-  the sure and certain hope of a ressurection
-  """
-  Debug("Save state not implemented at " + __loc.file() + ":" +__loc.method_name())
-
-/*********************************************************************************/
-fun ref _onPingResp() =>
-  """
-  When the broker responds to a ping response we credit the token count. This value 
-  is debited by doPing() each time we ask for a ping and we quit when it reaches zero.
-  """
-  _pingTokenCount = _pingTokenCount + 1
-/*********************************************************************************/
-be doPing() =>
-  """
-  Ask the Broker for a pingResp and debit the number of times we have asked without
-  a response. If we have asked three times with no response then assume the broker
-  has gone away and start the clean-up process.  
-  We also send a disconnect packet just in case the Broker comes back in the meantime
-  and wonders where we are.
-  """
-  send(PingReqPacket.compose())
-  _pingTokenCount = _pingTokenCount - 1
-  if (_pingTokenCount == 0) then // The Broker has missed three pings - time to quit
-    Debug("Broker has missed three pings - quitting")
-    disconnectBroker()
-  end  
-
-/*********************************************************************************/
-be onTick(sec : I64) =>
-  """
-  OnTick is called on every system tick by Ticker. Router then calls the onTick
-  behaviour on each of the publishers and subscribers in its maps.
-  """
-  //Debug("-> " + sec.string())
-  for subscriber in _subscriberByTopic.values() do
-    subscriber.onTick(sec)
-  end
-
+/*****************   Functions for outgoing Publish messages   *******************/
 /*********************************************************************************/
 be onPublish(pub : Publisher tag, topic: String, id : U16, packet : ArrayVal) =>
   """
@@ -331,7 +292,7 @@ fun _findPublisherById(basePacket : BasePacket val) =>
   to find the publisher who is working this id.
   """ 
   try 
-    _publisherById(BytesToU16(basePacket.data().trim(2,4)))?.onData(basePacket)
+    _publisherById(BytesToU16(basePacket.data().trim(2,4)))?.onAck(basePacket)
   else
     Debug("Couldn't match id and subscriber at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
     Debug("Id was " + BytesToU16(basePacket.data().trim(2,4)).string())
@@ -353,45 +314,7 @@ be onPublishComplete(id: IdType) =>
   end  
 
 /*********************************************************************************/
-be onTcpConnect(tcp : TCPConnection) =>
-  """
-    Once we know that we have a TCP connection we can safely start the Connector 
-    actor to ask the Broker for a session. The reponse (a CONNACK) will return 
-    via a call to our .route behaviour from assemblr
-  """
-    _connector.connect(_config)
-    _tcpMaybe = tcp    
-
-/*********************************************************************************/
-be onBrokerConnect() =>
-  """
-  When this is called we should have a valid Broker connection with our local 
-  state reflecting the (potentially saved) state in Broker. So we cant tell Main
-  that we have a Broker ready to receive Publish messsages
-  """
-  _reg[Main](KeyMain()).next[None]({(m : Main) => m.onBrokerConnect("Broker Connected")},{()=>Debug("No main in registrar")})
-
-
-
-/*********************************************************************************/
-be onBrokerRestore() =>
-  """
-  When this is called we should have a valid Broker connection with a saved state in Broker.
-  Do the necessary to restore the session then call onBrokerConnect
-  """
-  Debug("Got a Session is present flag - how do we restore a session??")
-  onBrokerConnect()
-
-
-/*********************************************************************************/
-be onBrokerRefusal(reason : ConnAckReturnCode) =>
-  """
-  Called by Connector if the Broker has refused the connection
-  """
-  Debug("Router got a refusal - " + reason.string())
-
-
-
+/*******************   Functions for Subscribe/Unsubscribe    ********************/
 /*********************************************************************************/
 be onSubscribe(sub : Subscriber tag, topic: String, id : U16, packet : ArrayVal) =>
   """
@@ -440,7 +363,6 @@ be onUnsubscribeComplete(id : IdType) =>
   for the topic from the subscriberByTopic map and remove the id from the subscriberById
   map and check-in the id.
   """
-
   var topic : String val = ""
   try
     var subscriberToRemove = _subscriberById(id)?
@@ -465,6 +387,89 @@ be onUnsubscribeComplete(id : IdType) =>
 
 
 /*********************************************************************************/
+/*******************   KeepAlive and Tick functions    ***************************/
+/*********************************************************************************/
+be doPing() =>
+  """
+  Ask the Broker for a pingResp and debit the number of times we have asked without
+  a response. If we have asked three times with no response then assume the broker
+  has gone away and start the clean-up process.  
+  We also send a disconnect packet just in case the Broker comes back in the meantime
+  and wonders where we are.
+  """
+  send(PingReqPacket.compose())
+  _pingTokenCount = _pingTokenCount - 1
+  if (_pingTokenCount == 0) then // The Broker has missed three pings - time to quit
+    Debug("Broker has missed three pings - quitting")
+    disconnectBroker()
+  end  
+
+/*********************************************************************************/
+fun ref _onPingResp() =>
+  """
+  When the broker responds to a ping response we credit the token count. This value 
+  is debited by doPing() each time we ask for a ping and we quit when it reaches zero.
+  """
+  _pingTokenCount = _pingTokenCount + 1
+
+/*********************************************************************************/
+be onTick(sec : I64) =>
+  """
+  OnTick is called on every system tick by Ticker. Router then calls the onTick
+  behaviour on each of the publishers and subscribers in its maps.
+  """
+  //Debug("-> " + sec.string())
+  for subscriber in _subscriberByTopic.values() do
+    subscriber.onTick(sec)
+  end
+
+  for publisher in _publisherById.values() do
+    publisher.onTick(sec)
+  end
+
+/*********************************************************************************/
+/*******************   Connect and Disconnect functions    ************************/
+/*********************************************************************************/
+be onTcpConnect(tcp : TCPConnection) =>
+  """
+    Once we know that we have a TCP connection we can safely start the Connector 
+    actor to ask the Broker for a session. The reponse (a CONNACK) will return 
+    via a call to our .route behaviour from assemblr
+  """
+    _connector.connect(_config)
+    _tcpMaybe = tcp   
+
+
+/*********************************************************************************/
+be onBrokerConnect() =>
+  """
+  When this is called we should have a valid Broker connection with our local 
+  state reflecting the (potentially saved) state in Broker. So we cant tell Main
+  that we have a Broker ready to receive Publish messsages
+  """
+  _reg[Main](KeyMain()).next[None]({(m : Main) => m.onBrokerConnect("Broker Connected")},{()=>Debug("No main in registrar")})
+
+
+/*********************************************************************************/
+be onBrokerRestore() =>
+  """
+  When this is called we should have a valid Broker connection with a saved state in Broker.
+  Do the necessary to restore the session then call onBrokerConnect
+  """
+  Debug("Got a Session is present flag - how do we restore a session??")
+  onBrokerConnect()
+
+
+/*********************************************************************************/
+be onBrokerRefusal(reason : ConnAckReturnCode) =>
+  """
+  Called by Connector if the Broker has refused the connection
+  """
+  Debug("Router got a refusal - " + reason.string())
+
+
+
+/*********************************************************************************/
 be disconnectBroker() =>
   """
   This is called to disconnect cleanly from the Broker. DISCONNECT must be the last
@@ -484,6 +489,16 @@ be disconnectBroker() =>
   send(DisconnectPacket.compose())
 
 /*********************************************************************************/
+fun saveState() =>
+  """
+  Called when we have lost connection with the Broker and need to save our state in
+  the sure and certain hope of a ressurection
+  """
+  Debug("Save state not implemented at " + __loc.file() + ":" +__loc.method_name())
+
+/*********************************************************************************/
+/**********************   Sending to other Actors    *****************************/
+/*********************************************************************************/
 be send(data : ArrayVal) =>
   """
   Check the TCP connection is valid and use it to send our packet
@@ -501,8 +516,11 @@ be sendToMain(s1 : String val, s2 : String val) =>
   _reg[Main](KeyMain()).next[None]({(m: Main)=>m.onMessage(s1, s2)})
 
 
+
+/*********************************************************************************/
 /*********************************************************************************/
 /*************   These mock broker functions are for dev testing only   **********/
+/*********************************************************************************/
 /*********************************************************************************/
 fun onControlConnect(basePacket : BasePacket val) =>
   """

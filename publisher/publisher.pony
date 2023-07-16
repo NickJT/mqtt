@@ -94,7 +94,7 @@ be apply(args : PublishArgs val) =>
 
 
 /********************************************************************************/
-be onData(basePacket : BasePacket val) =>
+be onAck(basePacket : BasePacket val) =>
   """
   Called by router via the findPublisherById map when it receives one of the three
   publish acknowledge packets (PubAck for QoS1, PubRec or PubComp for Qos2)
@@ -108,6 +108,13 @@ be onData(basePacket : BasePacket val) =>
     Debug ("Unexpected " + basePacket.controlType().string() + " at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
   end    
 
+/********************************************************************************/
+be onTick(sec : I64) =>
+  """
+  This is the target for the TickListener trait that is called by the system tick
+  tick timer. Each time we get this we scan the in-flight queue for expired messages
+  """
+  Debug(_topic.string() + " publisher got system tick " + sec.string())
 
 /********************************************************************************/
 fun ref onPubAck(basePacket : BasePacket val) =>
@@ -254,15 +261,8 @@ fun publishComplete(id : IdType) =>
   // Not using a guard because we wouldn't have got here without a valid id
   _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onPublishComplete(id)})
 
-/********************************************************************************/
-fun topic() : String val =>
+
   _topic
 
-/********************************************************************************/
-be onTick(sec : I64) =>
-  """
-  This is the target for the TickListener trait that is called by the system tick
-  tick timer. Each time we get this we scan the in-flight queue for expired messages
-  """
-  Debug(_topic.string() + " subscriber got system tick " + sec.string())
+
 
