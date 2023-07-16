@@ -116,7 +116,7 @@ be route(basePacket : BasePacket val) =>
       return
     end
     
-    Debug("Router got a " + basePacket.controlType().string())
+    //Debug("Router got a " + basePacket.controlType().string())
     //Debug(basePacket.data())
 
     // Currently including the broker packets so we can use the same actor 
@@ -161,7 +161,6 @@ fun ref _findSubscriberByTopic(basePacket : BasePacket val) =>
   We will have a separate publisher map to keep track of outgoing ids.
   """     
 
-  
   var pubPacket : PublishPacket val = PublishPacket.createFromPacket(basePacket)
   if (not pubPacket.isValid()) then
     Debug("Invalid packet found at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
@@ -200,7 +199,7 @@ fun _findSubscriberById(basePacket : BasePacket val) =>
     _subscriberById(BytesToU16(basePacket.data().trim(2,4)))?.onData(basePacket)
   else
     Debug("Couldn't match id and subscriber at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
-    Debug("Id was " + BytesToU16(basePacket.data().trim(2,4)).string())
+    Debug(basePacket.controlType().string() + " with id " + BytesToU16(basePacket.data().trim(2,4)).string())
   end
 
 
@@ -267,7 +266,7 @@ be onPayloadComplete(id: IdType) =>
   """
   try
     _subscriberById.remove(id)?
-    Debug("Completed processing payload with id " + id.string())
+    //Debug("Completed processing payload with id " + id.string())
   else
     Debug("Router can't remove id " + id.string() + " at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
   end  
@@ -281,7 +280,7 @@ be onPublish(pub : Publisher tag, topic: String, id : U16, packet : ArrayVal) =>
   have a central register of all publishers 
   """
     _publisherById.update(id,pub)
-    Debug("Publishing on topic : " + topic + " with id " + id.string() + " in " + __loc.file() + ":" +__loc.method_name())
+    //Debug("Publishing on topic : " + topic + " with id " + id.string() + " in " + __loc.file() + ":" +__loc.method_name())
     send(packet)
 
 
@@ -308,7 +307,7 @@ be onPublishComplete(id: IdType) =>
   try
     _publisherById.remove(id)?
     _issuer.checkIn(id)
-    Debug("Completed processing publish id " + id.string() + " in " + __loc.file() + ":" +__loc.method_name())
+    //Debug("Completed processing publish id " + id.string() + " in " + __loc.file() + ":" +__loc.method_name())
   else
     Debug("Router can't remove id " + id.string() + "at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
   end  
@@ -337,7 +336,7 @@ be onSubscribeComplete(id : IdType) =>
   """
   try
     _subscriberById.remove(id)?
-    Debug("Completed processing subscription id " + id.string())
+    //Debug("Completed processing subscription id " + id.string())
   else
     Debug("Router can't remove id " + id.string() + " from subscriber map at " + __loc.file() + ":" +__loc.method_name())
   end  
@@ -378,7 +377,7 @@ be onUnsubscribeComplete(id : IdType) =>
   try
     _subscriberById.remove(id)?
     _subscriberByTopic.remove(topic)?
-    Debug("Completed processing unsubscription id " + id.string())
+    //Debug("Completed processing unsubscribe with id " + id.string())
   else
     Debug("Router can't remove id " + id.string() + "or topic " + topic + " at " + __loc.file() + ":" +__loc.method_name())
   end  

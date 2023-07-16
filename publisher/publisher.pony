@@ -12,8 +12,10 @@ actor Publisher is IdNotifyPub
   """
   Represents an application level publication topic. Provides a public Publish topic
   that:
-  1. passes its arguments to IdIssuer to get the next unique id
-  2. provides a IdNotifyPub behaviour that sends the completed publish packet to router
+  1. takes the payload and qos
+  1. passes these arguments to IdIssuer to get the next unique id
+  2. provides an apply behaviour so IdNotifyPub can call us back and trigger sending
+   the completed publish packet to router
 
   Publisher is responsible for managing its in-flight window. For 3.1.1 we will keep this
   to one packet for now but with a view to parameterizing this for MQTT 5 compliance.
@@ -21,9 +23,6 @@ actor Publisher is IdNotifyPub
   To manage the in-flight window we only allow n messages to be pending ack and queue any
   that arrive before the ack arrives. For 3.1.1 compliance we only need to do this for QoS 1.
   
-  This first version queues the packets after then have been allocated an id. Not sure of
-  the trade-offs of doing this before or after yet... 
-
   TODO - The classes for the Pub ack types are virtually identical and could all be 
   replaced by a factory class once we have all the functions coded
 
@@ -32,19 +31,36 @@ actor Publisher is IdNotifyPub
   let _topic : String val
   let _idNotify : IdNotifyPub tag = this 
   let _publisher : Publisher tag = this 
+  let _inFlightWindow : USize = 1  
 
+  var _qos1Map : Map[IdType, PublishArgs val]
+  """
+  A map for storing our in-flight QoS 1 messages. We keep these separate from
+  QoS 2 messages because we use the size of this map to track the number of
+  QoS 1 message we have in-flight. 
+  """ 
 
-  var _pktMap : Map[IdType, ArrayVal] 
+  var _pending : Array[PublishArgs val] 
+  """
+  We store any QoS1 messages in the _pending array if we have already reached our 
+  in-flight limit. We use an array here to get fifo behaviour using push (to back)
+  and shift (from front)
+  """
+
+  var _qos2Map : Map[IdType, PublishArgs val]
+  """
+  A map for the in-flight QoS 2 messages. 
+  """
+  
   var _pubRelMap : Map[IdType, ArrayVal] 
+  """
+  A map for the in-flight QoS 2 messages 
+  """
 
-  let _pending : Array[PublishArgs val] = Array[PublishArgs val]  // use push and shift for fifo
-  
-  let _inFlight : Array[IdType] = Array[IdType] // the array of in-flight ids  
-  let _inFlightWindow : USize = 1  // max length of the _inFlight array
-
-  
   new create(reg : Registrar, topic': String val) =>
-    _pktMap = Map[IdType, ArrayVal]
+    _qos1Map = Map[IdType, PublishArgs val]
+    _pending = Array[PublishArgs val]  
+    _qos2Map = Map[IdType, PublishArgs val]
     _pubRelMap = Map[IdType, ArrayVal]
     _reg = reg
     _topic = topic'
@@ -61,37 +77,78 @@ be publish(args : PublishArgs val) =>
 /********************************************************************************/
 be apply(args : PublishArgs val) =>
   """
-  Called by IdIssuer once an id has been allocated. The id is the last of the 
-  arguments needed before building the publish packet so we have a complete
-  set of arguments to save to the queue
+  Called by IdIssuer once an id has been allocated and we have a complete
+  set of arguments to send and/or save to the queue
   """ 
+  var argsOrNone : (PublishArgs val | None) = args
+  if (args.qos is Qos2) then 
+    argsOrNone = nextQos2Args(args)
+  elseif (args.qos is Qos1) then
+    argsOrNone = nextQos1Args(args)
+  end
+  // Nothing needed for QoS 0
+  try
+    var nextArgs = argsOrNone as PublishArgs val
+    sendToRouter(nextArgs)
+  end
 
-  var nextArgs : PublishArgs val = args
+/********************************************************************************/
+fun sendToRouter(args: PublishArgs val) =>
+  """
+  Finally - we send the publish packet to router
+  """
+    _reg[Router](KeyRouter()).next[None]({(router) => router.onPublish(_publisher, args.topic, args.id, PublishPacket.compose(args))}) 
 
+/********************************************************************************/
+fun ref nextQos1Args(args : PublishArgs val) : (PublishArgs val | None) =>
+  """
+  Manages the in-flight window for QoS messages and saves the packet in case we
+  don't get a pubAck
+  """
   // limit this in-flight window to QoS 1 messages 
-  if (args.qos is Qos1) then
-    if (_inFlight.size() > _inFlightWindow) then
-      _pending.push(args)
-      Debug("Queued id ")
-      return
-    end
+  if (not (args.qos is Qos1)) then
+    Debug("Incorrect QoS message received by " + __loc.file() + ":" +__loc.method_name())
+    return None
+  end
 
-    if (_pending.size() > 0) then
-      _pending.push(nextArgs)
-      try nextArgs = _pending.shift()? end
-    end
+  // If we have we reached our in-flight limit then push the current set of args onto 
+  // the pending queue
+  if (inFlightLimitReached()) then
+    _pending.push(args)
+    Debug("Queued QoS 1 id " + args.id.string() + " in-flight " + _qos1Map.size().string() + " queued " + _pending.size().string())
+    return None
+  end
 
-    _inFlight.push(nextArgs.id)
+  // if there are any entries in the queue then we want to send these first so push 
+  // args on the back of the queue and shift the args at the front of the queue out
+  // ready to send 
+  var nextArgs : PublishArgs val = args
+  if (_pending.size() > 0) then
+    _pending.push(args)
+    try nextArgs = _pending.shift()? end  // worse case we get our original back so no error
+  end
+  // args is now either the passed argument if the in-flight window had space or the
+  // args that had been waiting longest in the queue
+  // before we return it we also need to save it in case we don't get an ack
+  _qos1Map.insert(nextArgs.id, nextArgs)
+  nextArgs
 
-  end  // of QoS 1 in-flight window management
+/********************************************************************************/
+fun inFlightLimitReached() : Bool =>
+  """
+  Returns true if there are fewer messages in-flight than our in-flight limit
+  """
+  not (_qos1Map.size() < _inFlightWindow)
 
-  var data = PublishPacket.compose(nextArgs)
-  _reg[Router](KeyRouter()).next[None]({(router) =>
-      router.onPublish(_publisher, nextArgs.topic, nextArgs.id , data)
-    }, {()=>
-      Debug("No router!")
-    }) 
-
+/********************************************************************************/
+fun ref nextQos2Args(args : PublishArgs val) : (PublishArgs val | None) =>
+  """
+  For protocol Vsn 3.1.1 there is no in-flight limit for QoS 2 messages. This means 
+  the all we need to do is save the packet in case we don't get a pubAck. We're
+  doing it like this though because protocol Vsn 5 has in-flight windows for all QoS
+  """
+  _qos2Map.insert(args.id, args)
+  args
 
 /********************************************************************************/
 be onAck(basePacket : BasePacket val) =>
@@ -120,23 +177,33 @@ be onTick(sec : I64) =>
 fun ref onPubAck(basePacket : BasePacket val) =>
   """
   The single ack packet for QoS 1 messages. Once we get this we can discard the 
-  publish message and check-in the id
+  publish message
   """
   var pubAckPacket : PubAckPacket val = PubAckPacket.createFromPacket(basePacket)
   if (not pubAckPacket.isValid()) then 
     Debug("Got invalid PubAck packet - id = " + pubAckPacket.id().string())  
     return
   end
-  // Our QoS 1 publication has been received so we can remove it from the in-flight 
-  // list and check-in the id
-  Debug("Completed QoS 1 publication id " + pubAckPacket.id().string())
-  
+
   try 
-    var id : IdType = _inFlight.pop()?
-    Debug("Removed " + id.string() + " from in-flight queue in " + __loc.file() + ":" +__loc.method_name())
-    publishComplete(id)
+    _qos1Map.remove(pubAckPacket.id())?
   else
-    Debug("In-flight queue is empty")
+    Debug("Couldn't find QoS 1 publication with id " + pubAckPacket.id().string() + "  in " + __loc.file() + ":" +__loc.method_name())
+  end  
+
+  publishComplete(pubAckPacket.id())
+
+  // Now we need to check whether there is any space in the in-flight window
+  // and, if so, whether there are any messages in the pending queue
+  // Note that the in-flight space check is needed otherwise we will take a
+  // message from the front of the queue and then queue it at the back - which 
+  // will destroy our message order
+  if (not inFlightLimitReached()) then
+    try 
+      sendToRouter(nextQos1Args(_pending.shift()?) as PublishArgs val)
+    else
+      Debug("Nothing in pending queue")
+    end 
   end
 
 /********************************************************************************/
@@ -150,9 +217,15 @@ fun ref onPubRec(basePacket: BasePacket val) =>
     Debug("Got invalid PubRec packet - id = " + pubRecPacket.id().string())  
     return
   end
-  // Our QoS 2 publication has been received so we can send a PubRel packet to
-  // the Broker to acknowledge receipt of the PubRec
-  deletePacket(pubRecPacket.id())
+  // Our QoS 2 publication has been received so we can delete the packet from 
+  // the in-flight map and send a PubRel packet to the Broker to acknowledge
+  // receipt of the PubRec
+  try
+    _qos2Map.remove(pubRecPacket.id())?
+  else
+    Debug("Couldn't remove QoS 2 message id " + pubRecPacket.id().string() + "  at " + __loc.file() + ":" +__loc.method_name())
+  end
+  
   doPubRel(pubRecPacket.id())
 
 /********************************************************************************/
@@ -185,37 +258,6 @@ fun ref doPubRel(id : IdType) =>
   var data  = PubRelPacket.compose(id)
   savePubRel(id, data)
   _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.send(data)})
-
-/********************************************************************************/
-fun ref savePacket(id : IdType, data: ArrayVal) =>
-  """
-  Before sending a publish packet we save the already encoded packet data in case
-  we don't get a pubAck message and have to resend it.
-  TODO - Add functionality to retransmit on reconnect if not cleansession
-  """
-  if (id == 0) then
-      Debug("Zero Id found in " + __loc.file() + ":" +__loc.method_name())
-      return
-  end
-  
-  _pktMap.update(id,data)
-
-/********************************************************************************/
-fun ref deletePacket(id : IdType) =>
-  """
-  Called after getting a pubAck or PubRec message when we know that we won't have
-  to resend it the data.
-  """
-  if (id == 0) then
-      Debug("Zero Id found in " + __loc.file() + ":" +__loc.method_name())
-      return
-  end
-  
-  try
-    _pktMap.remove(id)?
-  else
-    Debug("Unable to remove id " + id.string() + " at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
-  end
 
 /********************************************************************************/
 fun ref savePubRel(id : IdType, data: ArrayVal) =>
@@ -256,13 +298,9 @@ fun publishComplete(id : IdType) =>
   This function should be preceded by deletion of the publish packet in the case
   of QoS 1 publication and by deletion of the PubRel packet in the case of QoS 2.
   """
-  Debug("Informing router we've completed publication with id " + id.string())
+  //Debug("Informing router we've completed publication with id " + id.string())
  
   // Not using a guard because we wouldn't have got here without a valid id
   _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onPublishComplete(id)})
-
-
-  _topic
-
 
 

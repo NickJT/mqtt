@@ -196,7 +196,7 @@ fun doPubAck(id : IdType) =>
       Debug("Zero Id found in " + __loc.file() + ":" +__loc.method_name())
       return
   end
-  Debug("Pub ack at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+  //Debug("Pub ack at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
   _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.send(PubAckPacket.compose(id))}, {()=>Debug("No router at " + __loc.file() + ":" +__loc.method_name())})
  
 

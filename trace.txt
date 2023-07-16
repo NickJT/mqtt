@@ -1,0 +1,110 @@
+Connecting to 192.168.86.98:1883
+Connecting (attempt 1)
+Client connected to 192.168.86.98:1883
+Sent connect packet at /home/nick/mqtt/connector/connector.pony:connect line 37
+Broker Connected
+Starting timestamp publication at /home/nick/mqtt/main.pony : onBrokerConnect
+$SYS/broker/subscriptions/count =>  QoS: Requested QoS 0 Approved QoS 0
+$SYS/broker/subscriptions/count => 0
+$SYS/broker/load/publish/sent/1min => 0.00
+$SYS/broker/load/publish/sent/1min =>  QoS: Requested QoS 0 Approved QoS 0
+$SYS/broker/load/bytes/received/1min => 0.00
+$SYS/broker/load/bytes/received/1min =>  QoS: Requested QoS 1 Approved QoS 1
+test/q2 =>  QoS: Requested QoS 2 Approved QoS 2
+$SYS/broker/messages/dropped =>  QoS: Requested QoS 1 Approved QoS 1
+$SYS/broker/load/publish/received/1min =>  QoS: Requested QoS 1 Approved QoS 1
+$SYS/broker/retained messages/count =>  QoS: Requested QoS 1 Approved QoS 1
+$SYS/broker/retained messages/count => 40
+$SYS/broker/load/publish/received/1min => 0.00
+$SYS/broker/load/publish/sent/1min => 4.57
+$SYS/broker/retained messages/count => 51
+$SYS/broker/load/bytes/received/1min => 387.40
+$SYS/broker/subscriptions/count => 9
+Couldn't match id and subscriber at /home/nick/mqtt/router.pony:_findSubscriberById line 201
+SubAck with id 5
+test/q0 =>  QoS: Requested QoS 0 Approved QoS 0
+$SYS/broker/bytes/sent =>  QoS: Requested QoS 1 Approved QoS 1
+Router can't remove id 6 at /home/nick/mqtt/router.pony:onPayloadComplete line 271
+$SYS/broker/bytes/sent => 446
+test/q1 =>  QoS: Requested QoS 1 Approved QoS 1
+Couldn't match id and subscriber at /home/nick/mqtt/router.pony:_findSubscriberById line 201
+SubAck with id 4
+$SYS/broker/load/publish/dropped/1min => 0.00
+$SYS/broker/publish/messages/received =>  QoS: Requested QoS 1 Approved QoS 1
+$SYS/broker/publish/messages/received => 0
+$SYS/broker/messages/received => 11
+$SYS/broker/messages/received =>  QoS: Requested QoS 0 Approved QoS 0
+$SYS/broker/publish/messages/sent =>  QoS: Requested QoS 1 Approved QoS 1
+Router can't remove id 9 from subscriber map at /home/nick/mqtt/router.pony:onSubscribeComplete
+$SYS/broker/publish/messages/sent => 9
+$SYS/broker/publish/messages/sent =>  QoS: Requested QoS 1 Approved QoS 1
+$SYS/broker/messages/sent => 20
+$SYS/broker/bytes/received =>  QoS: Requested QoS 0 Approved QoS 0
+$SYS/broker/bytes/received => 424
+$SYS/broker/load/bytes/sent/1min => 253.09
+$SYS/broker/load/bytes/sent/1min =>  QoS: Requested QoS 1 Approved QoS 1
+Nothing in pending queue
+Nothing in pending queue
+$SYS/broker/load/publish/received/1min => 1.83
+$SYS/broker/load/bytes/sent/1min => 596.27
+$SYS/broker/load/publish/sent/1min => 12.94
+$SYS/broker/load/bytes/received/1min => 747.37
+$SYS/broker/subscriptions/count => 20
+$SYS/broker/messages/received => 39
+$SYS/broker/messages/sent => 51
+$SYS/broker/publish/messages/sent => 27
+$SYS/broker/publish/messages/received => 2
+$SYS/broker/bytes/received => 889
+$SYS/broker/bytes/sent => 1274
+
+
+//////////////////////////////////
+
+Connecting to 192.168.86.98:1883
+Connecting (attempt 1)
+Client connected to 192.168.86.98:1883
+Sent connect packet at /home/nick/mqtt/connector/connector.pony:connect line 37
+Broker Connected
+Starting timestamp publication at /home/nick/mqtt/main.pony : onBrokerConnect
+$SYS/broker/subscriptions/count =>  QoS: Requested QoS 0 Approved QoS 0
+$SYS/broker/subscriptions/count => 18
+$SYS/broker/load/publish/sent/1min =>  QoS: Requested QoS 0 Approved QoS 0
+$SYS/broker/load/publish/sent/1min => 20.37
+$SYS/broker/load/publish/dropped/1min =>  QoS: Requested QoS 1 Approved QoS 1
+$SYS/broker/messages/dropped =>  QoS: Requested QoS 1 Approved QoS 1
+test/q2 =>  QoS: Requested QoS 2 Approved QoS 2
+$SYS/broker/messages/sent =>  QoS: Requested QoS 1 Approved QoS 1
+$SYS/broker/messages/sent => 193
+$SYS/broker/bytes/received =>  QoS: Requested QoS 0 Approved QoS 0
+$SYS/broker/bytes/received => 1668
+$SYS/broker/messages/inflight =>  QoS: Requested QoS 1 Approved QoS 1
+$SYS/broker/bytes/sent =>  QoS: Requested QoS 1 Approved QoS 1
+$SYS/broker/bytes/sent => 5384
+$SYS/broker/publish/messages/sent =>  QoS: Requested QoS 1 Approved QoS 1
+$SYS/broker/load/bytes/received/1min => 388.30
+$SYS/broker/publish/messages/sent =>  QoS: Requested QoS 1 Approved QoS 1
+$SYS/broker/publish/messages/sent => 136
+Router can't remove id 3 at /home/nick/mqtt/router.pony:onPayloadComplete line 271
+test/q1 =>  QoS: Requested QoS 1 Approved QoS 1
+$SYS/broker/load/bytes/sent/1min =>  QoS: Requested QoS 1 Approved QoS 1
+$SYS/broker/publish/messages/received =>  QoS: Requested QoS 1 Approved QoS 1
+$SYS/broker/load/bytes/sent/1min => 366.93
+$SYS/broker/messages/received =>  QoS: Requested QoS 0 Approved QoS 0
+$SYS/broker/messages/received => 155
+test/q0 =>  QoS: Requested QoS 0 Approved QoS 0
+$SYS/broker/retained messages/count =>  QoS: Requested QoS 1 Approved QoS 1
+$SYS/broker/load/publish/received/1min => 4.93
+$SYS/broker/load/publish/received/1min =>  QoS: Requested QoS 1 Approved QoS 1
+$SYS/broker/load/publish/received/1min => 4.10
+$SYS/broker/load/publish/sent/1min => 29.75
+$SYS/broker/load/bytes/received/1min => 1088.93
+$SYS/broker/load/bytes/sent/1min => 850.93
+$SYS/broker/subscriptions/count => 20
+$SYS/broker/retained messages/count => 49
+$SYS/broker/messages/received => 190
+$SYS/broker/publish/messages/sent => 158
+$SYS/broker/bytes/received => 2506
+$SYS/broker/messages/sent => 237
+$SYS/broker/bytes/sent => 6391
+Nothing in pending queue
+Nothing in pending queue
