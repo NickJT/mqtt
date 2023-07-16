@@ -126,7 +126,7 @@ fun ref onPubAck(basePacket : BasePacket val) =>
   
   try 
     var id : IdType = _inFlight.pop()?
-    Debug("Popped id " + id.string() + " at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+    Debug("Removed " + id.string() + " from in-flight queue in " + __loc.file() + ":" +__loc.method_name())
     publishComplete(id)
   else
     Debug("In-flight queue is empty")
@@ -249,7 +249,7 @@ fun publishComplete(id : IdType) =>
   This function should be preceded by deletion of the publish packet in the case
   of QoS 1 publication and by deletion of the PubRel packet in the case of QoS 2.
   """
-  Debug("Completed QoS 2 publication id " + id.string())
+  Debug("Informing router we've completed publication with id " + id.string())
  
   // Not using a guard because we wouldn't have got here without a valid id
   _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onPublishComplete(id)})

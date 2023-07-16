@@ -254,18 +254,22 @@ fun ref _doAssignedSubscription(basePacket : BasePacket val) =>
     Debug("Got a Publish topic and couldn't create subscriber at " + __loc.file() + ":" +__loc.method_name())
   end
 
+
 /*********************************************************************************/
-fun _findPublisherById(basePacket : BasePacket val) =>
+be onPayloadComplete(id: IdType) =>
+
   """
-  Get the packet id from a PubAck, PubRel or PubComp and search the publisher map by Id
-  to find the publisher who is working this id.
-  """ 
-  try 
-    _publisherById(BytesToU16(basePacket.data().trim(2,4)))?.onData(basePacket)
+  Called by a subscriber when it has completed processing of an incomming message
+  This tells router to remove the link between the id and the subscriber.
+  Note - This is called as the final step of an *incomming* message so the id was
+  issued by the Broker and should not be checked-in
+  """
+  try
+    _subscriberById.remove(id)?
+    Debug("Completed processing payload with id " + id.string())
   else
-    Debug("Couldn't match id and subscriber at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
-    Debug("Id was " + BytesToU16(basePacket.data().trim(2,4)).string())
-  end
+    Debug("Router can't remove id " + id.string() + " at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+  end  
 
 /*********************************************************************************/
 fun saveState() =>
@@ -310,51 +314,29 @@ be onTick(sec : I64) =>
   end
 
 /*********************************************************************************/
-be onSubscribeComplete(id: IdType) =>
+be onPublish(pub : Publisher tag, topic: String, id : U16, packet : ArrayVal) =>
+  """
+  Called by a publisher to publish packet on topic. Comes through the router so we
+  have a central register of all publishers 
+  """
+    _publisherById.update(id,pub)
+    Debug("Publishing on topic : " + topic + " with id " + id.string() + " in " + __loc.file() + ":" +__loc.method_name())
+    send(packet)
 
-  """
-  Called by a subscriber when an id has completed its processing. This tells router
-  to remove the link between the id and the subscriber
-  """
-  try
-    _subscriberById.remove(id)?
-    _issuer.checkIn(id)
-    Debug("Completed processing subscription id " + id.string())
-  else
-    Debug("Router can't remove id " + id.string() + " at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
-  end  
 
 /*********************************************************************************/
-be onUnsubscribeComplete(id : IdType) =>
+fun _findPublisherById(basePacket : BasePacket val) =>
   """
-  Called when a subscriber has got confirmation that its Unsubscribe request has
-  been acknowledged by the Broker. At this point, router can remove the entry for
-  the topic from the subscriberByTopic map and remove the id from the subscriberById
-  map and check-in the id
-  Subscriber is an actor so we can't get its topic. To
-  """
-
-  var topic : String val = ""
-  try
-    var subscriberToRemove = _subscriberById(id)?
-    for (key, subscriber) in _subscriberByTopic.pairs() do 
-      if (subscriber is subscriberToRemove) then 
-        topic = key
-      end
-    end
+  Get the packet id from a PubAck, PubRel or PubComp and search the publisher map by Id
+  to find the publisher who is working this id.
+  """ 
+  try 
+    _publisherById(BytesToU16(basePacket.data().trim(2,4)))?.onData(basePacket)
   else
-    Debug("Router can't find subscriber with id of " + id.string() + " to remove at " + __loc.file() + ":" +__loc.method_name())
-  end 
+    Debug("Couldn't match id and subscriber at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+    Debug("Id was " + BytesToU16(basePacket.data().trim(2,4)).string())
+  end
 
-  try
-    _subscriberById.remove(id)?
-    _subscriberByTopic.remove(topic)?
-    Debug("Completed processing subscription id " + id.string())
-  else
-    Debug("Router can't remove id " + id.string() + "or topic " + topic + " at " + __loc.file() + ":" +__loc.method_name())
-  end  
-  // Whatever, we've finished with the id
-  _issuer.checkIn(id)
 
 /*********************************************************************************/
 be onPublishComplete(id: IdType) =>
@@ -365,7 +347,7 @@ be onPublishComplete(id: IdType) =>
   try
     _publisherById.remove(id)?
     _issuer.checkIn(id)
-    Debug("Completed processing publish id " + id.string())
+    Debug("Completed processing publish id " + id.string() + " in " + __loc.file() + ":" +__loc.method_name())
   else
     Debug("Router can't remove id " + id.string() + "at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
   end  
@@ -389,35 +371,7 @@ be onBrokerConnect() =>
   """
   _reg[Main](KeyMain()).next[None]({(m : Main) => m.onBrokerConnect("Broker Connected")},{()=>Debug("No main in registrar")})
 
-/*********************************************************************************/
-be subscribe(topic : String val, qos : String val) =>
-  """
-  Called when router receives a request for a subscription or when router receives
-  an assigned message and needs to add a subscription to handle this.
-  """
-  // create a new subscriber actor
-  var subscriber : Subscriber = Subscriber(_reg, topic, qos)
-  // pass our subscriber to the IdIssuer. IdIssuer will call the apply behaviour of the 
-  // actor and that will make a subscribe packet with the id and pass it to 
-  // router to send to the broker
-  _reg[IdIssuer tag](KeyIssuer()).next[None]({(issuer) =>issuer.checkOutSub(subscriber)},{()=>Debug("No issuer found")})
-   
-/*********************************************************************************/
-be unsubscribe(topic : String val) =>
-  """
-  Called to request an unsubscribe from the passed topic from the Broker. The actual
-  cleanup of the the subscriber maps is only done once the Broker responds by sending
-  an UnsubAck message
-  """
-  Debug("Unsubscribe not implemented in router")
-  // Get the subscriber for the topic from the map
-  try
-    var subscriber = _subscriberByTopic(topic)?
-    _reg[IdIssuer tag](KeyIssuer()).next[None]({(issuer) =>issuer.checkOutUnsub(subscriber)},{()=>Debug("No issuer found")})
-    Debug("Requested unsubscribe from " + topic + " at " + __loc.file() + ":" +__loc.method_name())
-  else
-    Debug("No subscriber found for topic " + topic + " at " + __loc.file() + ":" +__loc.method_name())
-  end  
+
 
 /*********************************************************************************/
 be onBrokerRestore() =>
@@ -437,25 +391,78 @@ be onBrokerRefusal(reason : ConnAckReturnCode) =>
   Debug("Router got a refusal - " + reason.string())
 
 
+
 /*********************************************************************************/
 be onSubscribe(sub : Subscriber tag, topic: String, id : U16, packet : ArrayVal) =>
   """
   Called by a subscriber to subscribe to a new topic. Comes through router so we have
   a central register of who is subscribed to what 
+  TODO - Decide what to do if we already have a subscription for that topic
   """
     _subscriberById.update(id,sub)
     _subscriberByTopic.update(topic, sub)
     send(packet)
 
 /*********************************************************************************/
-be onPublish(pub : Publisher tag, topic: String, id : U16, packet : ArrayVal) =>
+be onSubscribeComplete(id : IdType) =>
   """
-  Called by a publisher to publish packet on topic. Comes through router so we have
-  a central register of all publishers 
+  Called by a subscriber to subscribe to its topic. Subscribers can subscribe and
+  unsubscribe repeatedly throughout their lifetime but always to the same topic.
+  We only get the id back from the Broker so we need to do a look-up to find the
+  subscriber whose subscription has been accepted (or rejected)
+  TODO - Clean-up if the subscription is rejected
   """
-    _publisherById.update(id,pub)
-    Debug("Publishing id " + id.string())
+  try
+    _subscriberById.remove(id)?
+    Debug("Completed processing subscription id " + id.string())
+  else
+    Debug("Router can't remove id " + id.string() + " from subscriber map at " + __loc.file() + ":" +__loc.method_name())
+  end  
+  // Whatever, we've finished with the id
+  _issuer.checkIn(id)
+
+/*********************************************************************************/
+be onUnsubscribe(sub : Subscriber tag, id : U16, packet : ArrayVal) =>
+  """
+  Called by a subscriber to unsubscribe to a topic. Subscribers can subscribe and
+  unsubscribe repeatedly throughout their lifetime. An unsubscribed subscriber is
+  still alive but does not appear in the router's subscriber map  
+  """
+    _subscriberById.update(id,sub)
     send(packet)
+
+
+/*********************************************************************************/
+be onUnsubscribeComplete(id : IdType) =>
+  """
+  Called by a Subscriber when the subscriber has got confirmation that its Unsubscribe
+  request has been acknowledged by the Broker. At this point, router can remove the entry
+  for the topic from the subscriberByTopic map and remove the id from the subscriberById
+  map and check-in the id.
+  """
+
+  var topic : String val = ""
+  try
+    var subscriberToRemove = _subscriberById(id)?
+    for (key, subscriber) in _subscriberByTopic.pairs() do 
+      if (subscriber is subscriberToRemove) then 
+        topic = key
+      end
+    end
+  else
+    Debug("Router can't find subscriber with id of " + id.string() + " to remove at " + __loc.file() + ":" +__loc.method_name())
+  end 
+
+  try
+    _subscriberById.remove(id)?
+    _subscriberByTopic.remove(topic)?
+    Debug("Completed processing unsubscription id " + id.string())
+  else
+    Debug("Router can't remove id " + id.string() + "or topic " + topic + " at " + __loc.file() + ":" +__loc.method_name())
+  end  
+  // Whatever, we've finished with the id
+  _issuer.checkIn(id)
+
 
 /*********************************************************************************/
 be disconnectBroker() =>

@@ -58,7 +58,7 @@
             "options": {
                 "cwd": "${workspaceFolder}"
             },
-            "command": "ponyc --docs ${workspaceFolder} -o docs",
+            "command": "ponyc --docs ${workspaceFolder} -o docs && rm ${workspaceFolder}${pathSeparator}docs${pathSeparator}${workspaceFolderBasename}",
             "problemMatcher": "$ponyc-matcher"
         },
         {
@@ -79,7 +79,7 @@
         {
             "label": "echo",
             "type": "shell",
-            "command": "echo ${workspaceFolder}${pathSeparator}${workspaceFolderBasename} ",
+            "command": "echo ${workspaceFolder}${pathSeparator}docs${pathSeparator}${workspaceFolderBasename} ",
             "problemMatcher": []
         }
     ]

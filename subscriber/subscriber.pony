@@ -29,13 +29,13 @@ actor Subscriber is (IdNotifySub & TickListener)
   var _qos : String
   var _id : U16
 
-  new create(reg : Registrar, topic: String, qos : String) =>
-    _reg = reg
-    _pktMap = Map[IdType, PublishPacket val]
+new create(reg : Registrar, topic: String, qos : String) =>
+  _reg = reg
+  _pktMap = Map[IdType, PublishPacket val]
 
-    _topic = topic
-    _qos = qos
-    _id = 0   // Note must be a dummy because Id is generated asynhronously later
+  _topic = topic
+  _qos = qos
+  _id = 0   // Note must be a dummy because Id is generated asynhronously later
 
 
 /********************************************************************************/
@@ -47,13 +47,13 @@ be apply(id : U16, sub : Bool) =>
   with the broker at the same time??
   """
   _id = id
+  var subscriber : Subscriber tag = this
   if (sub) then 
-    var subscribePacket = SubscribePacket.compose(id, _topic, _qos)
-    var subscriber : Subscriber tag = this
-    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onSubscribe(subscriber, _topic ,id, subscribePacket)}, {()=>Debug("No router at " + __loc.file() + ":" +__loc.method_name())})
+    var arrayVal = SubscribePacket.compose(id, _topic, _qos)
+    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onSubscribe(subscriber, _topic ,id, arrayVal)}, {()=>Debug("No router at " + __loc.file() + ":" +__loc.method_name())})
   else
     var arrayVal = UnsubscribePacket.compose(id, _topic)
-    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.send(arrayVal)}, {()=>Debug("No router at " + __loc.file() + ":" +__loc.method_name())})
+    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onUnsubscribe(subscriber, id, arrayVal)}, {()=>Debug("No router at " + __loc.file() + ":" +__loc.method_name())})
   end
 
 
@@ -105,7 +105,7 @@ be onData(basePacket : BasePacket val) =>
   // No need for a guard because the match statement will catch anything that is invalid
   match basePacket.controlType()
   | ControlSubAck => onSubAck(basePacket)
-  | ControlPublish => onPublish(basePacket)
+  | ControlPublish => onPayload(basePacket)
   | ControlPubRel => onPubRel(basePacket)
   | ControlUnsubAck => onUnsubAck(basePacket)
   else
@@ -150,15 +150,17 @@ fun ref onUnsubAck(basePacket : BasePacket val)  =>
     var id = unsubAckPacket.id() as IdType
     _pktMap.remove(id)?
     _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onUnsubscribeComplete(id)})
+    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.sendToMain(_topic, "Unsubscribed")})
   else
     Debug("Unknown in in UnsubAck packet at " + __loc.file() + ":" +__loc.method_name())
   end 
   
 
 /********************************************************************************/
-fun ref onPublish(basePacket: BasePacket val) : None =>
+fun ref onPayload(basePacket: BasePacket val) : None =>
   """
-  We have received a publish message. It is either:
+  We have received a publish message (we call this function onPayload to avoid 
+  confusion with message publication).   The publish message is either:
   1. A QoS 0 packet with no id
   2. A QoS 1 or QoS2 packet with an id.
 
@@ -181,7 +183,7 @@ fun ref onPublish(basePacket: BasePacket val) : None =>
 
   match pubPacket.qos()
   | Qos0 => releasePkt(pubPacket)
-  | Qos1 => doPubAck(id); releasePktById(id); subscribeComplete(id)
+  | Qos1 => doPubAck(id); releasePktById(id); payloadComplete(id)
   | Qos2 => doPubRec(id)
   end
 
@@ -229,7 +231,7 @@ fun ref onPubRel(basePacket : BasePacket val) =>
   doPubComp(pubRelPacket.id())
 
   releasePktById(pubRelPacket.id())
-  subscribeComplete(pubRelPacket.id())
+  payloadComplete(pubRelPacket.id())
 
 
 /********************************************************************************/
@@ -320,7 +322,24 @@ fun releasePkt(pubPacket : PublishPacket val) =>
 
 
 /********************************************************************************/
-fun ref subscribeComplete(id : IdType) =>
+be subscribe() =>
+  // pass ourselves to the IdIssuer so IdIssuer can allocate an id and call our apply
+  // behaviour that will make a subscribe packet with the id and pass it to 
+  // router to send to the broker
+  var ourself : Subscriber = this
+  _reg[IdIssuer tag](KeyIssuer()).next[None]({(issuer) =>issuer.checkOutSub(ourself)},{()=>Debug("No issuer found")})
+
+/********************************************************************************/
+be unsubscribe() =>
+  // pass ourselves to the IdIssuer so IdIssuer can allocate an id and call our apply
+  // behaviour that will make a subscribe packet with the id and pass it to 
+  // router to send to the broker
+  var ourself : Subscriber = this
+  _reg[IdIssuer tag](KeyIssuer()).next[None]({(issuer) =>issuer.checkOutUnsub(ourself)},{()=>Debug("No issuer found")})
+
+
+/********************************************************************************/
+fun ref payloadComplete(id : IdType) =>
   """
   Removes the packet with this id from the map of in-flight packets and informs 
   router to do the same
@@ -332,7 +351,7 @@ fun ref subscribeComplete(id : IdType) =>
 
   try
     _pktMap.remove(id)?
-    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onSubscribeComplete(id)})
+    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onPayloadComplete(id)})
     
   else
     Debug("Id " + id.string() + " not found at " + __loc.file() + ":" +__loc.method_name())

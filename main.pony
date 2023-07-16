@@ -33,6 +33,7 @@
   use "examples"
   use "primitives"
   use "publisher"
+  use "subscriber"
 
 actor Main
   """
@@ -70,32 +71,17 @@ be onBrokerConnect(message: String val) =>
   Called once when the router has confirmed that we have a valid connection to the
   broker. This is the location for any app setup such as starting publication actors
   or subscribing to topics.
+  TODO - Add local collection of subscribers so we can call unsubscriber on them later
   """
     Debug(message)
 
     for (topic , qos) in _subs.pairs() do 
-      subscribe(topic, qos)    
+      var subscriber = Subscriber(_reg, topic, qos)  
+      subscriber.subscribe()
     end
 
     Debug("Starting timestamp publication at " + __loc.file() + " : " +__loc.method_name())
     Timestamper(_reg)
-
-/************************************************************************/
-fun subscribe(topic : String val, qos : String val) =>  
-  """
-  Requests a Subscription to topic at a Quality of Service of qos. The
-  response is returned via the OnMessage behaviour
-  """
-  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.subscribe(topic,qos)}, {()=>Debug("No router at " + __loc.file() + ":" +__loc.method_name())})
-/************************************************************************/
-fun unsubscribe(topic : String val) =>  
-  """
-  Requests an unsubscription from topic. The response is returned via the OnMessage
-  behaviour
-  """
-  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.unsubscribe(topic)}, {()=>Debug("No router in " + __loc.file())})
-
-
 /************************************************************************/
 fun ref _initialise(env: Env, reg : Registrar) : Bool =>
   let configReader = MqttConfig(env, ConfigFile(), FullConfigParams())
