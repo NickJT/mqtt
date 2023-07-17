@@ -151,6 +151,7 @@ fun ref nextQos2Args(argsOrNone : (PublishArgs val | None)) =>
   try
     var args : PublishArgs val = argsOrNone as PublishArgs val
     _qos2Map.insert(args.id, args)
+    sendToRouter(args)
   else
     Debug("\nProgram error in " + __loc.file() + ":" +__loc.method_name() + "\n")
   end
@@ -232,6 +233,18 @@ fun ref onPubRec(basePacket: BasePacket val) =>
   
   doPubRel(pubRecPacket.id())
 
+
+/********************************************************************************/
+fun ref doPubRel(id : IdType) =>
+  """
+  Send a PubRelPacket with the passed id to the router.
+  """
+  var data  = PubRelPacket.compose(id)
+  //Debug("Inserted id " + id.string() + " in _pubRel at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+  _pubRelMap.insert(id,data)
+  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.send(data)})
+
+
 /********************************************************************************/
 fun ref onPubComp(basePacket: BasePacket val) =>
   """
@@ -245,49 +258,15 @@ fun ref onPubComp(basePacket: BasePacket val) =>
     return
   end
 
-  deletePubRel(pubCompPacket.id())
+  try
+    _pubRelMap.remove(pubCompPacket.id())?
+    //Debug("Removed id " + pubCompPacket.id().string() + " in _pubRel at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+  else
+    Debug("Unable to remove id " + pubCompPacket.id().string() + " at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+  end
+
   publishComplete(pubCompPacket.id())
   
-
-/********************************************************************************/
-fun ref doPubRel(id : IdType) =>
-  """
-  Send a PubRelPacket with the passed id to the router.
-  """
-  var data  = PubRelPacket.compose(id)
-  savePubRel(id, data)
-  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.send(data)})
-
-/********************************************************************************/
-fun ref savePubRel(id : IdType, data: ArrayVal) =>
-  """
-  Before sending the pubRel packet we save the already encoded packet data in case
-  we don't get a pubComp message and have to resend it.
-  """
-  if (id == 0) then
-      Debug("Zero Id found in " + __loc.file() + ":" +__loc.method_name())
-      return
-  end
-  
-  _pubRelMap.insert(id,data)
-
-/********************************************************************************/
-fun ref deletePubRel(id : IdType) =>
-  """
-  Called after getting a pubComp message when we know that we won't have to resend
-  the pubRel and we can delete it.
-  """
-  if (id == 0) then
-      Debug("Zero Id found in " + __loc.file() + ":" +__loc.method_name())
-      return
-  end
-  
-  try
-    _pubRelMap.remove(id)?
-  else
-    Debug("Unable to remove id " + id.string() + " at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
-  end
-
 /********************************************************************************/
 fun ref publishComplete(id : IdType) =>
   """
@@ -298,5 +277,4 @@ fun ref publishComplete(id : IdType) =>
   of QoS 1 publication and by deletion of the PubRel packet in the case of QoS 2.
   """
   _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onPublishComplete(id)})
-  deletePubRel(id)
 

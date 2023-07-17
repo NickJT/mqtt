@@ -24,16 +24,20 @@ actor Subscriber is (IdNotifySub & TickListener)
   TODO - Rather than implement timeouts here we should have router manage timeouts
   for all messages - so we don't hang the app if we don't get a response to a 
   subscribe or unsubscribe for example.
+  Note: The ids for sub/unsub and publish can conflict so must be kept within 
+  the relevant methods. Sub/unsub ids are issued by IdIssuer. Publish ids are issued
+  by the Broker.
   """
   var _reg : Registrar
   var _pktMap : Map[IdType, PublishPacket val] 
   var _topic : String
   var _qos : String
+  var _this : Subscriber 
 
 new create(reg : Registrar, topic: String, qos : String) =>
   _reg = reg
   _pktMap = Map[IdType, PublishPacket val]
-
+  _this = this
   _topic = topic
   _qos = qos
 
@@ -176,14 +180,18 @@ fun ref onPayload(basePacket: BasePacket val) : None =>
   """
   var pubPacket : PublishPacket val = PublishPacket.createFromPacket(basePacket)
   try 
-    var id : IdType = pubPacket.id() as IdType     // Returns none if not valid
+    var id : IdType = pubPacket.id() as IdType     // fails for QoS0
     match pubPacket.qos()
-    | Qos0 => releasePkt(pubPacket)
     | Qos1 => doPubAck(id); releasePkt(pubPacket); payloadComplete(id)
     | Qos2 => _pktMap.insert(id,pubPacket); doPubRec(id)
     end
   else
-    Debug("Invalid publish packet at " + __loc.file() + ":" +__loc.method_name())
+    if (pubPacket.qos() is Qos0) then
+      releasePkt(pubPacket) 
+    else
+      Debug("Invalid Id in publish packet at " + __loc.file() + ":" +__loc.method_name())
+      Debug(basePacket.data())
+    end  
   end
 
 /********************************************************************************/
@@ -273,16 +281,14 @@ be subscribe() =>
   // pass ourselves to the IdIssuer so IdIssuer can allocate an id and call our apply
   // behaviour that will make a subscribe packet with the id and pass it to 
   // router to send to the broker
-  var ourself : Subscriber = this
-  _reg[IdIssuer tag](KeyIssuer()).next[None]({(issuer) =>issuer.checkOutSub(ourself)},{()=>Debug("No issuer found")})
+  _reg[IdIssuer tag](KeyIssuer()).next[None]({(issuer) =>issuer.checkOutSub(_this)},{()=>Debug("No issuer found")})
 
 /********************************************************************************/
 be unsubscribe() =>
   // pass ourselves to the IdIssuer so IdIssuer can allocate an id and call our apply
   // behaviour that will make an usubscribe packet with the id and pass it to 
   // router to send to the broker
-  var ourself : Subscriber = this
-  _reg[IdIssuer tag](KeyIssuer()).next[None]({(issuer) =>issuer.checkOutUnsub(ourself)},{()=>Debug("No issuer found")})
+  _reg[IdIssuer tag](KeyIssuer()).next[None]({(issuer) =>issuer.checkOutUnsub(_this)},{()=>Debug("No issuer found")})
 
 
 /********************************************************************************/

@@ -74,7 +74,21 @@ actor Router
 
   let _subscriberByTopic : SubscriberMap = SubscriberMap
   let _subscriberById : IdMap = IdMap
+  """
+  _subscriberById tracks the outgoing sub/unsub messages and their incomming acks
+  """
+
+  let _subscriberByPayload : IdMap = IdMap
+  """
+  _subscriberByPayload tracks the incomming publish messages and their incomming 
+  and outgoing acks
+  """
+
   let _publisherById : PublicationMap = PublicationMap
+  """
+  _publisherById tracks the outgoing publish messages and their incomming 
+  and outgoing acks 
+  """
 
   let _config :  Map[String val, String val] val
 
@@ -126,9 +140,9 @@ be route(basePacket : BasePacket val) =>
       | ControlPublish => _findSubscriberByTopic(basePacket)  // goes to subscriber but may not have an id so find by topic
       | ControlPubAck => _findPublisherById(basePacket) //  PubAck, PubRec, PubComp goes to publisher 
       | ControlPubRec => _findPublisherById(basePacket) // PubAck, PubRec, PubComp goes to publisher 
-      | ControlPubRel  => _findSubscriberById(basePacket) // goes to subscriber and has id at bytes 2 and 3 
+      | ControlPubRel  => _findPayloadById(basePacket) // goes to subscriber and has id at bytes 2 and 3 
       | ControlPubComp => _findPublisherById(basePacket) // PubAck, PubRec, PubComp goes to publisher 
-      | ControlSubAck => _findSubscriberById(basePacket) // Note: We are not implementing multisubscribe 
+      | ControlSubAck => _findSubscriberById(basePacket) // Not implementing multisubscribe so goes to subscriber and has id at bytes 2 and 3
       | ControlUnsubAck => _findSubscriberById(basePacket) // goes to subscriber and has id at bytes 2 and 3
       | ControlPingResp => _onPingResp() 
       /*   BROKER PACKETS FOR TESTING ONLY  */
@@ -158,7 +172,11 @@ fun ref _findSubscriberByTopic(basePacket : BasePacket val) =>
   from its Server before it receives a PUBACK for the PUBLISH that it sent.
   So - our outgoing publish with Id=3 is not the same as an incomming publish with id=3
   but this is OK because we are using the incomming id as a key into a subscriber map.
-  We will have a separate publisher map to keep track of outgoing ids.
+  We will have a separate publisher map to keep track of outgoing ids. 
+  However - Sub/Unsub messages are sent by the Subscriber with ids allocated by the
+  IdIssuers and Publish messages are received by the Subscriber with ids allocated
+  by the Broker. 
+  TODO - Separate the id maps so we don't overwrite ids from different messages
   """     
 
   var pubPacket : PublishPacket val = PublishPacket.createFromPacket(basePacket)
@@ -176,15 +194,31 @@ fun ref _findSubscriberByTopic(basePacket : BasePacket val) =>
     subscriber.onData(basePacket)
     if (pubPacket.qos() is Qos0 ) then return end 
     var id = idOrNone as IdType
-    _subscriberById.insert(id, subscriber)
+    if (_subscriberByPayload.contains(id)) then 
+    Debug("Found duplicate id " + id.string() +" in _subscriberByPayload at" + __loc.file() + ":" +__loc.method_name())
+      end
+    _subscriberByPayload.insert(id, subscriber)
+    //Debug("Inserted id " + id.string() +" in _subscriberByPayload at" + __loc.file() + ":" +__loc.method_name())
    else 
     Debug("Found an assigned subscription at" + __loc.file() + ":" +__loc.method_name())
     // either we have been assigned a topic by the Broker, or we are Mock Broker and our client has published a message
     _doAssignedSubscription(basePacket)
     return
   end
-
  
+/********************************************************************************/
+fun _findPayloadById(basePacket : BasePacket val) =>
+  """
+  We search the pauload map by Id to find the subscriber who is working this id.
+  """ 
+  try 
+    _subscriberByPayload(BytesToU16(basePacket.data().trim(2,4)))?.onData(basePacket)
+  else
+    Debug("Couldn't match id and payload at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+    Debug(basePacket.controlType().string() + " with id " + BytesToU16(basePacket.data().trim(2,4)).string())
+  end
+
+
 /********************************************************************************/
 fun _findSubscriberById(basePacket : BasePacket val) =>
   """
@@ -265,8 +299,8 @@ be onPayloadComplete(id: IdType) =>
   issued by the Broker and should not be checked-in
   """
   try
-    _subscriberById.remove(id)?
-    //Debug("Completed processing payload with id " + id.string())
+    _subscriberByPayload.remove(id)?
+    //Debug("Removing id " + id.string() + " from _subscriberByPayload at " + __loc.file() + ":" +__loc.method_name())
   else
     Debug("Router can't remove id " + id.string() + " at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
   end  
@@ -321,7 +355,11 @@ be onSubscribe(sub : Subscriber tag, topic: String, id : U16, packet : ArrayVal)
   a central register of who is subscribed to what 
   TODO - Decide what to do if we already have a subscription for that topic
   """
+    if (_subscriberById.contains(id)) then 
+      Debug("Found duplicate id " + id.string() +" in _subscriberById at" + __loc.file() + ":" +__loc.method_name())
+    end
     _subscriberById.update(id,sub)
+      //Debug("Inserted id " + id.string() +" in _subscriberById at" + __loc.file() + ":" +__loc.method_name())
     _subscriberByTopic.update(topic, sub)
     send(packet)
 
@@ -337,7 +375,7 @@ be onSubscribeComplete(id : IdType) =>
   """
   try
     _subscriberById.remove(id)?
-    //Debug("Completed processing subscription id " + id.string())
+    //Debug("Removing id " + id.string() + " from _subscriberById at " + __loc.file() + ":" +__loc.method_name())
   else
     Debug("Router can't remove id " + id.string() + " from subscriber map at " + __loc.file() + ":" +__loc.method_name())
   end  
@@ -352,6 +390,7 @@ be onUnsubscribe(sub : Subscriber tag, id : U16, packet : ArrayVal) =>
   still alive but does not appear in the router's subscriber map  
   """
     _subscriberById.update(id,sub)
+    //Debug("Inserted id " + id.string() +" in _subscriberById at" + __loc.file() + ":" +__loc.method_name())
     send(packet)
 
 
@@ -377,6 +416,7 @@ be onUnsubscribeComplete(id : IdType) =>
 
   try
     _subscriberById.remove(id)?
+    //Debug("Removing id " + id.string() + " from _subscriberById at " + __loc.file() + ":" +__loc.method_name())
     _subscriberByTopic.remove(topic)?
     //Debug("Completed processing unsubscribe with id " + id.string())
   else
