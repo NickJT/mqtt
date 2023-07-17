@@ -5,56 +5,55 @@ use "../utilities"
 use ".."
 
 class PublishPacket
-"""
-## Packet Format ##
-### Fixed header ###
-B1  Control byte - must be 0b0011DQQR where D:DUP flag, QQ is QOS and R is Retain
-B2. Remaining Length - This is the length of variable header plus the length of 
-the payload. The remaining length field can include 1 to 4 bytes.
+  """
+  ## Packet Format ##
+  ### Fixed header ###
+  B1  Control byte - must be 0b0011DQQR where D:DUP flag, QQ is QOS and R is Retain
+  B2. Remaining Length - This is the length of variable header plus the length of 
+  the payload. The remaining length field can include 1 to 4 bytes.
 
-DUP - If the DUP flag is set to 0, it indicates that this is the first occasion that
-the Client or Server has attempted to send this MQTT PUBLISH Packet. If the DUP flag
-is set to 1, it indicates that this might be re-delivery of an earlier attempt to
-send the Packet. The recipient of a Control Packet that contains the DUP flag set to
-1 cannot assume that it has seen an earlier copy of this packet.
+  DUP - If the DUP flag is set to 0, it indicates that this is the first occasion that
+  the Client or Server has attempted to send this MQTT PUBLISH Packet. If the DUP flag
+  is set to 1, it indicates that this might be re-delivery of an earlier attempt to
+  send the Packet. The recipient of a Control Packet that contains the DUP flag set to
+  1 cannot assume that it has seen an earlier copy of this packet.
 
-***QOS - The Packet Identifier field is only present in PUBLISH Packets where the QoS
-level is 1 or 2.***
+  ***QOS - The Packet Identifier field is only present in PUBLISH Packets where the QoS
+  level is 1 or 2.***
 
-Retain - When sending a PUBLISH Packet to a Client the Server MUST set the RETAIN flag
-to 1 if a message is sent as a result of a new subscription being made by a Client. It
-MUST set the RETAIN flag to 0 when a PUBLISH Packet is sent to a Client because it
-matches an established subscription regardless of how the flag was set in the message
-it received.  
-If the RETAIN flag is set to 1, in a PUBLISH Packet sent by a CLIENT to a 
-SERVER, the Server MUST store the Application Message and its QoS, so that it can
-be delivered to future subscribers whose subscriptions match its topic name.
+  Retain - When sending a PUBLISH Packet to a Client the Server MUST set the RETAIN flag
+  to 1 if a message is sent as a result of a new subscription being made by a Client. It
+  MUST set the RETAIN flag to 0 when a PUBLISH Packet is sent to a Client because it
+  matches an established subscription regardless of how the flag was set in the message
+  it received.  
+  If the RETAIN flag is set to 1, in a PUBLISH Packet sent by a CLIENT to a 
+  SERVER, the Server MUST store the Application Message and its QoS, so that it can
+  be delivered to future subscribers whose subscriptions match its topic name.
 
-### Variable header ###
-Topic name
-B1 - Length MSB
-B2 - Length LSB
-B3-> Topic Characters
+  ### Variable header ###
+  Topic name
+  B1 - Length MSB
+  B2 - Length LSB
+  B3-> Topic Characters
 
-Packet Id
-Only present in PUBLISH Packets where the QoS level is 1 or 2.
-Bn    Packet id MSB
-Bn+1  Packet id LSB 
+  Packet Id
+  Only present in PUBLISH Packets where the QoS level is 1 or 2.
+  Bn    Packet id MSB
+  Bn+1  Packet id LSB 
 
-### Payload ###
-The Payload contains the Application Message that is being published. 
-The content and format of the data is application specific. The length of the
-payload can be calculated by subtracting the length of the variable header from
-the Remaining Length field that is in the Fixed Header.  
-It is valid for a PUBLISH Packet to contain a zero length payload.
+  ### Payload ###
+  The Payload contains the Application Message that is being published. 
+  The content and format of the data is application specific. The length of the
+  payload can be calculated by subtracting the length of the variable header from
+  the Remaining Length field that is in the Fixed Header.  
+  It is valid for a PUBLISH Packet to contain a zero length payload.
 
-## Response ##
-The receiver of a PUBLISH Packet MUST respond as follows:
-- QoS   None
-- QoS 1 PUBACK Packet
-- QoS 2 PUBREC Packet
-
-"""
+  ## Response ##
+  The receiver of a PUBLISH Packet MUST respond as follows:
+  - QoS   None
+  - QoS 1 PUBACK Packet
+  - QoS 2 PUBREC Packet
+  """
   // Extracted data
   var _topicString : String val = String
   var _qos : Qos  = Qos0

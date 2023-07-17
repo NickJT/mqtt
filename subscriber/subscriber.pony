@@ -21,13 +21,14 @@ actor Subscriber is (IdNotifySub & TickListener)
   underway so we don't have an unsubscribe behaviour. Instead we have a onUnsubAck 
   behaviour which is called when the Broker has acknowledged the unsubscirbe request. 
   Only then, when we know there will be no more messages, do we start our clean-up.
-
+  TODO - Rather than implement timeouts here we should have router manage timeouts
+  for all messages - so we don't hang the app if we don't get a response to a 
+  subscribe or unsubscribe for example.
   """
   var _reg : Registrar
   var _pktMap : Map[IdType, PublishPacket val] 
   var _topic : String
   var _qos : String
-  var _id : U16
 
 new create(reg : Registrar, topic: String, qos : String) =>
   _reg = reg
@@ -35,25 +36,20 @@ new create(reg : Registrar, topic: String, qos : String) =>
 
   _topic = topic
   _qos = qos
-  _id = 0   // Note must be a dummy because Id is generated asynhronously later
-
 
 /********************************************************************************/
 be apply(id : U16, sub : Bool) =>
   """
   The packet id is the last piece of the jigsaw. Once we have this we can build our 
   subscribe or unsubscribe packet and send it to the broker
-  TODO - Check _id usage. Is it safe to use a field? Can we have multiple ids active
-  with the broker at the same time??
   """
-  _id = id
   var subscriber : Subscriber tag = this
   if (sub) then 
     var arrayVal = SubscribePacket.compose(id, _topic, _qos)
-    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onSubscribe(subscriber, _topic ,id, arrayVal)}, {()=>Debug("No router at " + __loc.file() + ":" +__loc.method_name())})
+    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onSubscribe(subscriber, _topic ,id, arrayVal)})
   else
     var arrayVal = UnsubscribePacket.compose(id, _topic)
-    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onUnsubscribe(subscriber, id, arrayVal)}, {()=>Debug("No router at " + __loc.file() + ":" +__loc.method_name())})
+    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onUnsubscribe(subscriber, id, arrayVal)})
   end
 
 
@@ -81,26 +77,32 @@ be onDisconnect() =>
 be onData(basePacket : BasePacket val) => 
   """
   The Router sends data packets from the Broker, to actors who have requested it, using the
-  onData behaviour. Note that not all Publish messages have an id so we default this to 0.
-  As a Subscriber we only get:
+  onData behaviour. Note that QoS 0 Publish messages don't have an id so we default this to 0.
+  As a Subscriber the only messages we get from the Broker are:
   1. A SubAck to confirm our subscription
   2. A Publish packet containing a payload
   3. A PubRel message forming part three of the QoS 2 handshake
   4. A UnSubAck to confirm out unsubscription
 
   In response to a SubAck:
-  1. We notify the app (via Main) of the result
-  2. If the subscription is not accepted then we shoould go out of scope because any action
-  Main takes will result in a new subscriber
+  1. We notify the app of the result
+  2. We tell router we have finished processing the id of the subscribe packet
+  3. If the subscription is not accepted then we leave it to the app to take further action
 
   In response to a Publish:
   1. If QoS is Qos1 then the Subscriber must respond with a PubAck packet containing the id of 
-  the packet being acknowledged 
-  2. If QoS is Qos2 then Subscriber must respond with a PubRec and then wait for a PubRel
+  the packet being acknowledged and then release the packet to the app
+  2. If QoS is Qos2 then Subscriber must respond with a PubRec and save the packet until 
+  a PubRel is received. 
 
   In reponse to a PubRel
   1. Subscriber must respond with a PubComp 
-  2. Release the packet to the app
+  2. Subscriber must release the packet to the app
+
+  In response to an UnsubAck:
+  1. We notify the app (via Main) of the result
+  2. We tell router we have finished processing the id of the subscribe packet
+
   """
   // No need for a guard because the match statement will catch anything that is invalid
   match basePacket.controlType()
@@ -117,6 +119,7 @@ fun onSubAck(basePacket : BasePacket val)  =>
   """
   Our subscription has been acknowledged so we need to notify the app of the
   result.
+  TODO - Why don't we respond directly to main instead of going via router?
   """
   var subAckPacket : SubAckPacket val = SubAckPacket(basePacket)
   var approvedQos : (Qos | None) =  subAckPacket.approvedQos() 
@@ -137,6 +140,7 @@ fun ref onUnsubAck(basePacket : BasePacket val)  =>
   """
   Our unsubscribe has been acknowledged so we need to tell router to remove us from
   the map of subscribers.
+  TODO - Why don't we respond directly to main instead of going via router?
   TODO - We may also have some packets in our queue and we need to decide what to do
   about these
   """
@@ -148,43 +152,38 @@ fun ref onUnsubAck(basePacket : BasePacket val)  =>
   
   try 
     var id = unsubAckPacket.id() as IdType
-    _pktMap.remove(id)?
     _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onUnsubscribeComplete(id)})
     _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.sendToMain(_topic, "Unsubscribed")})
   else
-    Debug("Unknown in in UnsubAck packet at " + __loc.file() + ":" +__loc.method_name())
+    Debug("Unknown id in UnsubAck packet at " + __loc.file() + ":" +__loc.method_name())
   end 
   
 
 /********************************************************************************/
 fun ref onPayload(basePacket: BasePacket val) : None =>
   """
-  We have received a publish message (we call this function onPayload to avoid 
-  confusion with message publication).   The publish message is either:
+  Note - We name this function onPayload to avoid confusion with message publication.
+  We have received a publish message. The publish message is either:
   1. A QoS 0 packet with no id
   2. A QoS 1 or QoS2 packet with an id.
 
   If it is QoS 0 then just release the packet
 
-  If it is QoS 1 then send a PubAck in return and release the message
+  If it is QoS 1 then send a PubAck in return and release the message. Then tell
+  router we have completed processing the id
   
-  It it is QoS 2 then save the message, send a PubRec and wait for a PubRel
+  If it is QoS 2 then save the message, send a PubRec and wait for a PubRel
   """
   var pubPacket : PublishPacket val = PublishPacket.createFromPacket(basePacket)
-  if (not pubPacket.isValid()) then
-    Debug ("Invalid packet at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
-  end
-
-  var id : IdType = 0
-  try
-    id = pubPacket.id() as IdType // QoS 0 packets return None for id so this will fail before save
-    savePacket(id, pubPacket)     // but is expected behaviour for QoS 0 so fail silently 
-  end
-
-  match pubPacket.qos()
-  | Qos0 => releasePkt(pubPacket)
-  | Qos1 => doPubAck(id); releasePktById(id); payloadComplete(id)
-  | Qos2 => doPubRec(id)
+  try 
+    var id : IdType = pubPacket.id() as IdType     // Returns none if not valid
+    match pubPacket.qos()
+    | Qos0 => releasePkt(pubPacket)
+    | Qos1 => doPubAck(id); releasePkt(pubPacket); payloadComplete(id)
+    | Qos2 => _pktMap.insert(id,pubPacket); doPubRec(id)
+    end
+  else
+    Debug("Invalid publish packet at " + __loc.file() + ":" +__loc.method_name())
   end
 
 /********************************************************************************/
@@ -218,9 +217,10 @@ fun ref doPubRec(id : IdType) =>
 /********************************************************************************/
 fun ref onPubRel(basePacket : BasePacket val) =>
   """
-  We have received a publish release message for a QoS 2 packet. The payload was
-  stored when we received the publish message and we need to use this because
-  pubRel only contains the id
+  We have received a publish release message for a QoS 2 packet. Send a pubComp
+  to ack this. The payload was stored when we received the publish message and 
+  we need to retrieve this from the packetMap to release it. Then we can delete it
+  and tell router we have completed processing. 
   """
   var pubRelPacket = PubRelPacket.createFromPacket(basePacket)
   
@@ -230,77 +230,23 @@ fun ref onPubRel(basePacket : BasePacket val) =>
 
   doPubComp(pubRelPacket.id())
 
-  releasePktById(pubRelPacket.id())
+  try 
+    (var id , var packet ) = _pktMap.remove(pubRelPacket.id())?
+    releasePkt(packet) 
+  else
+    Debug("Unable to release QoS 2 packet id " + pubRelPacket.id().string()  +  " in " + __loc.file() + ":" +__loc.method_name())
+  end
+  
   payloadComplete(pubRelPacket.id())
-
 
 /********************************************************************************/
 fun doPubComp(id : IdType) =>
   """
   We have received a PubRel from a sender so we acknowledge this with a PubComp 
-  message. We only have the id at this stage so there is little to do
+  message. We only have the id at this stage so there is little else to do
   """
-
-  if (id == 0) then
-      Debug("Zero Id found in " + __loc.file() + ":" +__loc.method_name())
-      return
-  end
-
   _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.send(PubCompPacket.compose(id))})
 
-
-/********************************************************************************/
-fun ref savePacket(id : IdType, pubPacket: PublishPacket val) =>
-  """
-  After receiving a QoS 2 publish packet we need to save it for when we get a PubRel
-  message. 
-  TODO - Add functionality to retransmit on reconnect if not cleansession
-  """
-  if (id == 0) then
-      Debug("Zero Id found in " + __loc.file() + ":" +__loc.method_name())
-      return
-  end
-  
-  _pktMap.insert(id,pubPacket)
-
-/********************************************************************************/
-fun releasePktById(id : IdType) =>
-  
-  if (id == 0) then
-      Debug("Zero Id found in " + __loc.file() + ":" +__loc.method_name())
-      return
-  end
-  
-  try
-    releasePkt(retrievePkt(id) as PublishPacket val)
-  else
-    Debug ("id = " + id.string() + " not found at " + __loc.method_name())
-    return
-  end
- 
-/********************************************************************************/
-fun retrievePkt(id : IdType) : (PublishPacket val | None) =>
-  """
-  We are at an appropriate place in the protocol to release the message to the 
-  application. This can be:
-  1. After receiving a ControlPublish with QoS 0
-  2. After receiving a ControlPublish with QoS 1
-  2. After receiving a ControlPubRel with QoS 2
-  """
-  
-  if (id == 0) then
-      Debug("Zero Id found in " + __loc.file() + ":" +__loc.method_name())
-      return None
-  end
-  
-  try
-    var pubPacket = _pktMap(id)?
-    return pubPacket
-  else
-    Debug ("id = " + id.string() + " not found at " + __loc.method_name())
-    return None
-  end
- 
 /********************************************************************************/
 fun releasePkt(pubPacket : PublishPacket val) =>
   """
@@ -309,13 +255,14 @@ fun releasePkt(pubPacket : PublishPacket val) =>
   1. After receiving a ControlPublish with QoS 0
   2. After receiving a ControlPublish with QoS 1
   2. After receiving a ControlPubRel with QoS 2
+  TODO - The second argument in the _reg call is a temporary kludge to get Mock Broker
+  to print payloads. Mock Broker has no router so the call _reg will fail the promise
+  and we print the payload as a Debug message. Nasty.
   """
-  var idOrNone = pubPacket.id()
   try
     var topic : String val = pubPacket.topic() as String
     var payloadString : String val = pubPacket.payloadAsString() as String
-    //TODO - This is a temporary kludge to get Mock Broker to print payloads
-    _reg[Router](KeyRouter()).next[None]({ (r: Router)=>r.sendToMain(topic, payloadString)},{()=>Debug("Mock Broker got " + payloadString)})
+  _reg[Router](KeyRouter()).next[None]({ (r: Router)=>r.sendToMain(topic, payloadString)},{()=>Debug("Mock Broker got " + payloadString)})
   else
     Debug ("Packet error in " + __loc.method_name())
   end
@@ -332,7 +279,7 @@ be subscribe() =>
 /********************************************************************************/
 be unsubscribe() =>
   // pass ourselves to the IdIssuer so IdIssuer can allocate an id and call our apply
-  // behaviour that will make a subscribe packet with the id and pass it to 
+  // behaviour that will make an usubscribe packet with the id and pass it to 
   // router to send to the broker
   var ourself : Subscriber = this
   _reg[IdIssuer tag](KeyIssuer()).next[None]({(issuer) =>issuer.checkOutUnsub(ourself)},{()=>Debug("No issuer found")})
@@ -341,18 +288,11 @@ be unsubscribe() =>
 /********************************************************************************/
 fun ref payloadComplete(id : IdType) =>
   """
-  Removes the packet with this id from the map of in-flight packets and informs 
-  router to do the same
+  Informs router that we have finished processing this id.
   """
   if (id == 0) then
       Debug("Zero Id found in " + __loc.file() + ":" +__loc.method_name())
       return
   end
 
-  try
-    _pktMap.remove(id)?
-    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onPayloadComplete(id)})
-    
-  else
-    Debug("Id " + id.string() + " not found at " + __loc.file() + ":" +__loc.method_name())
-  end    
+  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onPayloadComplete(id)})

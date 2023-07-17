@@ -291,7 +291,7 @@ fun _findPublisherById(basePacket : BasePacket val) =>
   to find the publisher who is working this id.
   """ 
   try 
-    _publisherById(BytesToU16(basePacket.data().trim(2,4)))?.onAck(basePacket)
+    _publisherById(BytesToU16(basePacket.data().trim(2,4)))?.onData(basePacket)
   else
     Debug("Couldn't match id and subscriber at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
     Debug("Id was " + BytesToU16(basePacket.data().trim(2,4)).string())
@@ -328,10 +328,11 @@ be onSubscribe(sub : Subscriber tag, topic: String, id : U16, packet : ArrayVal)
 /*********************************************************************************/
 be onSubscribeComplete(id : IdType) =>
   """
-  Called by a subscriber to subscribe to its topic. Subscribers can subscribe and
-  unsubscribe repeatedly throughout their lifetime but always to the same topic.
+  Called by a subscriber to indicate that it has finished processing its subscribe
+  request. Subscribers can subscribe and unsubscribe repeatedly throughout their
+  lifetime but always to the same topic.
   We only get the id back from the Broker so we need to do a look-up to find the
-  subscriber whose subscription has been accepted (or rejected)
+  subscriber whose subscription processing has been completed.
   TODO - Clean-up if the subscription is rejected
   """
   try
