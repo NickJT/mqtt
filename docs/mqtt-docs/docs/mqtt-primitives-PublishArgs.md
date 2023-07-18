@@ -22,7 +22,7 @@ new val create(
   qos': (Qos0 val | Qos1 val | Qos2 val) = reference,
   d': Bool val = false,
   r': Bool val = false,
-  id': U16 val = 0)
+  cid': U16 val = 0)
 : PublishArgs val^
 ```
 #### Parameters
@@ -32,7 +32,7 @@ new val create(
 *   qos': ([Qos0](mqtt-primitives-Qos0.md) val | [Qos1](mqtt-primitives-Qos1.md) val | [Qos2](mqtt-primitives-Qos2.md) val) = reference
 *   d': [Bool](builtin-Bool.md) val = false
 *   r': [Bool](builtin-Bool.md) val = false
-*   id': [U16](builtin-U16.md) val = 0
+*   cid': [U16](builtin-U16.md) val = 0
 
 #### Returns
 
@@ -63,7 +63,7 @@ new val createWithId(
 
 ## Public fields
 
-### var id: [U16](builtin-U16.md) val
+### var cid: [U16](builtin-U16.md) val
 <span class="source-link">[[Source]](src/mqtt-primitives/publishArgs.md#L-0-7)</span>
 
 

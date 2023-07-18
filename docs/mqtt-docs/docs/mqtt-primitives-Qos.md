@@ -1,5 +1,5 @@
 # Qos
-<span class="source-link">[[Source]](src/mqtt-primitives/typeDefs.md#L-0-27)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/typeDefs.md#L-0-25)</span>
 
 A typeDef for the three quality of service flags 
 

@@ -22,13 +22,13 @@ by the Broker.
 ```pony
 actor tag Subscriber is
   IdNotifySub ref,
-  TickListener ref
+  MqActor ref
 ```
 
 #### Implements
 
 * [IdNotifySub](mqtt-idIssuer-IdNotifySub.md) ref
-* [TickListener](mqtt-primitives-TickListener.md) ref
+* [MqActor](mqtt-MqActor.md) ref
 
 ---
 
@@ -157,7 +157,7 @@ be onData(
 ---
 
 ### subscribe
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-280)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-283)</span>
 
 
 ```pony
@@ -167,7 +167,7 @@ be subscribe()
 ---
 
 ### unsubscribe
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-287)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-290)</span>
 
 
 ```pony
@@ -203,7 +203,7 @@ fun box onSubAck(
 ---
 
 ### onUnsubAck
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-143)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-144)</span>
 
 
 Our unsubscribe has been acknowledged so we need to tell router to remove us from
@@ -229,7 +229,7 @@ fun ref onUnsubAck(
 ---
 
 ### onPayload
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-167)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-168)</span>
 
 
 Note - We name this function onPayload to avoid confusion with message publication.
@@ -261,10 +261,11 @@ fun ref onPayload(
 ---
 
 ### doPubAck
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-198)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-199)</span>
 
 
-All we have is an id, so make the pubAck packet and send it
+All we have is an id, so make the pubAck packet and send it. No look-ups with id
+so we don't care whether it is Broker or Client assigned.
 
 
 ```pony
@@ -283,11 +284,12 @@ fun box doPubAck(
 ---
 
 ### doPubRec
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-211)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-213)</span>
 
 
 We have received a publish message with QoS 2. We acknowledge this with a 
-PubRec message and wait for a PubRel in response.
+PubRec message and wait for a PubRel in response. No id lookup so we don't 
+care whether this is a Bid or  Cid
 
 
 ```pony
@@ -306,13 +308,14 @@ fun ref doPubRec(
 ---
 
 ### onPubRel
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-226)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-229)</span>
 
 
 We have received a publish release message for a QoS 2 packet. Send a pubComp
 to ack this. The payload was stored when we received the publish message and 
 we need to retrieve this from the packetMap to release it. Then we can delete it
 and tell router we have completed processing. 
+We do a lookup with id on _pktMap so we can't mix Bid and Cid in one subscriber instance 
 
 
 ```pony
@@ -331,11 +334,12 @@ fun ref onPubRel(
 ---
 
 ### doPubComp
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-251)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-253)</span>
 
 
 We have received a PubRel from a sender so we acknowledge this with a PubComp 
-message. We only have the id at this stage so there is little else to do
+message. We only have the id at this stage so there is little else to do. No
+lookups on id so we don't care whether it is a Bid or a Cid.
 
 
 ```pony
@@ -354,7 +358,7 @@ fun box doPubComp(
 ---
 
 ### releasePkt
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-259)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-262)</span>
 
 
 We are at an appropriate place in the protocol to release the message to the 
@@ -383,7 +387,7 @@ fun box releasePkt(
 ---
 
 ### payloadComplete
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-295)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-298)</span>
 
 
 Informs router that we have finished processing this id.
@@ -391,12 +395,12 @@ Informs router that we have finished processing this id.
 
 ```pony
 fun ref payloadComplete(
-  id: U16 val)
+  bid: U16 val)
 : None val
 ```
 #### Parameters
 
-*   id: [U16](builtin-U16.md) val
+*   bid: [U16](builtin-U16.md) val
 
 #### Returns
 

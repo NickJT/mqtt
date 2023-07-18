@@ -1,7 +1,7 @@
 # Packet
-<span class="source-link">[[Source]](src/mqtt-primitives/typeDefs.md#L-0-33)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/typeDefs.md#L-0-31)</span>
 
-The minum set of functions needed to extract the information in the fixed header
+The minimum set of functions needed to extract the information in the fixed header
 and enable the packet to be interpreted correctly
 
 
@@ -12,7 +12,7 @@ trait ref Packet
 ## Public Functions
 
 ### isValid
-<span class="source-link">[[Source]](src/mqtt-primitives/typeDefs.md#L-0-38)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/typeDefs.md#L-0-36)</span>
 
 
 True if the packet has been validated
@@ -30,7 +30,7 @@ fun box isValid()
 ---
 
 ### isA
-<span class="source-link">[[Source]](src/mqtt-primitives/typeDefs.md#L-0-42)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/typeDefs.md#L-0-40)</span>
 
 
 True if the top four bits in the byte passed as value match the
@@ -61,7 +61,7 @@ fun box isA(
 ---
 
 ### controlType
-<span class="source-link">[[Source]](src/mqtt-primitives/typeDefs.md#L-0-47)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/typeDefs.md#L-0-45)</span>
 
 
 The MQTT message type which should only be None if isValid() returns false
@@ -87,7 +87,7 @@ fun box controlType()
 ---
 
 ### controlByte
-<span class="source-link">[[Source]](src/mqtt-primitives/typeDefs.md#L-0-51)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/typeDefs.md#L-0-49)</span>
 
 
 The control byte which should only be None if isValid() returns false
@@ -105,7 +105,7 @@ fun box controlByte()
 ---
 
 ### fixedHeaderLength
-<span class="source-link">[[Source]](src/mqtt-primitives/typeDefs.md#L-0-55)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/typeDefs.md#L-0-53)</span>
 
 
 The sum of the control byte and the number of bytes in the remaining length field.
@@ -123,7 +123,7 @@ fun box fixedHeaderLength()
 ---
 
 ### remainingLength
-<span class="source-link">[[Source]](src/mqtt-primitives/typeDefs.md#L-0-59)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/typeDefs.md#L-0-57)</span>
 
 
 The decoded value of the remaining length field. 
@@ -141,7 +141,7 @@ fun box remainingLength()
 ---
 
 ### data
-<span class="source-link">[[Source]](src/mqtt-primitives/typeDefs.md#L-0-63)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/typeDefs.md#L-0-61)</span>
 
 
 Returns the raw bytes of the packet as a sendable array of U8 (ArrayVal)

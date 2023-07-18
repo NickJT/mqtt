@@ -5,6 +5,7 @@ search:
 Packages
 
 * [mqtt](mqtt--index.md)
+* [assert](assert--index.md)
 * [buffered](buffered--index.md)
 * [builtin](builtin--index.md)
 * [bureaucracy](bureaucracy--index.md)

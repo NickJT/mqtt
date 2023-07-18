@@ -1,5 +1,5 @@
 # Router
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-38)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-35)</span>
 
 Router accepts incomming MQTT packets and routes these by type to the appropriate 
 handler actor. Router is also responsible for writing bytes back out to the Broker
@@ -36,7 +36,7 @@ actor tag Router
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-97)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-89)</span>
 
 
 ```pony
@@ -59,7 +59,7 @@ new tag create(
 ## Public Behaviours
 
 ### route
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-116)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-108)</span>
 
 
 This function demultiplexes the incomming packet stream according to packet type
@@ -83,31 +83,34 @@ be route(
 ---
 
 ### onPayloadComplete
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-294)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-316)</span>
 
 
 Called by a subscriber when it has completed processing of an incomming message
-This tells router to remove the link between the id and the subscriber.
-Note - This is called as the final step of an *incomming* message so the id was
-issued by the Broker and should not be checked-in
+This tells router to remove the link between the Bid and the subscriber.
+Note - This is called as the final step of an **incomming** message so it should 
+always receive a Bid and the Bid was issued by the Broker and should not be
+checked-in
 
 
 ```pony
 be onPayloadComplete(
-  id: U16 val)
+  bid: U16 val)
 ```
 #### Parameters
 
-*   id: [U16](builtin-U16.md) val
+*   bid: [U16](builtin-U16.md) val
 
 ---
 
 ### onPublish
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-311)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-334)</span>
 
 
 Called by a publisher to publish packet on topic. Comes through the router so we
-have a central register of all publishers 
+have a central register of all publishers. Called with a Client allocated id (Cid).
+So _actorById is indexed by Cid
+
 
 
 ```pony
@@ -127,7 +130,7 @@ be onPublish(
 ---
 
 ### onPublishComplete
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-336)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-347)</span>
 
 
 Called by a publisher when an id has completed its processing. This tells router
@@ -145,11 +148,25 @@ be onPublishComplete(
 ---
 
 ### onSubscribe
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-352)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-363)</span>
 
 
 Called by a subscriber to subscribe to a new topic. Comes through router so we have
-a central register of who is subscribed to what 
+a central register of who is subscribed to what. Only called by a subscriber so
+we know the id will always be a Cid
+TODO - We should only add the subscriber to the subscriberByTopic map when we get a
+SubAck with an approval but consider these two scenarios:
+1. We don't put the Subscriber in the map here but wait until we get an Ack: We get a publish 
+message before we have finished processing the ack and adding Subscriber to the map. The next
+incomming publish looks in _subscriberByTopic, can't find subscriber and so decides this
+is an allocated subscription... duplicate subscribers... bad things happen.
+2. We put the Subscriber in the map here and then get rejected by the broker: The subscriber
+sits in the map but gets nothing, the Nack is reported to the App and the App must unsubscribe
+to remove it. No error but additional work for App
+
+Compromise - Put subscriber in map here but **remove** it from Map if we get a Nack. Worst 
+case is an unecessary insert/remove in the unlikely event of a rejection. This also matches
+unsub case where we have to continue to ack messages between unsub and unsub ack
 TODO - Decide what to do if we already have a subscription for that topic
 
 
@@ -170,34 +187,42 @@ be onSubscribe(
 ---
 
 ### onSubscribeComplete
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-367)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-393)</span>
 
 
-Called by a subscriber to indicate that it has finished processing its subscribe
-request. Subscribers can subscribe and unsubscribe repeatedly throughout their
-lifetime but always to the same topic.
-We only get the id back from the Broker so we need to do a look-up to find the
+Called by a subscriber to indicate that it has received a SubAck and so has finished
+processing its subscribe request. Subscribers can subscribe and unsubscribe 
+repeatedly throughout their lifetime but always to the same topic.
+We only get the Cid back from the Broker so we need to do a look-up to find the
 subscriber whose subscription processing has been completed.
-TODO - Clean-up if the subscription is rejected
+TODO - If accepted is false then remove the subscriber from the _subscriberByTopic
+map because we got a rejection (See comment to onSubscribe)
 
 
 ```pony
 be onSubscribeComplete(
-  id: U16 val)
+  sub: Subscriber tag,
+  id: U16 val,
+  accepted: Bool val)
 ```
 #### Parameters
 
+*   sub: [Subscriber](mqtt-subscriber-Subscriber.md) tag
 *   id: [U16](builtin-U16.md) val
+*   accepted: [Bool](builtin-Bool.md) val
 
 ---
 
 ### onUnsubscribe
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-386)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-419)</span>
 
 
 Called by a subscriber to unsubscribe to a topic. Subscribers can subscribe and
 unsubscribe repeatedly throughout their lifetime. An unsubscribed subscriber is
 still alive but does not appear in the router's subscriber map  
+Note - The spec states that clients must continue to acknowledge messages until
+an unsub request has been acknowledged - therefore we don't remove the subscriber
+here, only in the onUnsubAck behaviour
 
 
 ```pony
@@ -215,27 +240,31 @@ be onUnsubscribe(
 ---
 
 ### onUnsubscribeComplete
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-398)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-455)</span>
 
 
 Called by a Subscriber when the subscriber has got confirmation that its Unsubscribe
-request has been acknowledged by the Broker. At this point, router can remove the entry
-for the topic from the subscriberByTopic map and remove the id from the subscriberById
-map and check-in the id.
+request has been acknowledged by the Broker. The id is a Cid because the Unsubscribe
+message can only be generated by the client. 
+At this point, router can remove the entry for the topic from the subscriberByTopic 
+map and remove the id from the subscriberById map and check-in the id.
+TODO - Note that this implies only **one subscriber per topic**
 
 
 ```pony
 be onUnsubscribeComplete(
+  sub: Subscriber tag,
   id: U16 val)
 ```
 #### Parameters
 
+*   sub: [Subscriber](mqtt-subscriber-Subscriber.md) tag
 *   id: [U16](builtin-U16.md) val
 
 ---
 
 ### doPing
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-432)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-482)</span>
 
 
 Ask the Broker for a pingResp and debit the number of times we have asked without
@@ -252,11 +281,13 @@ be doPing()
 ---
 
 ### onTick
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-456)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-506)</span>
 
 
-OnTick is called on every system tick by Ticker. Router then calls the onTick
-behaviour on each of the publishers and subscribers in its maps.
+OnTick is called on every system tick by Ticker. Router then calls all of the
+Publishers and Subscribers who have transactions in-flight. Publishers and 
+Subscribers that don't have transactions in-flight don't need to be notified
+because they have no in-flight messages to time-out 
 
 
 ```pony
@@ -270,7 +301,7 @@ be onTick(
 ---
 
 ### onTcpConnect
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-473)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-521)</span>
 
 
 Once we know that we have a TCP connection we can safely start the Connector 
@@ -289,7 +320,7 @@ be onTcpConnect(
 ---
 
 ### onBrokerConnect
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-484)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-532)</span>
 
 
 When this is called we should have a valid Broker connection with our local 
@@ -304,7 +335,7 @@ be onBrokerConnect()
 ---
 
 ### onBrokerRestore
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-494)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-542)</span>
 
 
 When this is called we should have a valid Broker connection with a saved state in Broker.
@@ -318,7 +349,7 @@ be onBrokerRestore()
 ---
 
 ### onBrokerRefusal
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-504)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-552)</span>
 
 
 Called by Connector if the Broker has refused the connection
@@ -337,7 +368,7 @@ be onBrokerRefusal(
 ---
 
 ### disconnectBroker
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-513)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-561)</span>
 
 
 This is called to disconnect cleanly from the Broker. DISCONNECT must be the last
@@ -353,7 +384,7 @@ be disconnectBroker()
 ---
 
 ### send
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-542)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-590)</span>
 
 
 Check the TCP connection is valid and use it to send our packet
@@ -370,7 +401,7 @@ be send(
 ---
 
 ### sendToMain
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-555)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-603)</span>
 
 
 ```pony
@@ -388,7 +419,7 @@ be sendToMain(
 ## Public Functions
 
 ### saveState
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-532)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-580)</span>
 
 
 Called when we have lost connection with the Broker and need to save our state in
@@ -407,7 +438,7 @@ fun box saveState()
 ---
 
 ### onControlConnect
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-565)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-613)</span>
 
 
 Mock Broker - for testing only
@@ -429,7 +460,7 @@ fun box onControlConnect(
 ---
 
 ### onControlSubscribe
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-576)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-624)</span>
 
 
 Mock Broker - for testing only
@@ -451,7 +482,7 @@ fun ref onControlSubscribe(
 ---
 
 ### onControlUnsubscribe
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-591)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-639)</span>
 
 
 Mock Broker - for testing only
@@ -473,7 +504,7 @@ fun box onControlUnsubscribe(
 ---
 
 ### onControlPingReq
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-598)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-646)</span>
 
 
 Mock Broker - for testing only
@@ -495,7 +526,7 @@ fun box onControlPingReq(
 ---
 
 ### onControlDisconnect
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-606)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-654)</span>
 
 
 Mock Broker - for testing only
@@ -518,26 +549,73 @@ fun box onControlDisconnect(
 
 ## Private Functions
 
+### _findActorById
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-152)</span>
+
+
+Get the packet id from a PubAck, PubRel, PubRec, PubComp and UnsubAck packets. For
+these packet types the RL field is always one byte (=0x02) and the id bytes are
+always in bytes 2 and 3.
+Because we are not implementing multi-subscriber the suback id will also be in 
+bytes 2 and 3.
+We search the subscriber map by Id to find the subscriber who is working this id.
+Note - **This will not work if we implement multi-subscribe**
+
+
+```pony
+fun box _findActorById(
+  basePacket: BasePacket val)
+: None val
+```
+#### Parameters
+
+*   basePacket: [BasePacket](mqtt-utilities-BasePacket.md) val
+
+#### Returns
+
+* [None](builtin-None.md) val
+
+---
+
+### _xfindSubscriberByTopic
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-172)</span>
+
+
+```pony
+fun ref _xfindSubscriberByTopic(
+  basePacket: BasePacket val)
+: None val
+```
+#### Parameters
+
+*   basePacket: [BasePacket](mqtt-utilities-BasePacket.md) val
+
+#### Returns
+
+* [None](builtin-None.md) val
+
+---
+
 ### _findSubscriberByTopic
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-162)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-195)</span>
 
 
 Process a Publish Packet and route to the appropriate subscriber. All publish packets
 have a topic and this is how we locate the subscriber. There is always a 1:1 mapping
 between topics and subscribers (at least in spec 3.1.1)  
-Note - From the specification: 
-The Client and Server assign Packet Identifiers independently of each other. As a result,
+Note - From the specification:  
+
+>The Client and Server assign Packet Identifiers independently of each other. As a result,
 Client Server pairs can participate in concurrent message exchanges using the same Packet
 Identifiers. It is possible for a Client to send a PUBLISH Packet with Packet 
 Identifier 0x1234 and then receive a different PUBLISH with Packet Identifier 0x1234
 from its Server before it receives a PUBACK for the PUBLISH that it sent.
+
 So - our outgoing publish with Id=3 is not the same as an incomming publish with id=3
-but this is OK because we are using the incomming id as a key into a subscriber map.
-We will have a separate publisher map to keep track of outgoing ids. 
-However - Sub/Unsub messages are sent by the Subscriber with ids allocated by the
-IdIssuers and Publish messages are received by the Subscriber with ids allocated
-by the Broker. 
-TODO - Separate the id maps so we don't overwrite ids from different messages
+but this is OK because we are using the Broker allocated id (bid) for incomming publish 
+messages and the Client allocated id (cid) for outgoing messages. 
+
+_findSubscriberByTopic is only called in response to an incomming publish so uses Bid.
 
 
 ```pony
@@ -556,10 +634,11 @@ fun ref _findSubscriberByTopic(
 ---
 
 ### _findPayloadById
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-210)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-248)</span>
 
 
-We search the pauload map by Id to find the subscriber who is working this id.
+We search the payload map by BId to find the subscriber who is working this Bid.
+_subscriberByBid is indexed by Bid not Cid.
 
 
 ```pony
@@ -577,45 +656,20 @@ fun box _findPayloadById(
 
 ---
 
-### _findSubscriberById
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-223)</span>
-
-
-Get the packet id from a PubAck, PubRel, PubRec, PubComp and UnsubAck packets. For
-these packet types the RL field is always one byte (=0x02) and the id bytes are
-always in bytes 2 and 3.
-Because we are not implementing multi-subscriber the suback id will also be in 
-bytes 2 and 3.
-We search the subscriber map by Id to find the subscriber who is working this id.
-
-
-```pony
-fun box _findSubscriberById(
-  basePacket: BasePacket val)
-: None val
-```
-#### Parameters
-
-*   basePacket: [BasePacket](mqtt-utilities-BasePacket.md) val
-
-#### Returns
-
-* [None](builtin-None.md) val
-
----
-
 ### _doAssignedSubscription
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-241)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-262)</span>
 
 
-Only called if we recieve a Publish message and we have no record of a Subscriber that
+Only called if we receive a Publish message and we have no record of a Subscriber that
 has subscribed to that topic.  
-From the specification: A Client could receive messages that do not match any of 
-its explicit Subscriptions. This can happen if the Broker:  
-1. automatically assigned a subscription to the Client
-2. send a Publish or PubRel message while the unsubscribe message is in-flight  
+From the specification:  
 
-The Client MUST acknowledge any Publish Packet it receives according to the
+>A Client could receive messages that do not match any of its explicit Subscriptions.
+This can happen if the Broker:   
+1. automatically assigned a subscription to the Client  
+2. sends a Publish or PubRel message while the unsubscribe message is in-flight  
+
+>The Client MUST acknowledge any Publish Packet it receives according to the
 applicable QoS rules regardless of whether it elects to process the message it contains.  
 
 We don't remove Subscription from router tables until we get a sub-ack so we should
@@ -653,22 +707,23 @@ fun ref _doAssignedSubscription(
 
 ---
 
-### _findPublisherById
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-322)</span>
+### _removeSubscriber
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-434)</span>
 
 
-Get the packet id from a PubAck, PubRel or PubComp and search the publisher map by Id
-to find the publisher who is working this id.
+This function enables us to do a reverse lookup on the _subscriberByTopic map to
+determine which subscriber has been subscribed to or unsubscriber from. We need it 
+to remove a subscriber from the map in the event that it unsubscribes  
 
 
 ```pony
-fun box _findPublisherById(
-  basePacket: BasePacket val)
+fun ref _removeSubscriber(
+  sub: Subscriber tag)
 : None val
 ```
 #### Parameters
 
-*   basePacket: [BasePacket](mqtt-utilities-BasePacket.md) val
+*   sub: [Subscriber](mqtt-subscriber-Subscriber.md) tag
 
 #### Returns
 
@@ -677,7 +732,7 @@ fun box _findPublisherById(
 ---
 
 ### _onPingResp
-<span class="source-link">[[Source]](src/mqtt/router.md#L-0-448)</span>
+<span class="source-link">[[Source]](src/mqtt/router.md#L-0-498)</span>
 
 
 When the broker responds to a ping response we credit the token count. This value 

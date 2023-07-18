@@ -1,5 +1,5 @@
 # IdType
-<span class="source-link">[[Source]](src/mqtt-primitives/typeDefs.md#L-0-13)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/typeDefs.md#L-0-12)</span>
 
 The type of the packet id as defined by the protocol specification
 

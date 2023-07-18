@@ -31,7 +31,6 @@ No package doc string provided for mqtt/primitives.
 * [primitive ForbiddenQos](mqtt-primitives-ForbiddenQos.md)
 * [primitive ForbiddenType](mqtt-primitives-ForbiddenType.md)
 * [primitive ForbiddenWillQos](mqtt-primitives-ForbiddenWillQos.md)
-* [trait IdPacket](mqtt-primitives-IdPacket.md)
 * [type IdType](mqtt-primitives-IdType.md)
 * [primitive InvalidControl](mqtt-primitives-InvalidControl.md)
 * [primitive InvalidFlags](mqtt-primitives-InvalidFlags.md)
@@ -51,7 +50,6 @@ No package doc string provided for mqtt/primitives.
 * [type PacketIdentifierType](mqtt-primitives-PacketIdentifierType.md)
 * [type PacketNoIdentifierType](mqtt-primitives-PacketNoIdentifierType.md)
 * [type PacketWithTopicType](mqtt-primitives-PacketWithTopicType.md)
-* [trait Payloaded](mqtt-primitives-Payloaded.md)
 * [class PublishArgs](mqtt-primitives-PublishArgs.md)
 * [primitive PublishDUP](mqtt-primitives-PublishDUP.md)
 * [primitive PublishQos0](mqtt-primitives-PublishQos0.md)
@@ -65,7 +63,6 @@ No package doc string provided for mqtt/primitives.
 * [primitive ReconnectFailed](mqtt-primitives-ReconnectFailed.md)
 * [primitive SocketError](mqtt-primitives-SocketError.md)
 * [primitive SubscribeFailed](mqtt-primitives-SubscribeFailed.md)
-* [trait TickListener](mqtt-primitives-TickListener.md)
 * [primitive UnknownError](mqtt-primitives-UnknownError.md)
 
 

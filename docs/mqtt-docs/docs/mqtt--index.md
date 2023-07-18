@@ -26,8 +26,6 @@
 ## Public Types
 
 * [class Client](mqtt-Client.md)
-* [type IdMap](mqtt-IdMap.md)
 * [actor Main](mqtt-Main.md)
-* [type PublicationMap](mqtt-PublicationMap.md)
+* [trait MqActor](mqtt-MqActor.md)
 * [actor Router](mqtt-Router.md)
-* [type SubscriberMap](mqtt-SubscriberMap.md)
