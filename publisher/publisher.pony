@@ -118,7 +118,7 @@ fun ref nextQos1Args(argsOrNone : (PublishArgs val | None)) =>
   if (inFlightLimitReached()) then  // We can't send any more packets from the queue so return
     try  //TODO - Only for debugging. Remove converson and fail silently later. 
       var args = argsOrNone as PublishArgs val
-      Debug("Queued QoS 1 id " + args.id.string() + " In-flight: " + _qos1Map.size().string() + " Queued: " + _pending.size().string())
+      Debug("Queued QoS 1 id " + args.cid.string() + " In-flight: " + _qos1Map.size().string() + " Queued: " + _pending.size().string())
     end  
     return  
   end
@@ -132,8 +132,7 @@ fun ref nextQos1Args(argsOrNone : (PublishArgs val | None)) =>
     return
   end  
   sendToRouter(nextArgs)
-  #Cid
-  _qos1Map.insert(nextArgs.id, nextArgs)
+  _qos1Map.insert(nextArgs.cid, nextArgs)
 
 /********************************************************************************/
 fun inFlightLimitReached() : Bool =>
@@ -152,8 +151,7 @@ fun ref nextQos2Args(argsOrNone : (PublishArgs val | None)) =>
   """
   try
     var args : PublishArgs val = argsOrNone as PublishArgs val
-    #cid
-    _qos2Map.insert(args.id, args)
+    _qos2Map.insert(args.cid, args)
     sendToRouter(args)
   else
     Debug("\nProgram error in " + __loc.file() + ":" +__loc.method_name() + "\n")
@@ -179,8 +177,7 @@ fun sendToRouter(args: PublishArgs val) =>
   """
   Make a publish packet with the passed arguments and send it to router
   """
-  #cid
-    _reg[Router](KeyRouter()).next[None]({(router) => router.onPublish(_publisher, args.topic, args.id, PublishPacket.compose(args))}) 
+    _reg[Router](KeyRouter()).next[None]({(router) => router.onPublish(_publisher, args.topic, args.cid, PublishPacket.compose(args))}) 
 
 
 /********************************************************************************/
@@ -205,12 +202,10 @@ fun ref onPubAck(basePacket : BasePacket val) =>
   end
 
   try 
-    #Cid
     _qos1Map.remove(pubAckPacket.id())?
   else
     Debug("Couldn't find QoS 1 publication with id " + pubAckPacket.id().string() + "  in " + __loc.file() + ":" +__loc.method_name())
   end  
-  #cid
   publishComplete(pubAckPacket.id())
 
   // Now we need to check the pending queue to see if any messages were
@@ -232,25 +227,22 @@ fun ref onPubRec(basePacket: BasePacket val) =>
   // the in-flight map and send a PubRel packet to the Broker to acknowledge
   // receipt of the PubRec
   try
-    #cid
     _qos2Map.remove(pubRecPacket.id())?
   else
     Debug("Couldn't remove QoS 2 message id " + pubRecPacket.id().string() + "  at " + __loc.file() + ":" +__loc.method_name())
   end
-  #cid
   doPubRel(pubRecPacket.id())
 
 
 /********************************************************************************/
-fun ref doPubRel(id : IdType) =>
+fun ref doPubRel(cid : IdType) =>
   """
   Send a PubRelPacket with the passed Cid to the router.
   """
-  var data  = PubRelPacket.compose(id)
+  var data  = PubRelPacket.compose(cid)
   //Debug("Inserted id " + id.string() + " in _pubRel at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
   
-  #Cid
-  _pubRelMap.insert(id,data)
+  _pubRelMap.insert(cid,data)
   _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.send(data)})
 
 
@@ -263,23 +255,21 @@ fun ref onPubComp(basePacket: BasePacket val) =>
   """
   var pubCompPacket : PubCompPacket val = PubCompPacket.createFromPacket(basePacket)
   if (not pubCompPacket.isValid()) then 
-    Debug("Got invalid PubComp packet - id = " + pubCompPacket.id().string())  
+    Debug("Got invalid PubComp packet - cid = " + pubCompPacket.id().string())  
     // TODO - Add some cleanup here
     return
   end
 
   try
-    #cid
     _pubRelMap.remove(pubCompPacket.id())?
     //Debug("Removed id " + pubCompPacket.id().string() + " in _pubRel at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
   else
-    Debug("Unable to remove id " + pubCompPacket.id().string() + " at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+    Debug("Unable to remove client id " + pubCompPacket.id().string() + " at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
   end
-  #cid
   publishComplete(pubCompPacket.id())
   
 /********************************************************************************/
-fun ref publishComplete(id : IdType) =>
+fun ref publishComplete(cid : IdType) =>
   """
   Called when we have received our last publish acknowledgement. We can now
   remove the pubRel message from the map and tell the router to do it's necessary
@@ -287,6 +277,5 @@ fun ref publishComplete(id : IdType) =>
   This function should be preceded by deletion of the publish packet in the case
   of QoS 1 publication and by deletion of the PubRel packet in the case of QoS 2.
   """
-  #cid - QoS 1 , QoS 2
-  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onPublishComplete(id)})
+  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onPublishComplete(cid)})
 

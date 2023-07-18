@@ -34,6 +34,20 @@
   because the Ack protocol messages are keyed by id and don't contain topic
   """
 
+
+  /********************************************************************************/
+  type MqActor is (Publisher | Subscriber)
+  """
+  This type def allows us to combine publishers and subscribers into one map of open
+  transactions. The map is indexed by client allocated id (cid) and cids are unique 
+  while checked-out so we know that we can't have clashing cids even if an actor 
+  has multiple transactions underway. A transaction finishing is denoted by the 
+  removal of the actor from the map and *then* the check-in of the cid. 
+  TODO - consider whether we need to add some safeguards for this (e.g. a single
+  router private function that atomically removes first and then checks-in)
+  """
+
+
 /********************************************************************************/
 actor Router
   """
@@ -76,6 +90,7 @@ actor Router
   let _subscriberById : IdMap = IdMap
   """
   _subscriberById tracks the outgoing sub/unsub messages and their incomming acks
+
   """
 
   let _publisherById : PublicationMap = PublicationMap
@@ -322,7 +337,6 @@ be onPublish(pub : Publisher tag, topic: String, id : IdType, packet : ArrayVal)
   So _publisherbyId is indexed by Cid
 
   """
-  #Cid
     _publisherById.update(id,pub)
     //Debug("Publishing on topic : " + topic + " with id " + id.string() + " in " + __loc.file() + ":" +__loc.method_name())
     send(packet)
@@ -335,7 +349,6 @@ fun _findPublisherById(basePacket : BasePacket val) =>
   is working this id.
   """ 
   try 
-      #Cid - QoS 1, QoS 2
     _publisherById(BytesToU16(basePacket.data().trim(2,4)))?.onData(basePacket)
   else
     Debug("Couldn't match id and subscriber at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
@@ -350,7 +363,6 @@ be onPublishComplete(id: IdType) =>
   to remove the link between the id and the publisher
   """
   try
-    #cid - QoS 1, QoS 2
     _publisherById.remove(id)?
     _issuer.checkIn(id)
     //Debug("Completed processing publish id " + id.string() + " in " + __loc.file() + ":" +__loc.method_name())
@@ -382,7 +394,6 @@ be onSubscribe(sub : Subscriber tag, topic: String, id : U16, packet : ArrayVal)
  
   TODO - Decide what to do if we already have a subscription for that topic
   """
-    #cid
     if (_subscriberById.contains(id)) then 
       Debug("Found duplicate id " + id.string() +" in _subscriberById at" + __loc.file() + ":" +__loc.method_name())
     end
@@ -392,7 +403,7 @@ be onSubscribe(sub : Subscriber tag, topic: String, id : U16, packet : ArrayVal)
     send(packet)
 
 /*********************************************************************************/
-be onSubscribeComplete(sub : Subscriber tag; id : IdType, accepted : Bool) =>
+be onSubscribeComplete(sub : Subscriber tag, id : IdType, accepted : Bool) =>
   """
   Called by a subscriber to indicate that it has received a SubAck and so has finished
   processing its subscribe request. Subscribers can subscribe and unsubscribe 
@@ -403,7 +414,6 @@ be onSubscribeComplete(sub : Subscriber tag; id : IdType, accepted : Bool) =>
   map because we got a rejection (See comment to onSubscribe)
   """
   try
-    #cid
     _subscriberById.remove(id)? // always do this because the transaction is complete 
     //Debug("Removing id " + id.string() + " from _subscriberById at " + __loc.file() + ":" +__loc.method_name())
   else
@@ -413,7 +423,7 @@ be onSubscribeComplete(sub : Subscriber tag; id : IdType, accepted : Bool) =>
   _issuer.checkIn(id)
 
   // If we were rejected then remove the preemptive insertion of subcriber into the
-  subscriberByTopic map
+  //subscriberByTopic map
   if (not accepted) then 
     _removeSubscriber(sub)
   end
@@ -440,13 +450,13 @@ fun ref _removeSubscriber(sub : Subscriber tag) =>
   determine which subscriber has been subscribed to or unsubscriber from. We need it 
   to remove a subscriber from the map in the event that it unsubscribes  
   """
-  var topic : String val
+  var topic : String val = ""
   for (key, subscriber) in _subscriberByTopic.pairs() do 
     if (subscriber is sub) then topic = key end
   end
 
   try 
-    _subscriberByTopic.remove(topic)
+    _subscriberByTopic.remove(topic)?
   else
     Debug("Router couldn't remove subscriber to topic: " + topic + " at " + __loc.file() + ":" +__loc.method_name())
   end 
@@ -466,7 +476,7 @@ be onUnsubscribeComplete(sub : Subscriber tag, id : IdType) =>
     _subscriberById.remove(id)?
     //Debug("Removing id " + id.string() + " from _subscriberById at " + __loc.file() + ":" +__loc.method_name())
   else
-    Debug("Router can't remove id " + id.string() + "or topic " + topic + " at " + __loc.file() + ":" +__loc.method_name())
+    Debug("Router can't remove id " + id.string() + " at " + __loc.file() + ":" +__loc.method_name())
   end  
   // Whatever, we've finished with the id
 

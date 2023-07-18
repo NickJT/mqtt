@@ -4,7 +4,7 @@ class PublishArgs
   A simple class to enable a set of args for a publish behaviour to be grouped 
   and stored in an array
   """
-  var id : IdType 
+  var cid : IdType 
   let topic : String val 
   let payload : ArrayVal
   let qos : Qos val
@@ -17,14 +17,14 @@ class PublishArgs
     qos' : Qos val = Qos0,
     d': Bool = false,
     r': Bool = false,
-    id' : IdType = 0 ) =>
+    cid' : IdType = 0 ) =>
     
     topic = topic'
     payload = payload'
     qos = qos'
     retain = r'
     dup = d'
-    id  = id'
+    cid  = cid'
 
   new val createWithId(args : PublishArgs val, newId : IdType) =>
     topic = args.topic
@@ -32,5 +32,5 @@ class PublishArgs
     qos = args.qos
     retain = args.retain
     dup = args.dup
-    id  = newId
+    cid  = newId
   

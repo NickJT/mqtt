@@ -32,7 +32,7 @@ A typeDef for the three quality of service flags
 /********************************************************************************/
 trait Packet
 """
-The minum set of functions needed to extract the information in the fixed header
+The minimum set of functions needed to extract the information in the fixed header
 and enable the packet to be interpreted correctly
 """
   fun isValid() : Bool 

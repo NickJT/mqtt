@@ -125,17 +125,18 @@ fun onSubAck(basePacket : BasePacket val)  =>
   result.
   TODO - Why don't we respond directly to main instead of going via router?
   """
+  var accepted : Bool = true
   var subAckPacket : SubAckPacket val = SubAckPacket(basePacket)
   var approvedQos : (Qos | None) =  subAckPacket.approvedQos() 
   var subAckResult : String val = recover val
     var resultString : String iso = " QoS: Requested " + ToQos(_qos).string() 
     match approvedQos
     | let q : Qos =>  resultString.append(" Approved " + q.string())
-    | None => resultString.append(" Rejected")
+    | None => resultString.append(" Rejected"); accepted = false
     end
     consume resultString
   end
-  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onSubscribeComplete(subAckPacket.id())})
+  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onSubscribeComplete(_this, subAckPacket.id(), accepted)})
   _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.sendToMain(_topic, subAckResult)})
 
 
@@ -155,8 +156,8 @@ fun ref onUnsubAck(basePacket : BasePacket val)  =>
   end  
   
   try 
-    var id = unsubAckPacket.id() as IdType
-    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onUnsubscribeComplete(id)})
+    var cid = unsubAckPacket.id() as IdType
+    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onUnsubscribeComplete(_this, cid)})
     _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.sendToMain(_topic, "Unsubscribed")})
   else
     Debug("Unknown id in UnsubAck packet at " + __loc.file() + ":" +__loc.method_name())
@@ -180,10 +181,10 @@ fun ref onPayload(basePacket: BasePacket val) : None =>
   """
   var pubPacket : PublishPacket val = PublishPacket.createFromPacket(basePacket)
   try 
-    var id : IdType = pubPacket.id() as IdType     // fails for QoS0
+    var bid : IdType = pubPacket.id() as IdType     // fails for QoS0
     match pubPacket.qos()
-    | Qos1 => doPubAck(id); releasePkt(pubPacket); payloadComplete(id)
-    | Qos2 => #Bid _pktMap.insert(id,pubPacket); doPubRec(id)
+    | Qos1 => doPubAck(bid); releasePkt(pubPacket); payloadComplete(bid)
+    | Qos2 => _pktMap.insert(bid,pubPacket); doPubRec(bid)
     end
   else
     if (pubPacket.qos() is Qos0) then
@@ -238,17 +239,14 @@ fun ref onPubRel(basePacket : BasePacket val) =>
   if (pubRelPacket.id() == 0) then
     Debug ("Invalid id at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
   end
-  #Bid
   doPubComp(pubRelPacket.id())
 
   try 
-    #Bid
-    (var id , var packet ) = _pktMap.remove(pubRelPacket.id())?
+    (var bid , var packet ) = _pktMap.remove(pubRelPacket.id())?
     releasePkt(packet) 
   else
     Debug("Unable to release QoS 2 packet id " + pubRelPacket.id().string()  +  " in " + __loc.file() + ":" +__loc.method_name())
   end
-  #Bid
   payloadComplete(pubRelPacket.id())
 
 /********************************************************************************/
@@ -297,13 +295,12 @@ be unsubscribe() =>
 
 
 /********************************************************************************/
-fun ref payloadComplete(id : IdType) =>
+fun ref payloadComplete(bid : IdType) =>
   """
   Informs router that we have finished processing this id.
   """
-  if (id == 0) then
-      Debug("Zero Id found in " + __loc.file() + ":" +__loc.method_name())
+  if (bid == 0) then
+      Debug("Zero Broker Id found in " + __loc.file() + ":" +__loc.method_name())
       return
   end
-  #Bid
-  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onPayloadComplete(id)})
+  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onPayloadComplete(bid)})
