@@ -110,8 +110,8 @@ be onData(basePacket : BasePacket val) =>
   """
   // No need for a guard because the match statement will catch anything that is invalid
   match basePacket.controlType()
-  | ControlSubAck => onSubAck(basePacket)
   | ControlPublish => onPayload(basePacket)
+  | ControlSubAck => onSubAck(basePacket)
   | ControlPubRel => onPubRel(basePacket)
   | ControlUnsubAck => onUnsubAck(basePacket)
   else
@@ -183,7 +183,7 @@ fun ref onPayload(basePacket: BasePacket val) : None =>
     var id : IdType = pubPacket.id() as IdType     // fails for QoS0
     match pubPacket.qos()
     | Qos1 => doPubAck(id); releasePkt(pubPacket); payloadComplete(id)
-    | Qos2 => _pktMap.insert(id,pubPacket); doPubRec(id)
+    | Qos2 => #Bid _pktMap.insert(id,pubPacket); doPubRec(id)
     end
   else
     if (pubPacket.qos() is Qos0) then
@@ -197,7 +197,8 @@ fun ref onPayload(basePacket: BasePacket val) : None =>
 /********************************************************************************/
 fun doPubAck(id : IdType) =>
   """
-  All we have is an id, so make the pubAck packet and send it
+  All we have is an id, so make the pubAck packet and send it. No look-ups with id
+  so we don't care whether it is Broker or Client assigned.
   """
   if (id == 0) then
       Debug("Zero Id found in " + __loc.file() + ":" +__loc.method_name())
@@ -211,7 +212,8 @@ fun doPubAck(id : IdType) =>
 fun ref doPubRec(id : IdType) =>
   """
   We have received a publish message with QoS 2. We acknowledge this with a 
-  PubRec message and wait for a PubRel in response.
+  PubRec message and wait for a PubRel in response. No id lookup so we don't 
+  care whether this is a Bid or  Cid
   """
   if (id == 0) then
       Debug("Zero Id found in " + __loc.file() + ":" +__loc.method_name())
@@ -229,29 +231,32 @@ fun ref onPubRel(basePacket : BasePacket val) =>
   to ack this. The payload was stored when we received the publish message and 
   we need to retrieve this from the packetMap to release it. Then we can delete it
   and tell router we have completed processing. 
+  We do a lookup with id on _pktMap so we can't mix Bid and Cid in one subscriber instance 
   """
   var pubRelPacket = PubRelPacket.createFromPacket(basePacket)
   
   if (pubRelPacket.id() == 0) then
     Debug ("Invalid id at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
   end
-
+  #Bid
   doPubComp(pubRelPacket.id())
 
   try 
+    #Bid
     (var id , var packet ) = _pktMap.remove(pubRelPacket.id())?
     releasePkt(packet) 
   else
     Debug("Unable to release QoS 2 packet id " + pubRelPacket.id().string()  +  " in " + __loc.file() + ":" +__loc.method_name())
   end
-  
+  #Bid
   payloadComplete(pubRelPacket.id())
 
 /********************************************************************************/
 fun doPubComp(id : IdType) =>
   """
   We have received a PubRel from a sender so we acknowledge this with a PubComp 
-  message. We only have the id at this stage so there is little else to do
+  message. We only have the id at this stage so there is little else to do. No
+  lookups on id so we don't care whether it is a Bid or a Cid.
   """
   _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.send(PubCompPacket.compose(id))})
 
@@ -300,5 +305,5 @@ fun ref payloadComplete(id : IdType) =>
       Debug("Zero Id found in " + __loc.file() + ":" +__loc.method_name())
       return
   end
-
+  #Bid
   _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onPayloadComplete(id)})
