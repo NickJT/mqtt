@@ -14,29 +14,9 @@
   use "ticker"
   use "utilities"
 
-  /********************************************************************************/
-  type IdMap is Map[U16, Subscriber tag]
-    """
-    A map of subscribers keyed by the id of the message they are processing. We need 
-    this because ack messages don't contain topic
-    """
 
   /********************************************************************************/
-  type SubscriberMap is Map[String, Subscriber tag]
-    """
-    A map of subscribers keyed by the topic to which they are subscribed
-    """
-
-  /********************************************************************************/
-  type PublicationMap is Map[IdType, Publisher tag]
-  """
-  A map of publications in progress and which publisher owns them. This is needed
-  because the Ack protocol messages are keyed by id and don't contain topic
-  """
-
-
-  /********************************************************************************/
-  type MqActor is (Publisher | Subscriber)
+  trait MqActor 
   """
   This type def allows us to combine publishers and subscribers into one map of open
   transactions. The map is indexed by client allocated id (cid) and cids are unique 
@@ -46,6 +26,8 @@
   TODO - consider whether we need to add some safeguards for this (e.g. a single
   router private function that atomically removes first and then checks-in)
   """
+  be onData(basePacket : BasePacket val) 
+  be onTick(sec : I64)
 
 
 /********************************************************************************/
@@ -86,20 +68,19 @@ actor Router
   var _pingTokens : USize = 3
   var _pingTokenCount : USize = _pingTokens
 
-  let _subscriberByTopic : SubscriberMap = SubscriberMap
-  let _subscriberById : IdMap = IdMap
+  let _subscriberByTopic : Map[String val, Subscriber tag ] = Map[String val, Subscriber tag ]
+  let _subscriberById : Map[IdType, MqActor tag] = Map[IdType, MqActor tag] 
   """
   _subscriberById tracks the outgoing sub/unsub messages and their incomming acks
-
   """
 
-  let _publisherById : PublicationMap = PublicationMap
+  let _publisherById : Map[IdType, MqActor tag] = Map[IdType, MqActor tag] 
   """
   _publisherById tracks the outgoing publish messages and their incomming 
   and outgoing acks 
   """
 
-  let _subscriberByBid : IdMap = IdMap
+  let _subscriberByBid : Map[IdType, Subscriber tag] = Map[IdType, Subscriber tag]
   """
   _subscriberByBid tracks the incomming publish messages by the Broker Id (bid) 
   and their incomming and outgoing acks
@@ -191,7 +172,6 @@ fun ref _findSubscriberByTopic(basePacket : BasePacket val) =>
   However - Sub/Unsub messages are sent by the Subscriber with ids allocated by the
   IdIssuers and Publish messages are received by the Subscriber with ids allocated
   by the Broker. 
-  TODO - Separate the id maps so we don't overwrite ids from different messages
   Only called in response to an incomming publish so uses Bid
   """     
 

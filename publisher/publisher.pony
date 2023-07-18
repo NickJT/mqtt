@@ -8,7 +8,7 @@
   use "../primitives"
   use "../utilities"
 
-actor Publisher is IdNotifyPub
+actor Publisher is (IdNotifyPub & MqActor)
   """
   Represents an application level publication topic. Provides a public Publish topic
   that:

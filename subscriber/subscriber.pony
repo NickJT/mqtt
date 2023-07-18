@@ -9,7 +9,7 @@
   use "../publisher"
   use "../utilities"
 
-actor Subscriber is (IdNotifySub & TickListener)
+actor Subscriber is (IdNotifySub & MqActor)
   """
   Represents an application level subscription to one topic. 
   Note - We're not implementing the multi-subscribe capability in the specification
