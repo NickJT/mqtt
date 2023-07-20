@@ -463,6 +463,7 @@ be onTick(sec : I64) =>
   for mqActor in _actorById.values() do
     mqActor.onTick(sec)
   end
+  _reg[Main](KeyMain()).next[None]({(m: Main)=>m.onTick(sec)})
 
 
 /*********************************************************************************/

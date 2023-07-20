@@ -34,7 +34,7 @@ directly.
     end
 
     _router.send(cp.getPacket())
-    Debug("Sent connect packet at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+    _router.sendToMain("Sent connect packet at " , __loc.file() + ":" +__loc.method_name())
   
 
   be onAck(basePacket: BasePacket val) =>

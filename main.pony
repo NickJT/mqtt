@@ -47,6 +47,8 @@ actor Main
   var _subs: Map[String val, String val] val = Map[String val, String val] 
   var _sBuf: Map[String val, String val] = Map[String val, String val]
   var _sPos: Map[String val, U32] = Map[String val, U32]
+  var _sCol: Map[String val, String val] = Map[String val, String val]
+  var _sFirst :  Map[String val, Bool] = Map[String val, Bool]
   let _out : OutStream
 
   let _yCommand : U32 = 4
@@ -58,7 +60,6 @@ actor Main
 
   let _xCursor : U32 = 3
   let _yCursor : U32 = 2
-
 
   new create(env: Env) =>
     _out = env.out
@@ -75,8 +76,12 @@ actor Main
     for key in _subs.keys() do
       _sBuf.insert(key,"")
       _sPos.insert(key,y)
+      _sFirst.insert(key,true)
+      _sCol.insert(key,ANSI.grey())
       y = y + 1
     end
+    refreshTopics()
+
 
     let term = ANSITerm(Readline(recover Handler(env) end, env.out), env.input)
     _out.write(ANSI.cursor(_xCursor,_yCursor))
@@ -99,16 +104,27 @@ be onExit(diagnostic : String val) =>
       showMsg("Exit: ", diagnostic)
 
 /********************************************************************************/    
+be onTick(sec : I64) =>
+  for (topic,content) in _sBuf.pairs() do
+    try if (_sCol(topic)? == ANSI.red()) then _sCol.update(topic, ANSI.green()) end end
+  end
+  refresh()
+/********************************************************************************/    
 be onMessage(topic : String val, content : String val) =>
   """
   This is the primary route into main for messages received over MQTT. It is called
   by the router for subscription receipts.
   """
-  if (_sBuf.contains(topic)) then
-    showBuf(topic,content)
-  else
-    showMsg(topic,content)
+  try
+    if (_sFirst(topic)? == true) then 
+      _sFirst.update(topic,false)
+    elseif (_sBuf(topic)?.ne(content)) then 
+      _sCol.update(topic,ANSI.red())
+    end
+    _sBuf.update(topic,content)
+    refresh()
   end
+
 
 /********************************************************************************/    
 be onBrokerConnect(message: String val) =>
@@ -161,21 +177,37 @@ fun ref _initialise(env: Env, reg : Registrar) : Bool =>
 
 
 /************************************************************************/
-fun showBuf(topic : String val, content: String val) =>
-  try
-    var y = _sPos(topic)? 
-    _out.write(ANSI.cursor(_xTopic,y) + ANSI.erase(EraseLine))
-    _out.flush()
-    _out.write(ANSI.cursor(_xTopic,y))
-    _out.write(topic)
-    _out.write(ANSI.cursor(_xContent,y))
-    _out.write(content)
-    _out.write(ANSI.cursor(_xCursor,_yCursor))
-    _out.flush()
+fun ref refreshTopics() =>
+  for (topic,content) in _sBuf.pairs() do
+    try
+      var y = _sPos(topic)? 
+      _out.write(ANSI.cursor(_xTopic,y) + ANSI.erase(EraseLine))
+      _out.write(ANSI.white() + topic)
+      _out.write(ANSI.cursor(_xCursor,_yCursor))
+      _out.flush()
+    else
+      showMsg("Error in refreshTopics" + topic," " + content)
+    end
   end
 
+/************************************************************************/
+fun ref refresh() =>
+  for (topic,content) in _sBuf.pairs() do
+    try  
+      var y = _sPos(topic)? 
+      _out.write(ANSI.cursor(_xContent,y)+ ANSI.erase(EraseRight))
+      _out.write(_sCol(topic)? + content)
+      _out.flush()
+      _out.write(ANSI.white())
+      _out.write(ANSI.cursor(_xCursor,_yCursor))
+      _out.flush()
+    else
+      showMsg("Error in refresh " + topic," " + content)
+    end
+  end
+/************************************************************************/
 fun showMsg(topic : String val, content: String val = "") =>
-  _out.write(ANSI.cursor(_xTopic,_yMessage) + ANSI.erase(EraseLine))
+  _out.write(ANSI.cursor(_xTopic,_yMessage) + ANSI.erase(EraseLine) + ANSI.white())
   _out.flush()
   _out.write(ANSI.cursor(_xTopic,_yMessage) + topic)
   _out.write(ANSI.cursor(_xContent,_yMessage) + content)
