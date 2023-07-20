@@ -28,6 +28,7 @@
   use "collections"
   use "debug"
   use "net"
+  use "term"
 
   use "configurator"
   use "examples"
@@ -44,18 +45,58 @@ actor Main
   """
   let _reg : Registrar  = Registrar
   var _subs: Map[String val, String val] val = Map[String val, String val] 
+  var _sBuf: Map[String val, String val] = Map[String val, String val]
+  var _sPos: Map[String val, U32] = Map[String val, U32]
+  let _out : OutStream
+
+  let _yCommand : U32 = 4
+  let _yMessage : U32 = 6
+  let _yLine : U32 = 5
+  let _yBuf : U32 = 8
+  let _xTopic : U32 = 3
+  let _xContent : U32 = 45
+
+  let _xCursor : U32 = 3
+  let _yCursor : U32 = 2
+
 
   new create(env: Env) =>
+    _out = env.out
+    _out.write(ANSI.clear())
+    showMsg("Initialising", "")
+  
     if (not _initialise(env, _reg) ) then 
-      Debug("Unable to initialise connection - quitting")
+      showMsg("Unable to initialise connection", "Quitting")
+    else 
+      showMsg("")
     end
+
+    var y :U32 = _yBuf
+    for key in _subs.keys() do
+      _sBuf.insert(key,"")
+      _sPos.insert(key,y)
+      y = y + 1
+    end
+
+    let term = ANSITerm(Readline(recover Handler(env) end, env.out), env.input)
+    _out.write(ANSI.cursor(_xCursor,_yCursor))
+    term.prompt("> ")
+
+    let notify = object iso
+      let term: ANSITerm = term
+      fun ref apply(data: Array[U8] iso) => term(consume data)
+      fun ref dispose() => term.dispose()
+    end
+
+    env.input(consume notify)
+
 
 /********************************************************************************/    
 be onExit(diagnostic : String val) =>
   """
   Called by Client when the TCP connection is closed or if the network connection request fails 
   """
-      Debug("Exit: " + diagnostic)
+      showMsg("Exit: ", diagnostic)
 
 /********************************************************************************/    
 be onMessage(topic : String val, content : String val) =>
@@ -63,8 +104,12 @@ be onMessage(topic : String val, content : String val) =>
   This is the primary route into main for messages received over MQTT. It is called
   by the router for subscription receipts.
   """
-    Debug(topic + " => " + content)
-  
+  if (_sBuf.contains(topic)) then
+    showBuf(topic,content)
+  else
+    showMsg(topic,content)
+  end
+
 /********************************************************************************/    
 be onBrokerConnect(message: String val) =>
   """
@@ -73,21 +118,21 @@ be onBrokerConnect(message: String val) =>
   or subscribing to topics.
   TODO - Add local collection of subscribers so we can call unsubscriber on them later
   """
-    Debug(message)
+    showMsg(message, "")
 
     for (topic , qos) in _subs.pairs() do 
       var subscriber = Subscriber(_reg, topic, qos)  
       subscriber.subscribe()
     end
 
-    Debug("Starting timestamp publication at " + __loc.file() + " : " +__loc.method_name())
+    showMsg("Starting timestamp publication at ", __loc.file() + " : " +__loc.method_name())
     Timestamper(_reg)
 /************************************************************************/
 fun ref _initialise(env: Env, reg : Registrar) : Bool =>
   let configReader = MqttConfig(env, ConfigFile(), FullConfigParams())
   //Debug("Opening " + ConfigFile())
   if (not configReader.isValid()) then
-    Debug("Unable to read valid configuration")
+    showMsg("Unable to read valid configuration")
     return false 
   end
 
@@ -99,15 +144,15 @@ fun ref _initialise(env: Env, reg : Registrar) : Bool =>
     try
       ipv4Address = toIPv4(env, address) as String val
     else
-      Debug("Unable to resolve an IPv4 address from " + address)
+      showMsg("Unable to resolve an IPv4 address from " , address)
       return false
     end  
 
     var port: String val = config(IniPort())?
-    Debug("Connecting to " + address + ":" + port)
+    showMsg("Connecting to " , address + ":" + port)
     TCPConnection(TCPConnectAuth(env.root), recover Client(env, _reg, config) end, ipv4Address, port)  
   else
-    Debug("Unable to read address and port config in " + ConfigFile())
+    showMsg("Unable to read address and port config in ", ConfigFile())
     return false
   end
 
@@ -115,18 +160,39 @@ fun ref _initialise(env: Env, reg : Registrar) : Bool =>
   true
 
 
+/************************************************************************/
+fun showBuf(topic : String val, content: String val) =>
+  try
+    var y = _sPos(topic)? 
+    _out.write(ANSI.cursor(_xTopic,y) + ANSI.erase(EraseLine))
+    _out.flush()
+    _out.write(ANSI.cursor(_xTopic,y))
+    _out.write(topic)
+    _out.write(ANSI.cursor(_xContent,y))
+    _out.write(content)
+    _out.write(ANSI.cursor(_xCursor,_yCursor))
+    _out.flush()
+  end
 
-  /************************************************************************/
-  fun toIPv4(env : Env, arg : String val) : (String val | None) =>
+fun showMsg(topic : String val, content: String val = "") =>
+  _out.write(ANSI.cursor(_xTopic,_yMessage) + ANSI.erase(EraseLine))
+  _out.flush()
+  _out.write(ANSI.cursor(_xTopic,_yMessage) + topic)
+  _out.write(ANSI.cursor(_xContent,_yMessage) + content)
+  _out.write(ANSI.cursor(_xCursor,_yCursor))
+  _out.flush()
+
+/************************************************************************/
+fun toIPv4(env : Env, arg : String val) : (String val | None) =>
   """
   This doesn't fit comfortably anywhere yet so we'll leave it in main for now
   TODO - Decide where network utilities should go
-  """  if (DNS.is_ip4(arg)) then return arg
-    end
-    
-    try
-      var addrs : Array[NetAddress val] = DNS.ip4(DNSAuth(env.root), arg, "")
-      (var addr, var port) = addrs(0)?.name()?
-      return addr
-    end
-    None
+  """  
+  if (DNS.is_ip4(arg)) then return arg end
+  
+  try
+    var addrs : Array[NetAddress val] = DNS.ip4(DNSAuth(env.root), arg, "")
+    (var addr, var port) = addrs(0)?.name()?
+    return addr
+  end
+  None

@@ -107,15 +107,12 @@ actor Router
 /*********************************************************************************/
 be route(basePacket : BasePacket val) =>
     """
-    This function demultiplexes the incomming packet stream according to packet type
-    First we deal with Publish because this may or may not have an id. Then we deal with 
-    the messages that always have id bytes after a single remaining length byte. These are
-    ControlPubAck, ControlPubRec, ControlPubRel, ControlPubComp and ControlUnsubAck. 
-    Finally there are specific types which don't have packet ids. These are CONNECT,
-    CONNACK, PINGRESP, PINGREQ and DISCONNECT but only CONNACK and PINGRESP are valid
-    in this context because CONNECT has already been taken care of and PINGREQ and
-    DISCONNECT are outgoing messages (i.e. client to broker).  
-  
+    This function demultiplexes the incomming packet stream according to packet type.
+    In comming Publish and PubRel packets have Broker assigned Ids (bids) so these 
+    use an id to subscriber map with Bid keys. Outgoing messages (from both publishers)
+    and subscribers use client assigned ids (cids). The two ids need to be indexed separately 
+    because the numeric ranges can overlap.
+    TODO - refactor into subtypes to reduce the number of matches
     """
     if (basePacket.isNotValid()) then
       Debug("Router got an invalid packet at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
@@ -125,8 +122,6 @@ be route(basePacket : BasePacket val) =>
     //Debug("Router got a " + basePacket.controlType().string())
     //Debug(basePacket.data())
 
-    // Currently including the broker packets so we can use the same actor 
-    // to mock a broker for testing
     match basePacket.controlType()
       | ControlConnAck => _connector.onAck(basePacket)
       | ControlPublish => _findSubscriberByTopic(basePacket)  // goes to subscriber but may not have an id so find by topic and put Bid in _subscriberByBid
@@ -170,28 +165,6 @@ fun _findActorById(basePacket : BasePacket val) =>
 /*******************   Functions for incomming Payloads   ************************/
 /*********************************************************************************/
 fun ref _findSubscriberByTopic(basePacket : BasePacket val) =>
-  var pubPacket : PublishPacket val = PublishPacket.createFromPacket(basePacket)
-  if (not pubPacket.isValid()) then
-    Debug("Invalid packet in " + __loc.file() + ":" +__loc.method_name())
-    return
-  end  
-
-  try
-    var topic : String val = pubPacket.topic() as String val         // A valid Publish will always have a topic
-    var subscriber = _subscriberByTopic(topic)?                      // If we can't find a subscriber then we've been assigned a topic
-    if (pubPacket.qos() is Qos0 ) then                               // QoS 0 has no id so there is no map entry, just fire and forget 
-      subscriber.onData(basePacket)
-      return
-    end
-    
-    Assert((_subscriberByBid.contains(pubPacket.id() as IdType) == false), "Found duplicate id " + pubPacket.id().string() +" in " + __loc.file())?
-    _subscriberByBid.update(pubPacket.id() as IdType, subscriber)
-    subscriber.onData(basePacket)                                    // we could combine this with the .onData above but that risks
-  else                                                               // a subsequent packet before the subscriber is in the map   
-     _doAssignedSubscription(basePacket)
-  end  
-
-fun ref _xfindSubscriberByTopic(basePacket : BasePacket val) =>
   """
   Process a Publish Packet and route to the appropriate subscriber. All publish packets
   have a topic and this is how we locate the subscriber. There is always a 1:1 mapping
@@ -207,47 +180,38 @@ fun ref _xfindSubscriberByTopic(basePacket : BasePacket val) =>
   So - our outgoing publish with Id=3 is not the same as an incomming publish with id=3
   but this is OK because we are using the Broker allocated id (bid) for incomming publish 
   messages and the Client allocated id (cid) for outgoing messages. 
-
   _findSubscriberByTopic is only called in response to an incomming publish so uses Bid.
-  """     
-
+  TODO - The duplicate check on Broker id can probably be optimised out.
+  """   
   var pubPacket : PublishPacket val = PublishPacket.createFromPacket(basePacket)
   if (not pubPacket.isValid()) then
-    Debug("Invalid packet found at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+    Debug("Invalid packet in " + __loc.file() + ":" +__loc.method_name())
     return
   end  
 
-  var topicOrNone : (String val | None) = pubPacket.topic()  // A valid Publish will always have a topic
-  var idOrNone : (IdType | None) = pubPacket.id()  //PublishPacket will return None for QoS 0
-  
   try
-    var topic : String val = topicOrNone as String val
-    var subscriber = _subscriberByTopic(topic)?
-
-    subscriber.onData(basePacket)
-    
-    if (pubPacket.qos() is Qos0 ) then return end 
-    
-    var bid = idOrNone as IdType
-    
-    if (_subscriberByBid.contains(bid)) then 
-      Debug("Found duplicate id " + bid.string() +" in _subscriberByBid at" + __loc.file() + ":" +__loc.method_name())
+    var topic : String val = pubPacket.topic() as String val         // A valid Publish will always have a topic
+    var subscriber = _subscriberByTopic(topic)?                      // If we can't find a subscriber then we've been assigned a topic
+    if (pubPacket.qos() is Qos0 ) then                               // QoS 0 has no id so there is no map entry, just fire and forget 
+      subscriber.onData(basePacket)
+      return
     end
     
-    _subscriberByBid.update(bid, subscriber)
-    //Debug("Inserted id " + id.string() +" in _subscriberByBid at" + __loc.file() + ":" +__loc.method_name())
-  
-  else  // We couldn't find a subscriber with this topic so we must have an assigned subscription 
-    Debug("Found an assigned subscription at" + __loc.file() + ":" +__loc.method_name())
-    // either we have been assigned a topic by the Broker, or we are a Mock Broker and our client has published a message
-    _doAssignedSubscription(basePacket)
-  end
- 
+    if ((_subscriberByBid.contains(pubPacket.id() as IdType))) then  //If the Broker has sent a duplicate id we can't proceed
+      Debug("Found duplicate id " + pubPacket.id().string() +" in " + __loc.file())
+      return
+    end
+
+    _subscriberByBid.update(pubPacket.id() as IdType, subscriber)    // Now we can link our unique bid to the subscriber
+    subscriber.onData(basePacket)                                    // we could combine this with the .onData above but that risks
+  else                                                               // a subsequent packet before the subscriber is in the map   
+     _doAssignedSubscription(basePacket)
+  end  
+
 /********************************************************************************/
 fun _findPayloadById(basePacket : BasePacket val) =>
   """
-  We search the payload map by BId to find the subscriber who is working this Bid.
-  _subscriberByBid is indexed by Bid not Cid.
+  We search the payload map by Bid to find the subscriber who is working this Bid.
   """ 
   try 
     _subscriberByBid(BytesToU16(basePacket.data().trim(2,4)))?.onData(basePacket)
@@ -261,8 +225,8 @@ fun _findPayloadById(basePacket : BasePacket val) =>
 fun ref _doAssignedSubscription(basePacket : BasePacket val) =>
   """
   Only called if we receive a Publish message and we have no record of a Subscriber that
-  has subscribed to that topic.  
-  From the specification:  
+  has subscribed to that topic. Apparently, this is possible in Protocol 3.1.1. From the
+  specification:  
 
   >A Client could receive messages that do not match any of its explicit Subscriptions.
   This can happen if the Broker:   
@@ -283,7 +247,7 @@ fun ref _doAssignedSubscription(basePacket : BasePacket val) =>
   use router.subscribe() because we don't want subscriber to send a another subscription
   request to the Broker.  
   Note - this section is synchronous so we know that the new subscriber is in the
-  subscriber map before we call router.route(). Keep this in mind when chaning this 
+  subscriber map before we call router.route(). Keep this in mind when changing this 
   function.  
   TODO - We need to remove this local only subscriber from the maps at some
   point in the cleanup process
@@ -294,7 +258,7 @@ fun ref _doAssignedSubscription(basePacket : BasePacket val) =>
 
   var publishPacket : PublishPacket val = PublishPacket.createFromPacket(basePacket)
   if (not publishPacket.isValid()) then
-    Debug("Invalid packet found at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+    Debug("Invalid packet found at " + __loc.file() + ":" +__loc.method_name())
     return
   end  
 
@@ -334,9 +298,13 @@ be onPublish(pub : Publisher tag, topic: String, id : IdType, packet : ArrayVal)
   """
   Called by a publisher to publish packet on topic. Comes through the router so we
   have a central register of all publishers. Called with a Client allocated id (Cid).
-  So _actorById is indexed by Cid
-
+  So _actorById is indexed by Cid. 
+  TODO - During dev we have a duplicate check but this can be removed later
   """
+    if (_actorById.contains(id)) then 
+      Debug("Duplicate id " + id.string() + " found in  " + __loc.file() + ":" +__loc.method_name())
+    end
+    
     _actorById.update(id,pub)
     //Debug("Publishing on topic : " + topic + " with id " + id.string() + " in " + __loc.file() + ":" +__loc.method_name())
     send(packet)
@@ -377,14 +345,24 @@ be onSubscribe(sub : Subscriber tag, topic: String, id : U16, packet : ArrayVal)
   Compromise - Put subscriber in map here but **remove** it from Map if we get a Nack. Worst 
   case is an unecessary insert/remove in the unlikely event of a rejection. This also matches
   unsub case where we have to continue to ack messages between unsub and unsub ack
- 
-  TODO - Decide what to do if we already have a subscription for that topic
+  TODO - Duplicate id check can be removed after testing
+  TODO - Decide what to do if we already have a subscription for that topic. Currently we just
+  return but this will need clean-up and possibly reporting to main. 
   """
-    if (_actorById.contains(id)) then 
-      Debug("Found duplicate id " + id.string() +" in _actorById at" + __loc.file() + ":" +__loc.method_name())
+    
+    if (_subscriberByTopic.contains(topic)) then 
+      Debug("Already subscribed to " + topic + " at " + __loc.file() + ":" +__loc.method_name())
+      return
     end
+    
+    if (_actorById.contains(id)) then 
+      Debug("Found duplicate id " + id.string() +" in _actorById at " + __loc.file() + ":" +__loc.method_name())
+      return
+    end
+
     _actorById.update(id,sub)
-      //Debug("Inserted id " + id.string() +" in _actorById at" + __loc.file() + ":" +__loc.method_name())
+    //Debug("Inserted id " + id.string() +" in _actorById at" + __loc.file() + ":" +__loc.method_name())
+    
     _subscriberByTopic.update(topic, sub)
     send(packet)
 
@@ -399,6 +377,10 @@ be onSubscribeComplete(sub : Subscriber tag, id : IdType, accepted : Bool) =>
   TODO - If accepted is false then remove the subscriber from the _subscriberByTopic
   map because we got a rejection (See comment to onSubscribe)
   """
+  // If we were rejected then remove the preemptive insertion of subcriber into the
+  //subscriberByTopic map
+  if (not accepted) then _removeSubscriber(sub) end
+
   try
     _actorById.remove(id)? // always do this because the transaction is complete 
     //Debug("Removing id " + id.string() + " from _actorById at " + __loc.file() + ":" +__loc.method_name())
@@ -408,11 +390,6 @@ be onSubscribeComplete(sub : Subscriber tag, id : IdType, accepted : Bool) =>
   // Whatever, we've finished with the id
   _issuer.checkIn(id)
 
-  // If we were rejected then remove the preemptive insertion of subcriber into the
-  //subscriberByTopic map
-  if (not accepted) then 
-    _removeSubscriber(sub)
-  end
 
 /*********************************************************************************/
 be onUnsubscribe(sub : Subscriber tag, id : IdType, packet : ArrayVal) =>
@@ -423,32 +400,14 @@ be onUnsubscribe(sub : Subscriber tag, id : IdType, packet : ArrayVal) =>
   Note - The spec states that clients must continue to acknowledge messages until
   an unsub request has been acknowledged - therefore we don't remove the subscriber
   here, only in the onUnsubAck behaviour
+  TODO - During dev we have a duplicate check but this can be removed later
   """
+    if (_actorById.contains(id)) then 
+      Debug("Duplicate id " + id.string() + " found in  " + __loc.file() + ":" +__loc.method_name())
+    end
     _actorById.update(id,sub)
     //Debug("Inserted id " + id.string() +" in _actorById at" + __loc.file() + ":" +__loc.method_name())
     send(packet)
-
-
-/*********************************************************************************/
-fun ref _removeSubscriber(sub : Subscriber tag) =>
-  """
-  This function enables us to do a reverse lookup on the _subscriberByTopic map to
-  determine which subscriber has been subscribed to or unsubscriber from. We need it 
-  to remove a subscriber from the map in the event that it unsubscribes  
-  """
-  var topic : String val = ""
-  for (key, subscriber) in _subscriberByTopic.pairs() do 
-    if (subscriber is sub) then 
-      topic = key
-      break
-    end
-  end
-
-  try 
-    _subscriberByTopic.remove(topic)?
-  else
-    Debug("Router couldn't remove subscriber to topic: " + topic + " at " + __loc.file() + ":" +__loc.method_name())
-  end 
 
 /*********************************************************************************/
 be onUnsubscribeComplete(sub : Subscriber tag, id : IdType) =>
@@ -473,10 +432,39 @@ be onUnsubscribeComplete(sub : Subscriber tag, id : IdType) =>
   _removeSubscriber(sub)
    //Debug("Completed processing unsubscribe with id " + id.string())
 
-
+/*********************************************************************************/
+fun ref _removeSubscriber(sub : Subscriber tag) =>
+  """
+  This function enables us to do a reverse lookup on the _subscriberByTopic map to
+  determine which subscriber has been subscribed to or unsubscriber from. We need it 
+  to remove a subscriber from the map in the event that it unsubscribes  
+  """
+  for (key, subscriber) in _subscriberByTopic.pairs() do 
+    if (subscriber is sub) then 
+      try 
+        _subscriberByTopic.remove(key)?
+      else
+        Debug("Router couldn't remove subscriber to topic: " + key + " at " + __loc.file() + ":" +__loc.method_name())
+      end 
+      return
+    end
+  end
 
 /*********************************************************************************/
 /*******************   KeepAlive and Tick functions    ***************************/
+/*********************************************************************************/
+be onTick(sec : I64) =>
+  """
+  OnTick is called on every system tick by Ticker. Router then calls all of the
+  Publishers and Subscribers who have transactions in-flight. Publishers and 
+  Subscribers that don't have transactions in-flight don't need to be notified
+  because they have no in-flight messages to time-out 
+  """
+  for mqActor in _actorById.values() do
+    mqActor.onTick(sec)
+  end
+
+
 /*********************************************************************************/
 be doPing() =>
   """
@@ -498,21 +486,10 @@ fun ref _onPingResp() =>
   """
   When the broker responds to a ping response we credit the token count. This value 
   is debited by doPing() each time we ask for a ping and we quit when it reaches zero.
+  TODO - The test isn't really needed unless we need to protect against missing 
+  an incomming Ping
   """
-  _pingTokenCount = _pingTokenCount + 1
-
-/*********************************************************************************/
-be onTick(sec : I64) =>
-  """
-  OnTick is called on every system tick by Ticker. Router then calls all of the
-  Publishers and Subscribers who have transactions in-flight. Publishers and 
-  Subscribers that don't have transactions in-flight don't need to be notified
-  because they have no in-flight messages to time-out 
-  """
-  for mqActor in _actorById.values() do
-    mqActor.onTick(sec)
-  end
-
+  if (_pingTokenCount < 3) then _pingTokenCount = _pingTokenCount + 1 end
 
 /*********************************************************************************/
 /*******************   Connect and Disconnect functions    ************************/

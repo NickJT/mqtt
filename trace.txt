@@ -1,0 +1,24 @@
+$SYS/broker/load/bytes/received/1min => 130.32
+$SYS/broker/messages/sent => 8894
+$SYS/broker/publish/messages/sent => 7429
+$SYS/broker/bytes/received => 32263
+$SYS/broker/messages/received => 7671
+$SYS/broker/bytes/sent => 295042
+$SYS/broker/load/bytes/received/1min => 130.42
+$SYS/broker/publish/messages/sent => 7435
+$SYS/broker/bytes/received => 32287
+$SYS/broker/messages/received => 7677
+$SYS/broker/messages/sent => 8901
+$SYS/broker/bytes/sent => 295280
+$SYS/broker/load/bytes/received/1min => 130.50
+Data packet is an unexpected size at /home/nick/mqtt/utilities/basePacket.pony:create line 45
+TotalLength returned 43 Actual size: 2
+Can't read control byte at /home/nick/mqtt/utilities/basePacket.pony:create line 29
+Router got an invalid packet at /home/nick/mqtt/router.pony:route line 118
+Router got an invalid packet at /home/nick/mqtt/router.pony:route line 118
+Mock Broker got a Connect at /home/nick/mqtt/router.pony:onControlConnect
+Mock Broker sending 
+32, 2, 0, 0
+$SYS/broker/messages/received => 7683
+$SYS/broker/messages/sent => 8908
+Exit: TCP connection closed

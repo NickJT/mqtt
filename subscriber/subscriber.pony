@@ -129,7 +129,7 @@ fun onSubAck(basePacket : BasePacket val)  =>
   var subAckPacket : SubAckPacket val = SubAckPacket(basePacket)
   var approvedQos : (Qos | None) =  subAckPacket.approvedQos() 
   var subAckResult : String val = recover val
-    var resultString : String iso = " QoS: Requested " + ToQos(_qos).string() 
+    var resultString : String iso = "Requested " + ToQos(_qos).string() 
     match approvedQos
     | let q : Qos =>  resultString.append(" Approved " + q.string())
     | None => resultString.append(" Rejected"); accepted = false
