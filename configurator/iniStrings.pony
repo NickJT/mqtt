@@ -14,7 +14,7 @@ Add strings to this literal array to read them from an ini file. Any strings
 added here which are not represented as non-zero length strings in the ini
 file will cause the overall ini read to fail (by design).
 """
-[IniAddress() ; IniPort(); IniId() ;IniKeepalive() ; IniName() ; IniPassword() ; IniTopic() ; IniMessage(); IniQos()]
+[IniAddress(); IniPort(); IniId(); IniKeepalive(); IniCleansession(); IniName(); IniPassword(); IniTopic(); IniMessage(); IniQos()]
 
 
 primitive MinConfigParams fun apply() : Array[String val] val => 
@@ -23,7 +23,7 @@ Add strings to this literal array to read them from an ini file. Any strings
 added here which are not represented as non-zero length strings in the ini
 file will cause the overall ini read to fail (by design).
 """
-[IniAddress() ; IniPort(); IniId() ;IniKeepalive()]
+[IniAddress() ; IniPort(); IniId() ;IniKeepalive(); IniCleansession()]
 
 
 primitive SupportedQos fun apply() : String val => "01"  // or "012"  or "0123"
@@ -58,6 +58,7 @@ primitive IniPort fun apply() : String val => "port"
 primitive IniSectionClient fun apply() : String val => "client"
 primitive IniId fun apply() : String val => "id" 
 primitive IniKeepalive fun apply() : String val => "keepalive"
+primitive IniCleansession fun apply() : String val => "cleansession"
 
 primitive IniSectionCredentials fun apply() : String val => "credentials"
 primitive IniName fun apply() : String val => "name" 

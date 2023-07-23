@@ -26,6 +26,7 @@
 ## Public Types
 
 * [class Client](mqtt-Client.md)
+* [class Handler](mqtt-Handler.md)
 * [actor Main](mqtt-Main.md)
 * [trait MqActor](mqtt-MqActor.md)
 * [actor Router](mqtt-Router.md)

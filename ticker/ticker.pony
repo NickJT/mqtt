@@ -33,7 +33,7 @@ fun ref cancel(timer: Timer) =>
 
 actor Ticker 
   """
-  Ticker is used by router to schedule calls to every pulisher and subscriber to 
+  Ticker is used by router to schedule calls to every publisher and subscriber to 
   check message queues for expiry
   The timer fires every <period> seconds for a maximum of <repetitions> times. 
   If <repetitions> is zero then the timer fires until it is cancelled 

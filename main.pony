@@ -109,6 +109,7 @@ be onTick(sec : I64) =>
     try if (_sCol(topic)? == ANSI.red()) then _sCol.update(topic, ANSI.green()) end end
   end
   refresh()
+
 /********************************************************************************/    
 be onMessage(topic : String val, content : String val) =>
   """

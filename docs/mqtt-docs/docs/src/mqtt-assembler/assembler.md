@@ -15,8 +15,8 @@ use "files"
 actor Assembler
 """
 Assembler accepts an array of bytes of arbitrary length received from the TCP buffer. It
-assembles these into MQTT packets, wraps them in the BasePacket class and passess them
-on the router.
+assembles these into MQTT packets, wraps them in the BasePacket class and passes them
+on to the router.
 Incomming TCP buffers may contain:
 1.  one or more complete MQTT packets or 
 2.  one or more complete MQTT packets followed by a partial packet

@@ -25,6 +25,7 @@ nav:
 - package mqtt:
   - Package: "mqtt--index.md"
   - class Client: "mqtt-Client.md"
+  - class Handler: "mqtt-Handler.md"
   - actor Main: "mqtt-Main.md"
   - trait MqActor: "mqtt-MqActor.md"
   - actor Router: "mqtt-Router.md"
@@ -641,6 +642,7 @@ nav:
   - class _TimingWheel: "time-_TimingWheel.md"
 - source:
   - client.pony : "src/mqtt/client.md" 
+  - handler.pony : "src/mqtt/handler.md" 
   - main.pony : "src/mqtt/main.md" 
   - router.pony : "src/mqtt/router.md" 
   - assert.pony : "src/assert/assert.md" 

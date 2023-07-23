@@ -1,5 +1,5 @@
 # Timestamper
-<span class="source-link">[[Source]](src/mqtt-examples/timestamp.md#L-0-44)</span>
+<span class="source-link">[[Source]](src/mqtt-examples/timestamp.md#L-0-46)</span>
 ```pony
 actor tag Timestamper
 ```
@@ -7,7 +7,7 @@ actor tag Timestamper
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-examples/timestamp.md#L-0-48)</span>
+<span class="source-link">[[Source]](src/mqtt-examples/timestamp.md#L-0-50)</span>
 
 
 ```pony

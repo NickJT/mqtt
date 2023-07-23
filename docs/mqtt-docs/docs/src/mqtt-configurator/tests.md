@@ -9,7 +9,7 @@ search:
 use "pony_test"
 use "collections"
 use "../primitives"
-
+use "debug"
 //type Map[String val, String val] val is Map[String val, String val] val 
 
 primitive FullConfig fun apply() : Map[String val, String val] val =>
@@ -33,13 +33,13 @@ primitive FullConfigFile fun apply(): String val =>
 """
 The name of the full configuration ini file in this directory
 """
-"/home/nick/pony/mqtt/configurator/fullConfig.ini"
+"/home/nick/mqtt/configurator/fullConfig.ini"
 
 primitive MinConfigFile fun apply(): String val =>
 """
 The name of the minimum configuration ini file in this directory
 """
-"/home/nick/pony/mqtt/configurator/minConfig.ini"
+"/home/nick/mqtt/configurator/minConfig.ini"
 
 primitive MinConfig fun apply() : Map[String val, String val] val =>
   recover val
@@ -149,6 +149,10 @@ class iso _OKFull is UnitTest
     fun name() : String => "OK - Full"
     fun apply(h: TestHelper) =>
       var conf : MqttConfig = MqttConfig(h.env, FullConfigFile(), FullConfigParams())
+       /* var confmap = conf.getConfig()
+     for (k,v) in confmap.pairs() do
+        Debug("[" + k + "] = " + v)
+      end */
       h.assert_eq[Bool](true, conf.isValid()) 
 
 

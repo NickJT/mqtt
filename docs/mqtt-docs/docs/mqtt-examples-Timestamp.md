@@ -1,5 +1,5 @@
 # Timestamp
-<span class="source-link">[[Source]](src/mqtt-examples/timestamp.md#L-0-8)</span>
+<span class="source-link">[[Source]](src/mqtt-examples/timestamp.md#L-0-9)</span>
 ```pony
 class ref Timestamp is
   TimerNotify ref
@@ -14,7 +14,7 @@ class ref Timestamp is
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-examples/timestamp.md#L-0-14)</span>
+<span class="source-link">[[Source]](src/mqtt-examples/timestamp.md#L-0-15)</span>
 
 
 ```pony
@@ -39,7 +39,7 @@ new iso create(
 ## Public Functions
 
 ### apply
-<span class="source-link">[[Source]](src/mqtt-examples/timestamp.md#L-0-19)</span>
+<span class="source-link">[[Source]](src/mqtt-examples/timestamp.md#L-0-20)</span>
 
 
 ```pony
@@ -60,7 +60,7 @@ fun ref apply(
 ---
 
 ### cancel
-<span class="source-link">[[Source]](src/mqtt-examples/timestamp.md#L-0-41)</span>
+<span class="source-link">[[Source]](src/mqtt-examples/timestamp.md#L-0-42)</span>
 
 
 ```pony

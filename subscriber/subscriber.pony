@@ -37,6 +37,9 @@ actor Subscriber is (IdNotifySub & MqActor)
 new create(reg : Registrar, topic: String, qos : String) =>
   _reg = reg
   _pktMap = Map[IdType, PublishPacket val]
+  """
+  A map that stores QoS 2 packets indexed by Bid
+  """
   _this = this
   _topic = topic
   _qos = qos
@@ -67,14 +70,33 @@ be onTick(sec : I64) =>
   //Debug(_topic.string() + " subscriber got system tick " + sec.string())
 
 /********************************************************************************/
+be onDuckAndCover() => 
+  """
+  Something has gone awry.   
+  """
+  Debug(_pktMap.size().string() + " unreleased packets in " + _topic + " subscriber")
+
+/********************************************************************************/
 be onDisconnect() => 
   """
-  All Subscribers get informed of a broker disconnect will a call to the onDisconnect behaviour.
+  All Subscribers get informed of a broker disconnect with a call to the onDisconnect behaviour.
   This enables the Subscriber to take whatever application level action is to respond 
-  to this externally (to the actor) generated break in data. 
-  Note there is no Broker connection at this point so no point in unsubscribing
+  to this externally (to the actor) generated break in data. Actions depend on QoS of messages:
+  QoS 0 - Nothing to be done
+  QoS 1 - Nothing to be done. If we haven't acked a received packet the Broker will re-send it
+  QoS 2 - Save the _pktMap entries because the app may want to restore the session
+  Note - Disconnect may be a result of an error so we can't assume there is a Broker connection
+  at this point but we will try to unsubscribe anyway.
+  If we have packets in _pktMap onDisconnect and CleanSession is false then they are awaiting
+  PubRels from the Broker. We need to save these by sending them to main. 
   """
   Debug("Disconnecting " + _topic)
+  if (_pktMap.size() != 0) then Debug("Sending " + _pktMap.size().string() + " unreleased packets for storage") end
+
+  // TODO - We need to send them in the original order and this might not do it...
+  for (k,v) in _pktMap.pairs() do 
+    Debug("Sending []" + k.string() + v.topic().string() + "]")
+  end
 
 
 /********************************************************************************/
@@ -175,7 +197,7 @@ fun ref onPayload(basePacket: BasePacket val) : None =>
   If it is QoS 0 then just release the packet
 
   If it is QoS 1 then send a PubAck in return and release the message. Then tell
-  router we have completed processing the id
+  router we have completed processing the id. The packet is never stored in _pktMap
   
   If it is QoS 2 then save the message, send a PubRec and wait for a PubRel
   """
@@ -200,6 +222,7 @@ fun doPubAck(id : IdType) =>
   """
   All we have is an id, so make the pubAck packet and send it. No look-ups with id
   so we don't care whether it is Broker or Client assigned.
+  Note that QoS 1 packets are never stored in _pktMap so there is no remove to do
   """
   if (id == 0) then
       Debug("Zero Id found in " + __loc.file() + ":" +__loc.method_name())
@@ -224,15 +247,16 @@ fun ref doPubRec(id : IdType) =>
   _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.send(PubRecPacket.compose(id))})
  
 
-
 /********************************************************************************/
 fun ref onPubRel(basePacket : BasePacket val) =>
   """
   We have received a publish release message for a QoS 2 packet. Send a pubComp
   to ack this. The payload was stored when we received the publish message and 
-  we need to retrieve this from the packetMap to release it. Then we can delete it
-  and tell router we have completed processing. 
-  We do a lookup with id on _pktMap so we can't mix Bid and Cid in one subscriber instance 
+  we need to retrieve this from the packetMap to release it. 
+  Then we **delete the message** from the packet Map and tell router we have completed
+  processing.
+  Note - we do a lookup with id on _pktMap so we can't mix Bid and Cid in one
+  subscriber instance. 
   """
   var pubRelPacket = PubRelPacket.createFromPacket(basePacket)
   

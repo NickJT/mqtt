@@ -59,15 +59,15 @@ new iso create(env: Env, reg : Registrar, config : Map[String val, String val] v
   // assembler is only used by client so don't add it to reg
 
 fun ref connecting(conn: TCPConnection ref, count: U32) =>
-  Debug("Connecting (attempt " + count.string() + ")")
+  _reg[Main](KeyMain()).next[None]({(m : Main)=>m.onMessage("Connecting ", "attempt " + count.string() + ")")})
   
 fun ref accepted(conn: TCPConnection ref) =>
-  Debug("Connection Accepted")
+  _reg[Main](KeyMain()).next[None]({(m : Main)=>m.onMessage("Connection Accepted","")})
   
 fun ref connected(conn: TCPConnection ref) =>
   try
     (let host, let service) = conn.remote_address().name()?
-    Debug("Client connected to " + host + ":" + service)
+    _reg[Main](KeyMain()).next[None]({(m : Main)=>m.onMessage("Client connected to ", host + ":" + service)})
   end
   conn.set_nodelay(true)
   conn.set_keepalive(10)

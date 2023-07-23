@@ -1,5 +1,5 @@
 # Main
-<span class="source-link">[[Source]](src/mqtt/main.md#L-0-38)</span>
+<span class="source-link">[[Source]](src/mqtt/main.md#L-0-39)</span>
 
 Main is responsible for reading the config.ini file identified in the ConfigFile primitive
 and passing the Client into the TCPConnection
@@ -14,7 +14,7 @@ actor tag Main
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt/main.md#L-0-48)</span>
+<span class="source-link">[[Source]](src/mqtt/main.md#L-0-64)</span>
 
 
 ```pony
@@ -35,7 +35,7 @@ new tag create(
 ## Public Behaviours
 
 ### onExit
-<span class="source-link">[[Source]](src/mqtt/main.md#L-0-54)</span>
+<span class="source-link">[[Source]](src/mqtt/main.md#L-0-100)</span>
 
 
 Called by Client when the TCP connection is closed or if the network connection request fails 
@@ -51,8 +51,22 @@ be onExit(
 
 ---
 
+### onTick
+<span class="source-link">[[Source]](src/mqtt/main.md#L-0-107)</span>
+
+
+```pony
+be onTick(
+  sec: I64 val)
+```
+#### Parameters
+
+*   sec: [I64](builtin-I64.md) val
+
+---
+
 ### onMessage
-<span class="source-link">[[Source]](src/mqtt/main.md#L-0-61)</span>
+<span class="source-link">[[Source]](src/mqtt/main.md#L-0-113)</span>
 
 
 This is the primary route into main for messages received over MQTT. It is called
@@ -72,7 +86,7 @@ be onMessage(
 ---
 
 ### onBrokerConnect
-<span class="source-link">[[Source]](src/mqtt/main.md#L-0-69)</span>
+<span class="source-link">[[Source]](src/mqtt/main.md#L-0-130)</span>
 
 
 Called once when the router has confirmed that we have a valid connection to the
@@ -93,8 +107,59 @@ be onBrokerConnect(
 
 ## Public Functions
 
+### refreshTopics
+<span class="source-link">[[Source]](src/mqtt/main.md#L-0-180)</span>
+
+
+```pony
+fun ref refreshTopics()
+: None val
+```
+
+#### Returns
+
+* [None](builtin-None.md) val
+
+---
+
+### refresh
+<span class="source-link">[[Source]](src/mqtt/main.md#L-0-194)</span>
+
+
+```pony
+fun ref refresh()
+: None val
+```
+
+#### Returns
+
+* [None](builtin-None.md) val
+
+---
+
+### showMsg
+<span class="source-link">[[Source]](src/mqtt/main.md#L-0-209)</span>
+
+
+```pony
+fun box showMsg(
+  topic: String val,
+  content: String val = "")
+: None val
+```
+#### Parameters
+
+*   topic: [String](builtin-String.md) val
+*   content: [String](builtin-String.md) val = ""
+
+#### Returns
+
+* [None](builtin-None.md) val
+
+---
+
 ### toIPv4
-<span class="source-link">[[Source]](src/mqtt/main.md#L-0-120)</span>
+<span class="source-link">[[Source]](src/mqtt/main.md#L-0-218)</span>
 
 
 This doesn't fit comfortably anywhere yet so we'll leave it in main for now
@@ -119,7 +184,7 @@ fun box toIPv4(
 ---
 
 ### runtime_override_defaults
-<span class="source-link">[[Source]](src/mqtt/main.md#L-0-38)</span>
+<span class="source-link">[[Source]](src/mqtt/main.md#L-0-39)</span>
 
 
 ```pony
@@ -140,7 +205,7 @@ fun runtime_override_defaults(
 ## Private Functions
 
 ### _initialise
-<span class="source-link">[[Source]](src/mqtt/main.md#L-0-86)</span>
+<span class="source-link">[[Source]](src/mqtt/main.md#L-0-147)</span>
 
 
 ```pony

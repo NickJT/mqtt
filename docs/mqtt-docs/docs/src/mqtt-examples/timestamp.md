@@ -8,6 +8,7 @@ search:
 use "bureaucracy"
 use "time"
 use "debug"
+use ".."
 use "../publisher"
 use "../primitives"
 use "../utilities"
@@ -46,7 +47,8 @@ class Timestamp is TimerNotify
     _count < 10
 
   fun ref cancel(timer: Timer) =>
-    Debug("timer cancelled")
+    _reg[Router](KeyRouter()).next[None]({(r : Router)=>r.sendToMain("Timestamp publisher", "Cancelled")})
+
 
 actor Timestamper
   let _reg : Registrar
