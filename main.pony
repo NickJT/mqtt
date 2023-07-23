@@ -50,7 +50,6 @@ actor Main
   var _sCol: Map[String val, String val] = Map[String val, String val]
   var _sFirst :  Map[String val, Bool] = Map[String val, Bool]
   let _out : OutStream
-
   let _yCommand : U32 = 4
   let _yMessage : U32 = 6
   let _yLine : U32 = 5
@@ -83,7 +82,7 @@ actor Main
     refreshTopics()
 
 
-    let term = ANSITerm(Readline(recover Handler(env) end, env.out), env.input)
+    let term = ANSITerm(Readline(recover Handler(env, _reg) end, env.out), env.input)
     _out.write(ANSI.cursor(_xCursor,_yCursor))
     term.prompt("> ")
 
@@ -101,7 +100,7 @@ be onExit(diagnostic : String val) =>
   """
   Called by Client when the TCP connection is closed or if the network connection request fails 
   """
-      showMsg("Exit: ", diagnostic)
+    showMsg("Exit: ", diagnostic)
 
 /********************************************************************************/    
 be onTick(sec : I64) =>
@@ -126,6 +125,13 @@ be onMessage(topic : String val, content : String val) =>
     refresh()
   end
 
+/********************************************************************************/    
+be onError(errorCode : ErrorCode, message : String val) =>
+  """
+  This is the route into main for errors.
+  TODO - proper error handling
+  """
+  showMsg(errorCode.string(), ": " + message)
 
 /********************************************************************************/    
 be onBrokerConnect(message: String val) =>
@@ -167,7 +173,7 @@ fun ref _initialise(env: Env, reg : Registrar) : Bool =>
 
     var port: String val = config(IniPort())?
     showMsg("Connecting to " , address + ":" + port)
-    TCPConnection(TCPConnectAuth(env.root), recover Client(env, _reg, config) end, ipv4Address, port)  
+    TCPConnection(TCPConnectAuth(env.root), recover Client(env, _reg, config) end, ipv4Address, port)
   else
     showMsg("Unable to read address and port config in ", ConfigFile())
     return false
@@ -214,6 +220,7 @@ fun showMsg(topic : String val, content: String val = "") =>
   _out.write(ANSI.cursor(_xContent,_yMessage) + content)
   _out.write(ANSI.cursor(_xCursor,_yCursor))
   _out.flush()
+
 
 /************************************************************************/
 fun toIPv4(env : Env, arg : String val) : (String val | None) =>

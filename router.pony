@@ -613,20 +613,22 @@ be onBrokerStateNotFound() =>
 
   _cleanSession = true
 
-/*********************************************************************************/
-be onErrorOrDisconnect(errorCode : ErrorCode) =>
-  """
-  Called if we detect a protocol error, broker timeout or network disconnect
-  """
-  sendToMain("Broker disconnected. Error: ", errorCode.string())
-
 
 /*********************************************************************************/
 be onBrokerRefusal(reason : ConnAckReturnCode) =>
   """
   Called by Connector if the Broker has refused the connection
   """
-  sendToMain("Router got a refusal - ", reason.string())
+  _reg[Main](KeyMain()).next[None]({(m: Main)=>m.onError(ConnectionRefused,  reason.string())})
+
+
+/*********************************************************************************/
+be onErrorOrDisconnect(errorCode : ErrorCode) =>
+  """
+  Called if we detect a protocol error, broker timeout or network disconnect
+  """
+  _reg[Main](KeyMain()).next[None]({(m: Main)=>m.onError(errorCode,  "  at " + __loc.file() + ":" +__loc.method_name())})
+
 
 /*********************************************************************************/
 be disconnectBroker() =>
@@ -637,15 +639,19 @@ be disconnectBroker() =>
   network)
   """
   Debug("Disconnecting Broker")
+  if (not _cleanSession) then saveState() end  
+
     // TODO - Add disconnect cleanup 
     // dispose all of the pubs and subs from reg
     // stop the ping timer
-    // dispose issuer from reg// remove tcp from reg to stop any write attempts
-    // remove this from reg
+    // dispose issuer from reg
+    // remove this from reg to stop any write attempts
     
   _reg.remove("router", this)
   _pinger.cancel()
   send(DisconnectPacket.compose())
+  // TODO - for now we will just let the TCP connection timeout - but really we 
+  // should disconnect proactively
 
 /*********************************************************************************/
 fun saveState() =>
@@ -653,7 +659,22 @@ fun saveState() =>
   Called when we have lost connection with the Broker and need to save our state in
   the sure and certain hope of the ressurection
   """
-  Debug("Save state not implemented at " + __loc.file() + ":" +__loc.method_name())
+
+  for (topic, subscriber) in _subscriberByTopic.pairs() do 
+    Debug("Saving subscription" + topic)
+    subscriber.onDuckAndCover()
+  end
+
+  for (id, mqActor) in _actorById.pairs() do 
+    try 
+      var publisher : Publisher = mqActor as Publisher
+      Debug("Saving Publish state for publisher id " + id.string())
+      publisher.onDuckAndCover()
+    end
+    
+
+  end
+
 
 /*********************************************************************************/
 /**********************   Sending to other Actors    *****************************/

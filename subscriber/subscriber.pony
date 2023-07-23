@@ -72,7 +72,7 @@ be onTick(sec : I64) =>
 /********************************************************************************/
 be onDuckAndCover() => 
   """
-  Something has gone awry.   
+  We need to save state because the broker is disconnecting or something has gone awry.   
   """
   Debug(_pktMap.size().string() + " unreleased packets in " + _topic + " subscriber")
 

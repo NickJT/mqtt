@@ -75,5 +75,4 @@ fun ref connect_failed(conn: TCPConnection ref) =>
 
 fun ref closed(conn: TCPConnection ref) =>
   _router.onErrorOrDisconnect(ConnectionClosed)
-  _reg[Main](KeyMain()).next[None]({(m : Main)=>m.onExit("TCP connection closed")})
 

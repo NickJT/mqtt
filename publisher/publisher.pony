@@ -279,3 +279,13 @@ fun ref publishComplete(cid : IdType) =>
   """
   _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onPublishComplete(cid)})
 
+/********************************************************************************/
+be onDuckAndCover() => 
+  """
+  We need to save state because the broker is disconnecting or something has gone awry.   
+  """
+  Debug(_qos1Map.size().string() + " unreleased packets in " + _topic + " _qos1Map")
+  Debug(_pending.size().string() + " unreleased packets in " + _topic + " _pending")
+  Debug(_qos2Map.size().string() + " unreleased packets in " + _topic + " _qos2Map")
+  Debug(_pubRelMap.size().string() + " unreleased packets in " + _topic + " _pubRelMap")
+

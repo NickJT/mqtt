@@ -2,6 +2,9 @@ use "collections"
 use "debug"
 use "promises"
 use "term"
+use "bureaucracy"
+use "primitives"
+
 
 class Handler is ReadlineNotify
   let _commands: Array[String] = _commands.create()
@@ -14,8 +17,11 @@ class Handler is ReadlineNotify
   let _yCursor : U32 = 2
   let _yCommand : U32 = 4
 
-  new create(env : Env) =>
+  let _reg : Registrar
+
+  new create(env : Env, reg : Registrar) =>
     _out = env.out
+    _reg = reg
     _buffer = Map[String, String]
     _lines = Array[String]
     _commands.push("quit")
@@ -48,7 +54,7 @@ fun ref process(line : String) =>
       var c = line(0)?  
       match c 
       | 'c' => splash("connect")
-      | 'd' => splash("disconnect")
+      | 'd' => _reg[Router](KeyRouter()).next[None]({(router) => router.disconnectBroker()}) 
       | 'p' => splash("publish")
       | 's' => splash(line)
       | 'u' => splash("unsubscribe")
