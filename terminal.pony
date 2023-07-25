@@ -1,63 +1,18 @@
----
-hide:
-  - toc
-search:
-  exclude: true
----
-```````pony linenums="1"
-"""
-# Pony MQTT Client #
+use "collections"
+use "term"
 
-## Release Objectives ##
+use "examples"
+use "primitives"
+use "subscriber"
 
-### Release .1 ###
-1. 100% coverage of the protocol for happy path with expected i/o.
-2. Wide use of guards, debug checks and error tracing
-3. Separate classes for each packet type so we don't miss any variations 
-4. Consistent api to avoid programming errors while things stabiliise 
-5. No hard split between library and application
+actor Terminal
 
-### Release .2 ###
-1. Consider edge cases and errors
-2. Split code into library and application
-3. Consolidate similar classes into factory classes
-4. Optimise the api (public: simple, private: efficient)  
-5. Remove unnecessary intermediate variable, guards and debug checks
-6. Simple GUI for testing
-
-### Release .3 ###
-1. Performance 
-2. Load and memory usage
-3. Optimise
-"""
-/************************************************************************/
-  use "bureaucracy"
-  use "collections"
-  use "debug"
-  use "net"
-  use "term"
-
-  use "configurator"
-  use "examples"
-  use "primitives"
-  use "publisher"
-  use "subscriber"
-
-actor Main
-  """
-  Main is responsible for reading the config.ini file identified in the ConfigFile primitive
-  and passing the Client into the TCPConnection
-  Once the client is established and the Broker is connected, main subscribes to the topics
-  in the .ini file 
-  """
-  let _reg : Registrar  = Registrar
   var _subs: Map[String val, String val] val = Map[String val, String val] 
   var _sBuf: Map[String val, String val] = Map[String val, String val]
   var _sPos: Map[String val, U32] = Map[String val, U32]
   var _sCol: Map[String val, String val] = Map[String val, String val]
   var _sFirst :  Map[String val, Bool] = Map[String val, Bool]
   let _out : OutStream
-
   let _yCommand : U32 = 4
   let _yMessage : U32 = 6
   let _yLine : U32 = 5
@@ -67,17 +22,14 @@ actor Main
 
   let _xCursor : U32 = 3
   let _yCursor : U32 = 2
+  let _router : Router
 
-  new create(env: Env) =>
+  new create(env: Env, router : Router, subs : Map[String val, String val] val) =>
     _out = env.out
+    _router = router
+    _subs = subs
     _out.write(ANSI.clear())
-    showMsg("Initialising", "")
-  
-    if (not _initialise(env, _reg) ) then 
-      showMsg("Unable to initialise connection", "Quitting")
-    else 
-      showMsg("")
-    end
+    
 
     var y :U32 = _yBuf
     for key in _subs.keys() do
@@ -90,7 +42,7 @@ actor Main
     refreshTopics()
 
 
-    let term = ANSITerm(Readline(recover Handler(env) end, env.out), env.input)
+    let term = ANSITerm(Readline(recover Handler(env, _router) end, env.out), env.input)
     _out.write(ANSI.cursor(_xCursor,_yCursor))
     term.prompt("> ")
 
@@ -108,7 +60,7 @@ be onExit(diagnostic : String val) =>
   """
   Called by Client when the TCP connection is closed or if the network connection request fails 
   """
-      showMsg("Exit: ", diagnostic)
+    showMsg("Exit: ", diagnostic)
 
 /********************************************************************************/    
 be onTick(sec : I64) =>
@@ -116,6 +68,7 @@ be onTick(sec : I64) =>
     try if (_sCol(topic)? == ANSI.red()) then _sCol.update(topic, ANSI.green()) end end
   end
   refresh()
+
 /********************************************************************************/    
 be onMessage(topic : String val, content : String val) =>
   """
@@ -132,6 +85,13 @@ be onMessage(topic : String val, content : String val) =>
     refresh()
   end
 
+/********************************************************************************/    
+be onError(errorCode : ErrorCode, message : String val) =>
+  """
+  This is the route into main for errors.
+  TODO - proper error handling
+  """
+  showMsg(errorCode.string(), ": " + message)
 
 /********************************************************************************/    
 be onBrokerConnect(message: String val) =>
@@ -144,43 +104,11 @@ be onBrokerConnect(message: String val) =>
     showMsg(message, "")
 
     for (topic , qos) in _subs.pairs() do 
-      var subscriber = Subscriber(_reg, topic, qos)  
-      subscriber.subscribe()
+      //var subscriber = Subscriber(_reg, topic, qos)  
+      //subscriber.subscribe()
+      None
     end
 
-    showMsg("Starting timestamp publication at ", __loc.file() + " : " +__loc.method_name())
-    Timestamper(_reg)
-/************************************************************************/
-fun ref _initialise(env: Env, reg : Registrar) : Bool =>
-  let configReader = MqttConfig(env, ConfigFile(), FullConfigParams())
-  //Debug("Opening " + ConfigFile())
-  if (not configReader.isValid()) then
-    showMsg("Unable to read valid configuration")
-    return false 
-  end
-
-  try
-    var config = configReader.getConfig()
-    _subs = configReader.getSubscriptions()
-    var address :String val = config(IniAddress())? 
-    var ipv4Address : String val = ""
-    try
-      ipv4Address = toIPv4(env, address) as String val
-    else
-      showMsg("Unable to resolve an IPv4 address from " , address)
-      return false
-    end  
-
-    var port: String val = config(IniPort())?
-    showMsg("Connecting to " , address + ":" + port)
-    TCPConnection(TCPConnectAuth(env.root), recover Client(env, _reg, config) end, ipv4Address, port)  
-  else
-    showMsg("Unable to read address and port config in ", ConfigFile())
-    return false
-  end
-
-  reg.update(KeyTerminal(), this)
-  true
 
 
 /************************************************************************/
@@ -196,6 +124,10 @@ fun ref refreshTopics() =>
       showMsg("Error in refreshTopics" + topic," " + content)
     end
   end
+
+fun startPub() =>
+    showMsg("Starting timestamp publication at ", __loc.file() + " : " +__loc.method_name())
+    //Timestamper(_reg)
 
 /************************************************************************/
 fun ref refresh() =>
@@ -220,19 +152,3 @@ fun showMsg(topic : String val, content: String val = "") =>
   _out.write(ANSI.cursor(_xContent,_yMessage) + content)
   _out.write(ANSI.cursor(_xCursor,_yCursor))
   _out.flush()
-
-/************************************************************************/
-fun toIPv4(env : Env, arg : String val) : (String val | None) =>
-  """
-  This doesn't fit comfortably anywhere yet so we'll leave it in main for now
-  TODO - Decide where network utilities should go
-  """  
-  if (DNS.is_ip4(arg)) then return arg end
-  
-  try
-    var addrs : Array[NetAddress val] = DNS.ip4(DNSAuth(env.root), arg, "")
-    (var addr, var port) = addrs(0)?.name()?
-    return addr
-  end
-  None
-```````

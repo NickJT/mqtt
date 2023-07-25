@@ -4,6 +4,6 @@
 
 primitive KeyRouter fun apply() : String val => "router"
 primitive KeyIssuer fun apply() : String val => "issuer"
-primitive KeyMain fun apply() : String val => "main"
+primitive KeyTerminal fun apply() : String val => "terminal"
 primitive KeyPinger fun apply() : String val => "pinger"
 primitive KeyPersistor fun apply() : String val => "persistor"

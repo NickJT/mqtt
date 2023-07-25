@@ -470,7 +470,7 @@ be onTick(sec : I64) =>
   for mqActor in _actorById.values() do
     mqActor.onTick(sec)
   end
-  _reg[Main](KeyMain()).next[None]({(m: Main)=>m.onTick(sec)})
+  _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.onTick(sec)})
 
 
 /*********************************************************************************/
@@ -519,7 +519,7 @@ be onBrokerConnect() =>
   state reflecting the (potentially saved) state in Broker. So we cant tell Main
   that we have a Broker ready to receive Publish messsages
   """
-  _reg[Main](KeyMain()).next[None]({(m : Main) => m.onBrokerConnect("Broker Connected")},{()=>Debug("No main in registrar")})
+  _reg[Terminal](KeyTerminal()).next[None]({(m : Main) => m.onBrokerConnect("Broker Connected")},{()=>Debug("No main in registrar")})
 
 
 /*********************************************************************************/
@@ -585,7 +585,7 @@ be send(data : ArrayVal) =>
 
 /*********************************************************************************/
 be sendToMain(s1 : String val, s2 : String val) =>
-  _reg[Main](KeyMain()).next[None]({(m: Main)=>m.onMessage(s1, s2)})
+  _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.onMessage(s1, s2)})
 
 
 

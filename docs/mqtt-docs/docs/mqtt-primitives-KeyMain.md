@@ -1,7 +1,7 @@
-# KeyMain
+# KeyTerminal
 <span class="source-link">[[Source]](src/mqtt-primitives/regStrings.md#L-0-7)</span>
 ```pony
-primitive val KeyMain
+primitive val KeyTerminal
 ```
 
 ## Constructors
@@ -12,12 +12,12 @@ primitive val KeyMain
 
 ```pony
 new val create()
-: KeyMain val^
+: KeyTerminal val^
 ```
 
 #### Returns
 
-* [KeyMain](mqtt-primitives-KeyMain.md) val^
+* [KeyTerminal](mqtt-primitives-KeyTerminal.md) val^
 
 ---
 
@@ -44,12 +44,12 @@ fun box apply()
 
 ```pony
 fun box eq(
-  that: KeyMain val)
+  that: KeyTerminal val)
 : Bool val
 ```
 #### Parameters
 
-*   that: [KeyMain](mqtt-primitives-KeyMain.md) val
+*   that: [KeyTerminal](mqtt-primitives-KeyTerminal.md) val
 
 #### Returns
 
@@ -63,12 +63,12 @@ fun box eq(
 
 ```pony
 fun box ne(
-  that: KeyMain val)
+  that: KeyTerminal val)
 : Bool val
 ```
 #### Parameters
 
-*   that: [KeyMain](mqtt-primitives-KeyMain.md) val
+*   that: [KeyTerminal](mqtt-primitives-KeyTerminal.md) val
 
 #### Returns
 

@@ -33,8 +33,9 @@ primitive SubscribeFailed fun apply() : U8 => 17   fun string() : String => "Sub
 primitive ConnectionRefused fun apply() : U8 => 18 fun string() : String => "Connection Refused" 
 
 primitive BrokerDisconnect fun apply() : U8 => 19  fun string() : String => "Broker Disconnect" 
+primitive ConfigurationError fun apply() : U8 => 20  fun string() : String => "Configuration Error" 
 
-primitive NotImplemented fun apply() : U8 => 20 fun string() : String => "Not Implemented" 
+primitive NotImplemented fun apply() : U8 => 21 fun string() : String => "Not Implemented" 
 primitive UnknownError fun apply() : U8 => 255  fun string() : String => "Unknown error" 
 
 type ErrorCode is (

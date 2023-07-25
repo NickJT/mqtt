@@ -59,15 +59,15 @@ new iso create(env: Env, reg : Registrar, config : Map[String val, String val] v
   // assembler is only used by client so don't add it to reg
 
 fun ref connecting(conn: TCPConnection ref, count: U32) =>
-  _reg[Main](KeyMain()).next[None]({(m : Main)=>m.onMessage("Connecting ", "attempt " + count.string() + ")")})
+  _reg[Terminal](KeyTerminal()).next[None]({(m : Main)=>m.onMessage("Connecting ", "attempt " + count.string() + ")")})
   
 fun ref accepted(conn: TCPConnection ref) =>
-  _reg[Main](KeyMain()).next[None]({(m : Main)=>m.onMessage("Connection Accepted","")})
+  _reg[Terminal](KeyTerminal()).next[None]({(m : Main)=>m.onMessage("Connection Accepted","")})
   
 fun ref connected(conn: TCPConnection ref) =>
   try
     (let host, let service) = conn.remote_address().name()?
-    _reg[Main](KeyMain()).next[None]({(m : Main)=>m.onMessage("Client connected to ", host + ":" + service)})
+    _reg[Terminal](KeyTerminal()).next[None]({(m : Main)=>m.onMessage("Client connected to ", host + ":" + service)})
   end
   conn.set_nodelay(true)
   conn.set_keepalive(10)
@@ -78,10 +78,10 @@ fun ref received(conn: TCPConnection ref, data: Array[U8 val] iso, times: USize)
   true  
   
 fun ref connect_failed(conn: TCPConnection ref) =>
-    _reg[Main](KeyMain()).next[None]({(m : Main)=>m.onExit("TCP connection failed")})
+    _reg[Terminal](KeyTerminal()).next[None]({(m : Main)=>m.onExit("TCP connection failed")})
 
 fun ref closed(conn: TCPConnection ref) =>
-     _reg[Main](KeyMain()).next[None]({(m : Main)=>m.onExit("TCP connection closed")})
+     _reg[Terminal](KeyTerminal()).next[None]({(m : Main)=>m.onExit("TCP connection closed")})
 
 
 ```````

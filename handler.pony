@@ -17,11 +17,11 @@ class Handler is ReadlineNotify
   let _yCursor : U32 = 2
   let _yCommand : U32 = 4
 
-  let _reg : Registrar
+  let _router : Router
 
-  new create(env : Env, reg : Registrar) =>
+  new create(env : Env, router : Router) =>
     _out = env.out
-    _reg = reg
+    _router = router
     _buffer = Map[String, String]
     _lines = Array[String]
     _commands.push("quit")
@@ -54,7 +54,7 @@ fun ref process(line : String) =>
       var c = line(0)?  
       match c 
       | 'c' => splash("connect")
-      | 'd' => _reg[Router](KeyRouter()).next[None]({(router) => router.disconnectBroker()}) 
+      | 'd' => _router.disconnectBroker() 
       | 'p' => splash("publish")
       | 's' => splash(line)
       | 'u' => splash("unsubscribe")

@@ -37,7 +37,7 @@ No package doc string provided for mqtt/primitives.
 * [primitive InvalidRemainingLength](mqtt-primitives-InvalidRemainingLength.md)
 * [primitive InvalidType](mqtt-primitives-InvalidType.md)
 * [primitive KeyIssuer](mqtt-primitives-KeyIssuer.md)
-* [primitive KeyMain](mqtt-primitives-KeyMain.md)
+* [primitive KeyTerminal](mqtt-primitives-KeyTerminal.md)
 * [primitive KeyPinger](mqtt-primitives-KeyPinger.md)
 * [primitive KeyRouter](mqtt-primitives-KeyRouter.md)
 * [type MQTTPublishFlags](mqtt-primitives-MQTTPublishFlags.md)
