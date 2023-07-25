@@ -43,9 +43,8 @@
 /************************************************************************/
   actor Main
     let _env : Env
-    let _reg : Registrar  = Registrar
-    let _cust : Custodian = Custodian
-    let _issuer : IdIssuer = IdIssuer
+    let _reg : Registrar 
+    let _issuer : IdIssuer 
     let _router : Router
     let _ticker : Ticker
     let _terminal : Terminal
@@ -56,21 +55,46 @@
     
     new create(env : Env) =>
       _env = env
+    
+      let configReader = MqttConfig(env, ConfigFile(), FullConfigParams())
+      if (configReader.isValid()) then
+        _config = configReader.getConfig()
+        _subs = configReader.getSubscriptions()
+      else
+        _config = DefaultBroker()
+      end 
+
+      _reg = Registrar
+      _reg.update(KeyMain(), this)
+
+      _issuer = IdIssuer
+      _reg.update(KeyIssuer(),_issuer)
+
       _router = Router(_reg, _config)
+      _reg.update(KeyRouter(),_router)
+
+      _terminal = Terminal(_env, _reg)
+      _reg.update(KeyTerminal(),_terminal)
+
       _ticker = Ticker(_router)
+      _reg.update(KeyTicker(),_ticker)
+
       _network = OsNetwork(_env, _router, _config)
-      _terminal = Terminal(_env, _router, _subs)
-      _retrieveConfiguration(_env)
+      _reg.update(KeyNetwork(), _network)
+
+      let term : ANSITerm = ANSITerm(Readline(recover Handler(_env, _reg, _subs) end, env.out), env.input)
+      term.prompt("> ")
+      let notify = object iso
+        let term: ANSITerm = term
+        fun ref apply(data: Array[U8] iso) => term(consume data)
+        fun ref dispose() => term.dispose()
+      end
+      env.input(consume notify)
 
 
-
-/************************************************************************/
-fun ref _retrieveConfiguration(env: Env) : Bool =>
-  let configReader = MqttConfig(env, ConfigFile(), FullConfigParams())
-  if (configReader.isValid()) then
-    _config = configReader.getConfig()
-    _subs = configReader.getSubscriptions()
-    return true 
-  end
-  Debug("Unable to read valid configuration")
-  false
+    be onExit() =>
+      """
+      Only called when we are exiting the program and all of the actors need to
+      be cleanly terminated
+      """  
+      Debug("Main is done")

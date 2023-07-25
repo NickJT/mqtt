@@ -4,6 +4,7 @@ use "promises"
 use "term"
 use "bureaucracy"
 use "primitives"
+use "subscriber"
 
 
 class Handler is ReadlineNotify
@@ -17,11 +18,16 @@ class Handler is ReadlineNotify
   let _yCursor : U32 = 2
   let _yCommand : U32 = 4
 
-  let _router : Router
+  let _reg : Registrar
 
-  new create(env : Env, router : Router) =>
+  var _subs: Map[String val, String val] = Map[String val, String val] 
+  
+  new create(env : Env, reg : Registrar, subs : Map[String val, String val] val) =>
     _out = env.out
-    _router = router
+    _reg = reg
+
+    for (topic, qos) in subs.pairs() do _subs.insert(topic, qos) end
+
     _buffer = Map[String, String]
     _lines = Array[String]
     _commands.push("quit")
@@ -47,16 +53,13 @@ fun ref apply(line: String, prompt: Promise[String]) =>
   process(line)
 
 fun ref process(line : String) =>
-    // extract the command
-    // match on command
-    // send arguments to command handler
     try
       var c = line(0)?  
       match c 
-      | 'c' => splash("connect")
-      | 'd' => _router.disconnectBroker() 
+      | 'c' => _reg[OsNetwork](KeyNetwork()).next[None]({(nw:OsNetwork)=>nw.connect()})
+      | 'd' => _reg[Router](KeyRouter()).next[None]({ (r: Router)=>r.disconnectBroker()})
       | 'p' => splash("publish")
-      | 's' => splash(line)
+      | 's' => _subscribeAll()
       | 'u' => splash("unsubscribe")
       end
     end
@@ -69,6 +72,11 @@ fun splash(stg : String val) =>
   _out.write(ANSI.cursor(_xCursor, _yCursor))
   _out.flush()
 
+ 
+ fun _subscribeAll() =>
+  for (topic, qos) in _subs.pairs() do
+    Subscriber(_reg,topic,qos).subscribe()
+  end
 
 fun ref _update_commands(line: String) =>
   """

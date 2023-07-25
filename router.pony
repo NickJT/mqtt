@@ -71,9 +71,7 @@ actor Router
   - Router adds the pinger actor that sends pingreq messages 
   """
   let _reg : Registrar
-  let _issuer : IdIssuer
-  let _pinger : Pinger
-  let _ticker : Ticker
+  var _pinger : (Pinger | None) = None
   var _connector : Connector
   var _pingTokens : USize = 3
   var _pingTokenCount : USize = _pingTokens
@@ -100,19 +98,7 @@ actor Router
     _reg = reg
     _config = config
     _connector = Connector(this)
-    _issuer = IdIssuer
-    _reg.update(KeyIssuer(), _issuer)
     
-    // The keepalive Pinger is currenty limited so that we disconnect
-    // cleanly during testing. Pinger responds via _reg
-    _pinger = Pinger(_reg, 5/* seconds delay*/, 50/*repetitions*/)
-    _reg.update(KeyPinger(), _pinger)
-
-    // System tick calls onTick every second. Tciker responds without going through 
-    // reg for comparison with pinger.
-    // TODO - Decide on best approach to router callbacks
-    _ticker = Ticker(this)
-
 
 /*********************************************************************************/
 be route(basePacket : BasePacket val) =>
@@ -302,7 +288,7 @@ fun ref _doAssignedSubscription(basePacket : BasePacket val) =>
   try 
     topic = publishPacket.topic() as String val
     //Debug("Assigned subscription to " + topic)
-    var subscriber : Subscriber = Subscriber(_reg, topic, publishPacket.qos().string() )
+    var subscriber : Subscriber = Subscriber(_reg, topic, publishPacket.qos().string())
     _subscriberByTopic.update(topic, subscriber)
     // now we route it again (synchronously), safe in the knowledge that there is a subscriber waiting
     //to provide the acks and that the base packet still contains the original Broker id
@@ -355,7 +341,8 @@ be onPublishComplete(id: IdType) =>
   """
   try
     _actorById.remove(id)?
-    _issuer.checkIn(id)
+    _reg[IdIssuer](KeyIssuer()).next[None]({(i:IdIssuer)=>i.checkIn(id)})
+
     //Debug("Completed processing publish id " + id.string() + " in " + __loc.file() + ":" +__loc.method_name())
   else
     Debug("Router can't remove id " + id.string() + "at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
@@ -426,7 +413,8 @@ be onSubscribeComplete(sub : Subscriber tag, id : IdType, accepted : Bool) =>
     Debug("Router can't remove id " + id.string() + " from subscriber map at " + __loc.file() + ":" +__loc.method_name())
   end  
   // Whatever, we've finished with the id
-  _issuer.checkIn(id)
+      _reg[IdIssuer](KeyIssuer()).next[None]({(i:IdIssuer)=>i.checkIn(id)})
+
 
 
 /*********************************************************************************/
@@ -464,9 +452,10 @@ be onUnsubscribeComplete(sub : Subscriber tag, id : IdType) =>
   else
     Debug("Router can't remove id " + id.string() + " at " + __loc.file() + ":" +__loc.method_name())
   end  
-  // Whatever, we've finished with the id
 
-  _issuer.checkIn(id)
+  // Whatever, we've finished with the id
+  _reg[IdIssuer](KeyIssuer()).next[None]({(i:IdIssuer)=>i.checkIn(id)})
+
   _removeSubscriber(sub)
    //Debug("Completed processing unsubscribe with id " + id.string())
 
@@ -547,11 +536,15 @@ be onTcpConnect(tcp : TCPConnection) =>
 be onBrokerConnect() =>
   """
   When this is called we should have a valid Broker connection with our local 
-  state reflecting the (potentially saved) state in Broker. So we cant tell Main
-  that we have a Broker ready to receive Publish messsages
+  state reflecting the (potentially saved) state in Broker.
   """
   _reg[Terminal](KeyTerminal()).next[None]({(t : Terminal) => t.onBrokerConnect("Broker Connected")},{()=>Debug("No main in registrar")})
-
+  _reg[Ticker](KeyTicker()).next[None]({(t : Ticker) => t.start()})
+  
+  // The keepalive Pinger is currenty limited so that we disconnect
+  // cleanly during testing. Pinger responds via _reg
+  _pinger = Pinger(_reg, 5/* seconds delay*/, 50/*repetitions*/)
+  try _reg.update(KeyPinger(), _pinger as Pinger) end 
 
 /*********************************************************************************/
 be onBrokerRestore() =>
@@ -586,7 +579,7 @@ be onBrokerRestore() =>
   Yikes
   """
   _cleanSession = false
-  sendToMain("Got a Session is present flag - ", "How do we restore a session??")
+  sendToTerminal("Got a Session is present flag - ", "How do we restore a session??")
   // 1.
   // resend unacknowledged PUBLISH Packets (where QoS > 0) 
   // we will get back PubAck messages for which we have no publisher yet
@@ -648,10 +641,11 @@ be disconnectBroker() =>
     // remove this from reg to stop any write attempts
     
   _reg.remove("router", this)
-  _pinger.cancel()
+  try (_pinger as Pinger).cancel() end
   send(DisconnectPacket.compose())
-  // TODO - for now we will just let the TCP connection timeout - but really we 
-  // should disconnect proactively
+  _reg[OsNetwork](KeyNetwork()).next[None]({(n:OsNetwork)=>n.disconnect()})
+  _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.onMessage("Disconnected", "network")})
+
 
 /*********************************************************************************/
 fun saveState() =>
@@ -692,9 +686,8 @@ be send(data : ArrayVal) =>
   end      
 
 /*********************************************************************************/
-be sendToMain(s1 : String val, s2 : String val) =>
+be sendToTerminal(s1 : String val, s2 : String val) =>
   _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.onMessage(s1, s2)})
-
 
 
 /*********************************************************************************/

@@ -144,7 +144,7 @@ fun onSubAck(basePacket : BasePacket val)  =>
     consume resultString
   end
   _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onSubscribeComplete(_this, subAckPacket.id(), accepted)})
-  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.sendToMain(_topic, subAckResult)})
+  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.sendToTerminal(_topic, subAckResult)})
 
 
 /********************************************************************************/
@@ -165,7 +165,7 @@ fun ref onUnsubAck(basePacket : BasePacket val)  =>
   try 
     var cid = unsubAckPacket.id() as IdType
     _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onUnsubscribeComplete(_this, cid)})
-    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.sendToMain(_topic, "Unsubscribed")})
+    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.sendToTerminal(_topic, "Unsubscribed")})
   else
     Debug("Unknown id in UnsubAck packet at " + __loc.file() + ":" +__loc.method_name())
   end 
@@ -280,7 +280,7 @@ fun releasePkt(pubPacket : PublishPacket val) =>
   try
     var topic : String val = pubPacket.topic() as String
     var payloadString : String val = pubPacket.payloadAsString() as String
-  _reg[Router](KeyRouter()).next[None]({ (r: Router)=>r.sendToMain(topic, payloadString)},{()=>Debug("Mock Broker got " + payloadString)})
+  _reg[Router](KeyRouter()).next[None]({ (r: Router)=>r.sendToTerminal(topic, payloadString)},{()=>Debug("Mock Broker got " + payloadString)})
   else
     Debug ("Packet error in " + __loc.method_name())
   end

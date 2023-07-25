@@ -1,3 +1,4 @@
+use "collections"
 
 // String defines for the config.ini file so we have them all in one place 
 use "debug"
@@ -72,5 +73,11 @@ primitive IniQos fun apply() : String val => "qos"
 primitive IniSectionSubscriptions fun apply() : String val => "subscriptions"
 
 
-
+primitive DefaultBroker fun apply() : Map[String val, String val] val=>
+          recover val
+          var temp : Map[String val, String val] =   Map[String val, String val]
+          temp.insert(IniAddress(),"localhost")
+          temp.insert(IniPort(),"1883")
+          temp
+          end
 

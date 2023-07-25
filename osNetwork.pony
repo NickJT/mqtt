@@ -12,13 +12,14 @@ actor OsNetwork
   var _port : String val = "1883"
   var _env : Env
   var _router : Router
+  var _maybe : (TCPConnection tag | None) = None
 
   new create(env: Env, router: Router, config : Map[String val, String val] val) =>
   _env = env
   _router = router
   try
     var address :String val = config(IniAddress())? 
-    //_ipv4Address = toIPv4(_env, address) as String val
+    _ipv4Address = toIPv4(_env, address) as String val
     _port = config(IniPort())?
     _config = config
   else
@@ -29,11 +30,14 @@ actor OsNetwork
 /************************************************************************/
 be connect() =>
   Debug("Connecting to " + _ipv4Address + ":" + _port)
-  TCPConnection(TCPConnectAuth(_env.root), recover Client(_env, _router) end, _ipv4Address, _port)
-
+  _maybe = TCPConnection(TCPConnectAuth(_env.root), recover Client(_env, _router) end, _ipv4Address, _port)
+  
 /************************************************************************/
 be disconnect() =>
-  Debug("Disconnecting network")
+  try
+    var connection : TCPConnection tag = _maybe as TCPConnection tag
+    connection.dispose()
+  end
 
 
 /************************************************************************/

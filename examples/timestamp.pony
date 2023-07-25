@@ -40,7 +40,7 @@ class Timestamp is TimerNotify
     _count < 10
 
   fun ref cancel(timer: Timer) =>
-    _reg[Router](KeyRouter()).next[None]({(r : Router)=>r.sendToMain("Timestamp publisher", "Cancelled")})
+    _reg[Router](KeyRouter()).next[None]({(r : Router)=>r.sendToTerminal("Timestamp publisher", "Cancelled")})
 
 
 actor Timestamper

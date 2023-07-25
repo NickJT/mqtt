@@ -1,13 +1,15 @@
-use "collections"
-use "term"
+/********************************************************************************/
+  use "bureaucracy"
+  use "collections"
+  use "term"
 
-use "examples"
-use "primitives"
-use "subscriber"
+  use "examples"
+  use "primitives"
+  use "subscriber"
 
 actor Terminal
+  var _subs: Map[String val, String val] = Map[String val, String val] 
 
-  var _subs: Map[String val, String val] val = Map[String val, String val] 
   var _sBuf: Map[String val, String val] = Map[String val, String val]
   var _sPos: Map[String val, U32] = Map[String val, U32]
   var _sCol: Map[String val, String val] = Map[String val, String val]
@@ -22,12 +24,11 @@ actor Terminal
 
   let _xCursor : U32 = 3
   let _yCursor : U32 = 2
-  let _router : Router
+  let _reg : Registrar
 
-  new create(env: Env, router : Router, subs : Map[String val, String val] val) =>
+  new create(env: Env, registrar : Registrar) =>
     _out = env.out
-    _router = router
-    _subs = subs
+    _reg = registrar
     _out.write(ANSI.clear())
     
 
@@ -40,19 +41,7 @@ actor Terminal
       y = y + 1
     end
     refreshTopics()
-
-
-    let term = ANSITerm(Readline(recover Handler(env, _router) end, env.out), env.input)
     _out.write(ANSI.cursor(_xCursor,_yCursor))
-    term.prompt("> ")
-
-    let notify = object iso
-      let term: ANSITerm = term
-      fun ref apply(data: Array[U8] iso) => term(consume data)
-      fun ref dispose() => term.dispose()
-    end
-
-    env.input(consume notify)
 
 
 /********************************************************************************/    
@@ -99,14 +88,12 @@ be onBrokerConnect(message: String val) =>
   Called once when the router has confirmed that we have a valid connection to the
   broker. This is the location for any app setup such as starting publication actors
   or subscribing to topics.
-  TODO - Add local collection of subscribers so we can call unsubscriber on them later
+  TODO - Add local collection of subscribers so we can call unsubscribe on them later
   """
     showMsg(message, "")
 
     for (topic , qos) in _subs.pairs() do 
-      //var subscriber = Subscriber(_reg, topic, qos)  
-      //subscriber.subscribe()
-      None
+      Subscriber(_reg, topic, qos)
     end
 
 

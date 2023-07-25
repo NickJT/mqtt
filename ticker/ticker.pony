@@ -39,18 +39,27 @@ actor Ticker
   If <repetitions> is zero then the timer fires until it is cancelled 
   """
   let _router : Router 
-  let _tickTime : Timer tag
+  var _tickTime : (Timer tag | None) = None
   let _timers :Timers 
+  let _repetitions : U64
+  let _period : U64
 
   new create(router : Router, period /* seconds */: U64 val = 1, repetitions : U64 = 0) =>
     _router = router
     _timers = Timers
+    _repetitions = repetitions
+    _period = period
+
+ 
+/************************************************************************/
+be start() =>
     var delay : U64 val = 1 /*seconds*/
-    let tickTime' =  Timer(Tick(_router,repetitions), delay * 1000000000, period * 1000000000) // 3s
+    let tickTime' =  Timer(Tick(_router,_repetitions), delay * 1000000000, _period * 1000000000) // 3s
     _tickTime = tickTime'
     _timers(consume tickTime')
 
+
 /************************************************************************/
 be cancel() =>
-  _timers.cancel(_tickTime)
+  try _timers.cancel(_tickTime as Timer tag) end
   //Debug("Ticker cancelled")
