@@ -45,7 +45,7 @@ primitive  IsValidQos fun apply(qosString : String) : Bool =>
 """
 The subscription validator function that checks the qos field
 """
-  //Debug("Valid qos " + qosString.compare_sub(QosPrefix(),3,0,0,true).string()) 
+  //Debug("Valid qos " + qosString.compare_sub(QosPrefix(),3,0,0,true).string() where stream = DebugErr)
   (qosString.size() == 4)  and
   (qosString.compare_sub(QosPrefix(),3,0,0,true) is Equal) and 
   (SupportedQos().contains(qosString.trim(3)))

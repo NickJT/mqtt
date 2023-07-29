@@ -26,7 +26,7 @@ Fire the time <reps> number of times and then cancel. If reps is zero
     (_reps > _count)
 
   fun ref cancel(timer: Timer) =>
-    _reg[Router](KeyRouter()).next[None]({(r : Router) => r.sendToTerminal("KeepAlive cancelled","")})
+    _reg[Router](KeyRouter()).next[None]({(r : Router) => r.showStatus("KeepAlive cancelled")})
 
 
 actor Pinger 

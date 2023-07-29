@@ -62,4 +62,3 @@ be start() =>
 /************************************************************************/
 be cancel() =>
   try _timers.cancel(_tickTime as Timer tag) end
-  //Debug("Ticker cancelled")

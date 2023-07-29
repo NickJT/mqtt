@@ -137,7 +137,7 @@ be onData(basePacket : BasePacket val) =>
   | ControlPubRel => onPubRel(basePacket)
   | ControlUnsubAck => onUnsubAck(basePacket)
   else
-    Debug ("Unexpected " + basePacket.controlType().string() + " at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+    Debug ("Unexpected " + basePacket.controlType().string() + " at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string()  where stream = DebugErr)
   end    
 
 /********************************************************************************/
@@ -159,7 +159,7 @@ fun onSubAck(basePacket : BasePacket val)  =>
     consume resultString
   end
   _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onSubscribeComplete(_this, subAckPacket.id(), accepted)})
-  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.sendToTerminal(_topic, subAckResult)})
+  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.showMessage(_topic, subAckResult)})
 
 
 /********************************************************************************/
@@ -180,7 +180,7 @@ fun ref onUnsubAck(basePacket : BasePacket val)  =>
   try 
     var cid = unsubAckPacket.id() as IdType
     _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onUnsubscribeComplete(_this, cid)})
-    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.sendToTerminal(_topic, "Unsubscribed")})
+    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.showMessage(_topic, "Unsubscribed")})
   else
     Debug("Unknown id in UnsubAck packet at " + __loc.file() + ":" +__loc.method_name())
   end 
@@ -228,7 +228,7 @@ fun doPubAck(id : IdType) =>
       Debug("Zero Id found in " + __loc.file() + ":" +__loc.method_name())
       return
   end
-  //Debug("Pub ack at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+  //Debug("Pub ack at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string()  where stream = DebugErr)
   _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.send(PubAckPacket.compose(id))}, {()=>Debug("No router at " + __loc.file() + ":" +__loc.method_name())})
  
 
@@ -261,7 +261,7 @@ fun ref onPubRel(basePacket : BasePacket val) =>
   var pubRelPacket = PubRelPacket.createFromPacket(basePacket)
   
   if (pubRelPacket.id() == 0) then
-    Debug ("Invalid id at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+    Debug ("Invalid id at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string()  where stream = DebugErr)
   end
   doPubComp(pubRelPacket.id())
 
@@ -297,7 +297,7 @@ fun releasePkt(pubPacket : PublishPacket val) =>
   try
     var topic : String val = pubPacket.topic() as String
     var payloadString : String val = pubPacket.payloadAsString() as String
-  _reg[Router](KeyRouter()).next[None]({ (r: Router)=>r.sendToTerminal(topic, payloadString)},{()=>Debug("Mock Broker got " + payloadString)})
+  _reg[Router](KeyRouter()).next[None]({ (r: Router)=>r.showMessage(topic, payloadString)},{()=>Debug("Mock Broker got " + payloadString)})
   else
     Debug ("Packet error in " + __loc.method_name())
   end

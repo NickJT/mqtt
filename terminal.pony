@@ -1,141 +1,222 @@
-/********************************************************************************/
+/* Uses **************************************************************************/
   use "bureaucracy"
   use "collections"
+  use "debug"
   use "term"
+  use "time"
+  use "package:primitives"
 
-  use "examples"
-  use "primitives"
-  use "subscriber"
+/* Primitives ********************************************************************/
+  trait Paintable
+    fun paint() : Bool 
+    fun ref content() : String val
+
+  primitive HighlightPeriod  fun apply() : U64 => 3
+  primitive MSG fun value(): U64 => 1
+  primitive STS fun value(): U64 => 2
+  primitive FRM fun value(): U64 => 4
+  primitive CMD fun value(): U64 => 8
+  type Areas is Flags[(MSG | STS | FRM | CMD)] 
+
+class StatusLine is Paintable
+  var _content : String val
+  var _paint : Bool
+  var _colour : String val = ANSI.green()
+  new create(content' : String val) =>
+    _content = content'
+    _paint = true 
+
+  fun paint() : Bool => _paint
+  fun ref content() : String val =>
+    _content
+  fun ansi(left : U32, y : U32) : String val =>
+    ANSI.cursor(left,y) 
+    + _colour
+    + _content
+  fun string() : String val =>
+    _content + "(" + _paint.string() + ")"
+
+class BoxLine is Paintable
+  var _topic : String val
+  var _content : String val
+  var _topicColour : String val =  ANSI.grey()
+  var _contentColour : String val =  ANSI.grey()
+  var _paint : Bool
+  var _timeStamp : I64
+  new create(topic : String val, content' : String val) =>
+    _topic = topic
+    _content = content'
+    _timeStamp = Time.seconds()
+    _paint = true
+  fun ref setPaint() => _paint = true
+    _timeStamp = Time.seconds()
+
+  fun paint() : Bool => _paint
+  fun ref content() : String val => 
+    _paint = false
+    _content
+  
+  fun ref update(content' : String val) =>
+    _timeStamp = Time.seconds()
+    _content = content'
+    if (_contentColour == ANSI.grey()) then  
+      _contentColour = ANSI.red()
+      _topicColour = ANSI.white()
+    end
+    _paint = true
+  fun ansi(left : U32, right :U32, y : U32) : String val =>
+    ANSI.cursor(left,y) 
+    + _topicColour
+    + _topic
+    + ANSI.cursor(right,y) 
+    + _contentColour
+    + _content
 
 actor Terminal
-  var _subs: Map[String val, String val] = Map[String val, String val] 
+  /* Dimensions ********************************************************/
+    let _out : OutStream
+    let _width : U32 = 128
+    let _height : U32 = 40
+    let _left : U32 = 2
+    let _right : U32 = _width / 2
+    let _topSpacerY : U32 = 1 
+    let _cmdY : U32 = _topSpacerY + 1 
+    let _cmdHeight : U32 = 1
+    let _cmdSpacerY : U32 = _cmdY + _cmdHeight
+    let _boxTopY : U32 = _cmdSpacerY + 1  
+    let _statusHeight : U32 = 4
+    let _statusYTop : U32 = _height -1 - _statusHeight   // subtract 1 so we don't scroll on exit
+    let _boxSpacerY : U32 = _statusYTop -1
+    let _boxBottomY : U32 = _boxSpacerY -1   
+    let _boxHeight : U32 = _boxSpacerY - _boxTopY
+    let _statusYBottom : U32 = (_statusYTop + _statusHeight) - 1
+    let _statusSpacerY : U32 = _statusYBottom + 1
 
-  var _sBuf: Map[String val, String val] = Map[String val, String val]
-  var _sPos: Map[String val, U32] = Map[String val, U32]
-  var _sCol: Map[String val, String val] = Map[String val, String val]
-  var _sFirst :  Map[String val, Bool] = Map[String val, Bool]
-  let _out : OutStream
-  let _yCommand : U32 = 4
-  let _yMessage : U32 = 6
-  let _yLine : U32 = 5
-  let _yBuf : U32 = 8
-  let _xTopic : U32 = 3
-  let _xContent : U32 = 45
+  /* Structures *********************************************************/
+    let _statusBuf : Array[StatusLine] = Array[StatusLine]
+    let _boxBuf : Array[BoxLine] = Array[BoxLine]
+    let _boxMap : Map[String val, BoxLine] = Map[String val, BoxLine](_boxHeight.usize())
+    let _paintAreas : Areas = Areas
+    let _prompt :  String val = ">"
+    var _command : String val = _prompt
+  /* Colours ********************************************************/
+    let _borderColour : String val = ANSI.grey()
+    let _separatorColour : String val = ANSI.grey()
+    let _cmdColour : String val = ANSI.white()
+    let _boxColour : String val = ANSI.white()
+    let _statusColour : String val = ANSI.green()
 
-  let _xCursor : U32 = 3
-  let _yCursor : U32 = 2
-  let _reg : Registrar
-
-  new create(env: Env, registrar : Registrar) =>
-    _out = env.out
-    _reg = registrar
-    _out.write(ANSI.clear())
-    
-
-    var y :U32 = _yBuf
-    for key in _subs.keys() do
-      _sBuf.insert(key,"")
-      _sPos.insert(key,y)
-      _sFirst.insert(key,true)
-      _sCol.insert(key,ANSI.grey())
-      y = y + 1
-    end
-    refreshTopics()
-    _out.write(ANSI.cursor(_xCursor,_yCursor))
-
-
-/********************************************************************************/    
-be onExit(diagnostic : String val) =>
-  """
-  Called by Client when the TCP connection is closed or if the network connection request fails 
-  """
-    showMsg("Exit: ", diagnostic)
-
-/********************************************************************************/    
-be onTick(sec : I64) =>
-  for (topic,content) in _sBuf.pairs() do
-    try if (_sCol(topic)? == ANSI.red()) then _sCol.update(topic, ANSI.green()) end end
+new create(env: Env) =>
+  _out = env.out
+  for i in Range[U32](0,_statusHeight) do 
+    _statusBuf.push(StatusLine("-"))
   end
-  refresh()
+  clearAll()
+  _paintAreas.all()
+  paint()
 
-/********************************************************************************/    
-be onMessage(topic : String val, content : String val) =>
-  """
-  This is the primary route into main for messages received over MQTT. It is called
-  by the router for subscription receipts.
-  """
+be command(content : String val) => 
+    _command = content
+    _paintAreas.set(CMD)
+    paint()
+
+be message(topic: String val, content : String val) =>
+  if _boxMap.contains(topic) then
+    try _boxMap(topic)?.update(content) end
+  else
+    _boxMap.insert(topic,BoxLine(topic,content))
+  end
+  _paintAreas.set(MSG)
+  paint()
+
+be status(content : String val) => 
   try
-    if (_sFirst(topic)? == true) then 
-      _sFirst.update(topic,false)
-    elseif (_sBuf(topic)?.ne(content)) then 
-      _sCol.update(topic,ANSI.red())
+    _statusBuf.shift()?
+    _statusBuf.push(StatusLine(content))
+    _paintAreas.set(STS)
+    paint()
+  end  
+
+be clear() =>
+  clearAll()
+  _paintAreas.set(FRM)
+  paint()
+
+fun ref paint() =>
+  _out.write(composite())
+  _out.flush()
+
+fun ref clearAll() =>
+  _out.write(ANSI.clear() + ANSI.white() + windowSize(_width, _height))
+
+fun ref composite() : String val =>
+  var paintString : String val = String
+  if _paintAreas(FRM) then 
+    paintString = 
+      border(1) + border(_width)
+      + separatorLine(_topSpacerY, _width)
+      + separatorLine(_cmdSpacerY, _width)
+      + separatorLine(_boxSpacerY, _width)
+      + separatorLine(_statusSpacerY, _width)
     end
-    _sBuf.update(topic,content)
-    refresh()
+
+  if _paintAreas(MSG) then 
+    paintString = paintString  + boxString() 
+  end  
+  if _paintAreas(STS) then 
+    paintString = paintString   + statusString()
   end
+  if _paintAreas(CMD) then 
+    paintString = paintString + cmdString()
+  end
+  _paintAreas.clear()
+  paintString = paintString + ANSI.cursor(_left,_cmdY) + _cmdColour 
+  paintString 
 
-/********************************************************************************/    
-be onError(errorCode : ErrorCode, message : String val) =>
-  """
-  This is the route into main for errors.
-  TODO - proper error handling
-  """
-  showMsg(errorCode.string(), ": " + message)
+fun windowSize(w : U32, h: U32) : String val =>
+  "\e[8;" + h.string() + ";" + w.string() + "t" 
 
-/********************************************************************************/    
-be onBrokerConnect(message: String val) =>
-  """
-  Called once when the router has confirmed that we have a valid connection to the
-  broker. This is the location for any app setup such as starting publication actors
-  or subscribing to topics.
-  TODO - Add local collection of subscribers so we can call unsubscribe on them later
-  """
-    showMsg(message, "")
+fun cmdString() : String val =>
+  ANSI.cursor(_left,_cmdY) + _cmdColour + _command
+  
+fun ref boxString() : String val =>
+  var result : String val = String
+  var y : U32 = 0
+  for line in _boxMap.values() do 
+    result = result + line.ansi(_left,_right,y + _boxTopY)
+    y = y + 1
+  end
+  result
+  
+fun ref statusString() : String val =>
+  var result : String val = ANSI.erase(EraseRight)
+  var y : U32 = 0
+  for line in _statusBuf.values() do 
+    result = result + line.ansi(_left, _statusYTop + y) + ANSI.erase(EraseRight) + border(_width) 
+    y = y + 1
+  end
+  result
 
-    for (topic , qos) in _subs.pairs() do 
-      Subscriber(_reg, topic, qos)
-    end
+fun separatorLine(y : U32, width : U32) : String val =>
+  ANSI.cursor(0,y) + _separatorColour + separator(width)
 
-
-
-/************************************************************************/
-fun ref refreshTopics() =>
-  for (topic,content) in _sBuf.pairs() do
+fun separator(width : U32) : String val =>
+  var arrayVal : Array[U8] val = recover val
+    var array : Array[U8] = Array[U8].init(0x2d, width.usize())
     try
-      var y = _sPos(topic)? 
-      _out.write(ANSI.cursor(_xTopic,y) + ANSI.erase(EraseLine))
-      _out.write(ANSI.white() + topic)
-      _out.write(ANSI.cursor(_xCursor,_yCursor))
-      _out.flush()
-    else
-      showMsg("Error in refreshTopics" + topic," " + content)
+        array(0)? = '|'
+        array(width.usize()-1)? = '|'
     end
-  end
+    array
+  end  
+  String.from_array(arrayVal)
 
-fun startPub() =>
-    showMsg("Starting timestamp publication at ", __loc.file() + " : " +__loc.method_name())
-    //Timestamper(_reg)
-
-/************************************************************************/
-fun ref refresh() =>
-  for (topic,content) in _sBuf.pairs() do
-    try  
-      var y = _sPos(topic)? 
-      _out.write(ANSI.cursor(_xContent,y)+ ANSI.erase(EraseRight))
-      _out.write(_sCol(topic)? + content)
-      _out.flush()
-      _out.write(ANSI.white())
-      _out.write(ANSI.cursor(_xCursor,_yCursor))
-      _out.flush()
-    else
-      showMsg("Error in refresh " + topic," " + content)
+fun border(x : U32) : String val =>
+  recover val 
+    var stg : String ref  = String
+    stg.append(_borderColour)
+    for y in Range[U32](1,_height) do 
+      stg.append(ANSI.cursor(x,y) + "|")
     end
-  end
-/************************************************************************/
-fun showMsg(topic : String val, content: String val = "") =>
-  _out.write(ANSI.cursor(_xTopic,_yMessage) + ANSI.erase(EraseLine) + ANSI.white())
-  _out.flush()
-  _out.write(ANSI.cursor(_xTopic,_yMessage) + topic)
-  _out.write(ANSI.cursor(_xContent,_yMessage) + content)
-  _out.write(ANSI.cursor(_xCursor,_yCursor))
-  _out.flush()
+    stg
+  end  

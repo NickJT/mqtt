@@ -169,7 +169,7 @@ be onData(basePacket : BasePacket val) =>
   | ControlPubRec => onPubRec(basePacket)
   | ControlPubComp => onPubComp(basePacket)
   else
-    Debug ("Unexpected " + basePacket.controlType().string() + " at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+    Debug ("Unexpected " + basePacket.controlType().string() + " at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string()  where stream = DebugErr)
   end    
 
 /********************************************************************************/
@@ -186,7 +186,7 @@ be onTick(sec : I64) =>
   This is the target for the TickListener trait that is called by the system tick
   tick timer. Each time we get this we scan the in-flight queue for expired messages
   """
-  Debug(_topic.string() + " publisher got system tick " + sec.string())
+  Debug(_topic.string() + " publisher got system tick " + sec.string()+ " at " + __loc.file() + ":" +__loc.method_name())
 
 /********************************************************************************/
 fun ref onPubAck(basePacket : BasePacket val) =>
@@ -240,7 +240,7 @@ fun ref doPubRel(cid : IdType) =>
   Send a PubRelPacket with the passed Cid to the router.
   """
   var data  = PubRelPacket.compose(cid)
-  //Debug("Inserted id " + id.string() + " in _pubRel at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+  //Debug("Inserted id " + id.string() + " in _pubRel at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string()  where stream = DebugErr)
   
   _pubRelMap.insert(cid,data)
   _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.send(data)})
@@ -262,9 +262,9 @@ fun ref onPubComp(basePacket: BasePacket val) =>
 
   try
     _pubRelMap.remove(pubCompPacket.id())?
-    //Debug("Removed id " + pubCompPacket.id().string() + " in _pubRel at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+    //Debug("Removed id " + pubCompPacket.id().string() + " in _pubRel at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string()  where stream = DebugErr)
   else
-    Debug("Unable to remove client id " + pubCompPacket.id().string() + " at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+    Debug("Unable to remove client id " + pubCompPacket.id().string() + " at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string()  where stream = DebugErr)
   end
   publishComplete(pubCompPacket.id())
   

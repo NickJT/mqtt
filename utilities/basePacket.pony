@@ -26,14 +26,14 @@ If the BasePacket.IsValid() method returns true then BasePacket guarantees
     // If the control byte isn't accessible then we don't have a valid packet
     _controlByte = _getControlByte() 
     if (_controlByte is None) then
-      Debug("Can't read control byte at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+      Debug("Can't read control byte at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string()  where stream = DebugErr)
       return 
     end
 
     // If the control byte isn't valid then we don't have a valid packet
     _packetType = _decode(_controlByte)
     if (_packetType is None) then
-      Debug("Can't decode control byte at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+      Debug("Can't decode control byte at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string()  where stream = DebugErr)
       return 
     end 
 
@@ -42,7 +42,7 @@ If the BasePacket.IsValid() method returns true then BasePacket guarantees
 
     // If we can't read the remaining length bytes then we don't have a valid packet
     if (_data.size() != TotalLength(_data)) then 
-        Debug("Data packet is an unexpected size at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+        Debug("Data packet is an unexpected size at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string()  where stream = DebugErr)
         Debug("TotalLength returned " + TotalLength(_data).string() + " Actual size: " + _data.size().string())
         return
     end
@@ -67,7 +67,7 @@ control bytes have flags in the lower four bits
   try
     rawControlByte = _data(0)?
   else
-    Debug("Packet read error at" + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+    Debug("Packet read error at" + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string()  where stream = DebugErr)
     return None
   end  
   // Check it contains a valid type code before returning it
@@ -158,7 +158,7 @@ ControlArrayVal passed as controlType or false otherwise.
 Embarrasingly unecccessary sugar to keep the main code clean 
 """
   if (not (_packetType is control)) then
-    Debug(_packetType.string() + " is not a " + control.string() + " at  " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+    Debug(_packetType.string() + " is not a " + control.string() + " at  " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string()  where stream = DebugErr)
   end
   not (_packetType is control)
 
