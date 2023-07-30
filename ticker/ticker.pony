@@ -28,7 +28,7 @@ fun ref apply(timer: Timer, count: U64): Bool =>
 
 /************************************************************************/
 fun ref cancel(timer: Timer) =>
-  Debug("SystemTick cancelled")
+  Debug("SystemTick cancelled" where stream = DebugErr )
 
 
 actor Ticker 

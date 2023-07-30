@@ -97,8 +97,7 @@ actor Terminal
     let _boxBuf : Array[BoxLine] = Array[BoxLine]
     let _boxMap : Map[String val, BoxLine] = Map[String val, BoxLine](_boxHeight.usize())
     let _paintAreas : Areas = Areas
-    let _prompt :  String val = ">"
-    var _command : String val = _prompt
+    var _command : String val = Commands()
   /* Colours ********************************************************/
     let _borderColour : String val = ANSI.grey()
     let _separatorColour : String val = ANSI.grey()
@@ -114,11 +113,6 @@ new create(env: Env) =>
   clearAll()
   _paintAreas.all()
   paint()
-
-be command(content : String val) => 
-    _command = content
-    _paintAreas.set(CMD)
-    paint()
 
 be message(topic: String val, content : String val) =>
   if _boxMap.contains(topic) then
@@ -138,16 +132,26 @@ be status(content : String val) =>
   end  
 
 be clear() =>
+  Debug("Got a clear - clearing the status buffer" where stream = DebugErr)
+  _statusBuf.clear()
   clearAll()
   _paintAreas.set(FRM)
+  _paintAreas.set(CMD)
   paint()
+be size(rows: U16 val, cols: U16 val) =>
+  """
+    Called by ANSINotify to report the cmd window size
+  """
+  status("Windows size is " + rows.string() + " rows by " + cols.string() + " cols")
 
 fun ref paint() =>
   _out.write(composite())
   _out.flush()
 
 fun ref clearAll() =>
-  _out.write(ANSI.clear() + ANSI.white() + windowSize(_width, _height))
+  _out.write(ANSI.clear() + ANSI.reset() + ANSI.white() + windowSize(_width, _height))
+  _out.flush()
+  Debug("Doing clearAll" where stream = DebugErr)
 
 fun ref composite() : String val =>
   var paintString : String val = String
@@ -158,27 +162,27 @@ fun ref composite() : String val =>
       + separatorLine(_cmdSpacerY, _width)
       + separatorLine(_boxSpacerY, _width)
       + separatorLine(_statusSpacerY, _width)
-    end
-
+  end
+  if _paintAreas(CMD) then 
+    paintString = paintString + cmdString()
+  end
   if _paintAreas(MSG) then 
     paintString = paintString  + boxString() 
   end  
   if _paintAreas(STS) then 
     paintString = paintString   + statusString()
   end
-  if _paintAreas(CMD) then 
-    paintString = paintString + cmdString()
-  end
+
   _paintAreas.clear()
-  paintString = paintString + ANSI.cursor(_left,_cmdY) + _cmdColour 
+  paintString = paintString + ANSI.cursor(_width,_cmdY) + _cmdColour 
   paintString 
 
 fun windowSize(w : U32, h: U32) : String val =>
   "\e[8;" + h.string() + ";" + w.string() + "t" 
 
 fun cmdString() : String val =>
-  ANSI.cursor(_left,_cmdY) + _cmdColour + _command
-  
+  Debug(_command where stream = DebugErr)
+  ANSI.cursor(_left,_cmdY) + _cmdColour + "Commands - " + _command
 fun ref boxString() : String val =>
   var result : String val = String
   var y : U32 = 0

@@ -538,7 +538,7 @@ be onBrokerConnect() =>
   state reflecting the (potentially saved) state in Broker.
   """
   _reg[Terminal](KeyTerminal()).next[None]({(t : Terminal) => 
-    t.clear()
+    t.status("Router onBrokerConnect")
     },{()=>Debug("No main in registrar" where stream = DebugErr)})
   _reg[Ticker](KeyTicker()).next[None]({(t : Ticker) => t.start()})
   

@@ -1,126 +1,109 @@
-use "collections"
-use "debug"
-use "promises"
-use "term"
-use "bureaucracy"
-use "primitives"
-use "subscriber"
-use "publisher"
-use "examples"
+/* Uses************************************************************************/
+  use "collections"
+  use "debug"
+  use "promises"
+  use "term"
+  use "bureaucracy"
+  use "primitives"
+  use "subscriber"
+  use "publisher"
+  use "examples"
+
+class Aclass is InputNotify
+  """
+  InputNotify is the outer wrapper notifier. Apply is called by env.input when data is 
+  available from the input stream. Apply then calls the ANSI terminal so that the data 
+  can be interpreted 
+  """
+  let _env : Env
+  let _term : ANSITerm
+  new create(env : Env, term : ANSITerm) =>
+    _env = env
+    _term = term
+  
+  fun ref apply(data : Array[U8 val] iso) =>
+    _term(consume data)
+
+  fun ref dispose() =>
+    Debug("InputNotify being disposed" where stream = DebugErr)
 
 
-class Handler is ReadlineNotify
-  let _commands: Array[String] = _commands.create()
-  let _out : OutStream
-  let _lines : Array[String] 
-
+class Handler is ANSINotify
+  """
+  ANSINotify is the inner wrapper notifier. Apply is called by the ANSITerm when input
+  is available. Closed is called when the window is closed.
+  """
+  let _env : Env
+  var _term : (ANSITerm | None) = None
   let _reg : Registrar
-  let _terminal : Terminal
-  var _subs: Map[String val, String val] val = Map[String val, String val] 
-  var _publishers: Map[String val, Publisher] = Map[String val, Publisher]
 
-  var _timestamper : (Timestamper | None) = None
-
-  new create(env : Env, reg : Registrar, terminal : Terminal, subs : Map[String val, String val] val) =>
-    _out = env.out
-    _reg = reg
-    _terminal = terminal
-    _subs = subs
-
-    _lines = Array[String]
-    _commands.push("quit")
-    _commands.push("connect")
-    _commands.push("clear")
-    _commands.push("disconnect")
-    _commands.push("publish")
-    _commands.push("mute")
-    _commands.push("subscribe")
-    _commands.push("unsubscribe all")
-
-fun ref apply(line: String, prompt: Promise[String]) =>
-  """
-  If quit was entered then terminate by rejecting the promise otherwise, update the 
-  prompt and add the line to the command buffer
-  """
-  if line == "quit" then
-    _reg[Main](KeyMain()).next[None]({(m: Main)=>m.onExit()})
-    prompt.reject()
-  else  // display the updated prompt
-    prompt("|> ")
+  let _exitCall : {(U8)}
+  new create(env : Env, reg : Registrar, exitCall : {(U8)} iso) =>
+     _env = env
+     _reg = reg
+    _exitCall = consume exitCall
+  
+fun ref apply(term: ANSITerm ref, input: U8 val) =>
+  _term = term
+  Debug("[" + input.string() + "]" where stream = DebugErr )
+  // ctrl q [17] to quit
+  if input == 17 then 
+    _exitCall(0)
   end 
-  _update_commands(line)
-  _lines.push(line)
-  process(line)
 
-fun ref _update_commands(line: String) =>
-  for command in _commands.values() do
-    if command.at(line, 0) then
-      return
-    end
-  end
-  _commands.push(line)
-
-fun ref tab(line: String): Seq[String] box =>
-  let r = Array[String]
-  for command in _commands.values() do
-    if command.at(line, 0) then
-      r.push(command)
-      return r
-    end
-  end
-  r
-
-fun ref process(line : String) =>
-    try
-      var cmd = stripCommand(line)?  
-      match cmd 
-      | "clear" => _terminal.clear()
-      | "connect" => _reg[OsNetwork](KeyNetwork()).next[None]({(nw:OsNetwork)=>nw.connect()})
-      | "disconnect" => _reg[Router](KeyRouter()).next[None]({ (r: Router)=>r.disconnectBroker()})
-      | "publish" => _publish(line)
-      | "timestamp" => _timestampOn(line) 
-      | "subscribe" => _subscribeAll()
-      | "unsubscribe" => _terminal.status("Unsubscribe not implemented")
-      | "mute" => _mute()
-      | "quit" => None
-      else
-        _terminal.status("No command: " + line)
-      end
-    end
-
-fun _subscribeAll() =>
-  for (topic, qos) in _subs.pairs() do
-    Subscriber(_reg,topic,qos).subscribe()
-  end
-
-fun stripCommand(line : String) : String? =>
-  """
-  Returns the first word of the line in lower case
-  """
-  let delimiter = " "
-  let splitArray: Array[String val] = line.split(delimiter)
-  splitArray(0)?.lower()
-
-
-fun _publish(line : String) =>
-  let delimiter = " "
-  let splitArray: Array[String val] = line.split(delimiter)
- 
-  try 
-    if (splitArray(1)?.lower() == "timestamp" ) then
-      _terminal.status("Starting timestamp publisher")
-    end
-  end
-
-fun ref _timestampOn(line : String) =>
-  if (_timestamper is None) then
-    _timestamper = Timestamper(_reg)
-  end
-
-fun ref _mute() =>
-  try
-    (_timestamper as Timestamper).cancel() 
-    _timestamper = None
+fun ref fn_key(i: U8 val, ctrl: Bool val, alt: Bool val, shift: Bool val) =>
+  match i
+  | Connect()    => _reg[OsNetwork](KeyNetwork()).next[None]({(nw:OsNetwork)=>nw.connect()})
+  | Disconnect() => _reg[Router](KeyRouter()).next[None]({ (r: Router)=>r.disconnectBroker()})
+  | Clear()      => _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.clear()})
+  | Quit()       => _exitCall(0)
   else
-    Debug("Can't cancel timestamp" where stream = DebugErr)
+    _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.status("f"+ i.string() + " not used yet")})
   end
+  _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.status("cmd: f" + i.string())})
+
+fun ref size(rows: U16 val, cols: U16 val) =>
+  Debug("Rows: " + rows.string() + " Cols: " + cols.string() where stream = DebugErr )
+  _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.size(rows,cols)})
+
+fun ref close() =>
+  Debug("Window closed" where stream = DebugErr)
+  _exitCall(0)
+
+fun ref dispose() =>
+  Debug("ANSINotify being disposed" where stream = DebugErr )
+
+/* Unused key handlers*********************************************************/
+  fun ref prompt(term: ANSITerm ref, value: String val) =>
+    Debug("[prompt = " + value + "]" where stream = DebugErr )
+
+  fun ref home(ctrl: Bool val, alt: Bool val, shift: Bool val) =>
+    Debug("[Home]" where stream = DebugErr )
+
+  fun ref up(ctrl: Bool val, alt: Bool val, shift: Bool val) =>
+    Debug("[up]" where stream = DebugErr )
+
+  fun ref down(ctrl: Bool val, alt: Bool val, shift: Bool val) =>
+    Debug("[down]" where stream = DebugErr )
+
+  fun ref left(ctrl: Bool val, alt: Bool val, shift: Bool val) =>
+    Debug("[left]" where stream = DebugErr )
+
+  fun ref right(ctrl: Bool val, alt: Bool val, shift: Bool val) =>
+    Debug("[right]" where stream = DebugErr )
+
+  fun ref delete(ctrl: Bool val, alt: Bool val, shift: Bool val) =>
+    Debug("[delete]" where stream = DebugErr )
+
+  fun ref insert(ctrl: Bool val, alt: Bool val, shift: Bool val) =>
+    Debug("[insert]" where stream = DebugErr )
+
+  fun ref end_key(ctrl: Bool val, alt: Bool val, shift: Bool val) =>
+    Debug("[end]" where stream = DebugErr )
+
+  fun ref page_up(ctrl: Bool val, alt: Bool val, shift: Bool val) =>
+    Debug("[page_up]" where stream = DebugErr )
+
+  fun ref page_down(ctrl: Bool val, alt: Bool val, shift: Bool val) =>
+      Debug("[page_down]" where stream = DebugErr )
+
