@@ -1,4 +1,4 @@
-/** use **/
+/** uses **/
   use "assert"
   use "bureaucracy"
   use "collections"
@@ -12,6 +12,8 @@
   use "pinger"
   use "publisher"
   use "subscriber"
+  use "terminal"
+  use "network"
   use "ticker"
   use "utilities"
 

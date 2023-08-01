@@ -1,10 +1,46 @@
-Doing clearAll
-Rows: 40 Cols: 128
-f1:Connect  f5:Disconnect  f9:Clear  f12:Quit
-Got a clear - clearing the status buffer
-Doing clearAll
-f1:Connect  f5:Disconnect  f9:Clear  f12:Quit
+UI Tick at 1690882006
+UI Tick at 1690882007
+UI Tick at 1690882008
+UI Tick at 1690882009
+User f11
+UI Tick at 1690882010
+UI Tick at 1690882011
+UI Tick at 1690882012
+UI Tick at 1690882013
+UI Tick at 1690882014
+User f10
+UI Tick at 1690882015
+UI Tick at 1690882016
+User f11
+UI Tick at 1690882017
+UI Tick at 1690882018
+UI Tick at 1690882019
+UI Tick at 1690882020
+User f8
+UI Tick at 1690882021
+User f7
+User f6
+UI Tick at 1690882022
+User f5
+UI Tick at 1690882023
+User f4
+User f3
+User f2
+UI Tick at 1690882024
+UI Tick at 1690882025
+UI Tick at 1690882026
+UI Tick at 1690882027
+User f12
 Main cleanup underway
 Main cleanup completed
 Main.onExit code is 0
 InputNotify being disposed
+UI Tick at 1690882028
+UI Tick at 1690882029
+UI Tick at 1690882030
+UI Tick at 1690882031
+UI Tick at 1690882032
+UI Tick at 1690882033
+UI Tick at 1690882034
+UI Tick at 1690882035
+UI Tick at 1690882036

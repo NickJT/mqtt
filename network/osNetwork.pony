@@ -2,8 +2,9 @@
   use "debug"
   use "net"
   use "term"
-  use "primitives"
-  use "configurator"
+  use "package:../"
+  use "package:../primitives"
+  use "package:../configurator"
 
 
 actor OsNetwork
@@ -29,7 +30,7 @@ actor OsNetwork
 
 /************************************************************************/
 be connect() =>
-  Debug("Connecting to " + _ipv4Address + ":" + _port where stream = DebugErr)
+  //Debug("Connecting to " + _ipv4Address + ":" + _port where stream = DebugErr)
   _maybe = TCPConnection(TCPConnectAuth(_env.root), recover Client(_env, _router) end, _ipv4Address, _port)
   
 /************************************************************************/

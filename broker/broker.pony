@@ -15,25 +15,25 @@ class Broker is TCPConnectionNotify
 
 new iso create(env: Env) =>
     _env = env
-    Debug("Broker started")
+    Debug("Broker started" where stream = DebugErr)
     _router = Router(_reg, Map[String val, String val])
     _assembler = Assembler(_router)
     _reg.update(KeyRouter(), _router)
 
 fun ref connecting(conn: TCPConnection ref, count: U32) =>
-  Debug("Connecting (attempt " + count.string() + ")")
+  Debug("Connecting (attempt " + count.string() + ")"  where stream = DebugErr)
 
 fun ref accepted(conn: TCPConnection ref) =>
   try
     (let host, let service) = conn.remote_address().name()?
-    _env.out.print("Broker accepted connection from " + host + ":" + service)
+    _env.out.print("Broker accepted connection from " + host + ":" + service where stream = DebugErr)
     _router.onTcpConnect(conn)
   end
 
 fun ref connected(conn: TCPConnection ref) =>
   try
     (let host, let service) = conn.remote_address().name()?
-    Debug("Broker connected to " + host + ":" + service)
+    Debug("Broker connected to " + host + ":" + service where stream = DebugErr)
   end
 
 fun ref received(conn: TCPConnection ref, data: Array[U8] iso,  times: USize): Bool  =>
@@ -43,7 +43,7 @@ fun ref received(conn: TCPConnection ref, data: Array[U8] iso,  times: USize): B
   false  // to yield instead of waiting for max_size bytes from TCP 
 
 fun ref connect_failed(conn: TCPConnection ref) =>
-  _env.out.print("Broker connect failed")
+  Debug("Broker connect failed" where stream = DebugErr)
 
 fun ref closed(conn: TCPConnection ref) =>
-  _env.out.print("Broker connection closed")
+  Debug("Broker connection closed" where stream = DebugErr)

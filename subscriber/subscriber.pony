@@ -90,12 +90,12 @@ be onDisconnect() =>
   If we have packets in _pktMap onDisconnect and CleanSession is false then they are awaiting
   PubRels from the Broker. We need to save these by sending them to main. 
   """
-  Debug("Disconnecting " + _topic)
+  Debug("Disconnecting " + _topic where stream = DebugErr)
   if (_pktMap.size() != 0) then Debug("Sending " + _pktMap.size().string() + " unreleased packets for storage") end
 
   // TODO - We need to send them in the original order and this might not do it...
   for (k,v) in _pktMap.pairs() do 
-    Debug("Sending []" + k.string() + v.topic().string() + "]")
+    Debug("Sending []" + k.string() + v.topic().string() + "]" where stream = DebugErr)
   end
 
 

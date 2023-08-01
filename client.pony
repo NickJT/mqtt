@@ -44,7 +44,7 @@ new iso create(env: Env, router : Router) =>
   // assembler is only used by client so don't add it to reg
 
 fun ref connecting(conn: TCPConnection ref, count: U32) =>
-  _router.showStatus("Connection attempt " + count.string() + ")")
+  _router.showStatus("Connection attempt " + count.string())
   None
 
 fun ref accepted(conn: TCPConnection ref) =>

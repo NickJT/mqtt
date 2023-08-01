@@ -34,9 +34,11 @@
   use "configurator"
   use "idIssuer"
   use "examples"
+  use "network"
   use "primitives"
   use "publisher"
   use "subscriber"
+  use "terminal"
   use "ticker"
 
 
@@ -97,7 +99,6 @@
 
     // Finally, pass inputNotify to _env.input so it has access to stdin
     _env.input(consume inputNotify, 512)
-
 
     be onExit(code : U8) =>
       """

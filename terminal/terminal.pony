@@ -1,10 +1,9 @@
 /* Uses **************************************************************************/
-  use "bureaucracy"
-  use "collections"
-  use "debug"
-  use "term"
   use "time"
-  use "package:primitives"
+  use "collections"
+  use "term"
+  use "debug"
+  use "../primitives"
 
 /* Primitives ********************************************************************/
   trait Paintable
@@ -52,6 +51,10 @@ class BoxLine is Paintable
     _timeStamp = Time.seconds()
 
   fun paint() : Bool => _paint
+  fun ref deadline(seconds : I64) =>
+    if ((_contentColour == ANSI.red()) and (_timeStamp < seconds)) then 
+      _contentColour == ANSI.white()
+    end
   fun ref content() : String val => 
     _paint = false
     _content
@@ -101,12 +104,32 @@ actor Terminal
   /* Colours ********************************************************/
     let _borderColour : String val = ANSI.grey()
     let _separatorColour : String val = ANSI.grey()
-    let _cmdColour : String val = ANSI.white()
+    let _cmdColour : String val = ANSI.grey()
     let _boxColour : String val = ANSI.white()
     let _statusColour : String val = ANSI.green()
 
+    var _timers : Timers
+    var _uiTimer : (None | Timer tag) = None
+
 new create(env: Env) =>
   _out = env.out
+
+  let t = recover
+    object is TimerNotify
+      let term: Terminal = this
+      fun ref apply(timer: Timer, count: U64): Bool =>
+        (var s , var ns) = Time.now()
+        term.onTick(s)
+        true
+      fun ref cancel(timer: Timer) =>
+        None
+    end
+  end  
+  _timers = Timers  
+  let timer = Timer(consume t, 1_000_000_000, 1_000_000_000)
+//_uiTimer = timer    // TODO - causes a segfault if compiled for debug
+  _timers(consume timer)
+
   for i in Range[U32](0,_statusHeight) do 
     _statusBuf.push(StatusLine("-"))
   end
@@ -124,25 +147,34 @@ be message(topic: String val, content : String val) =>
   paint()
 
 be status(content : String val) => 
-  try
-    _statusBuf.shift()?
-    _statusBuf.push(StatusLine(content))
-    _paintAreas.set(STS)
-    paint()
-  end  
+  if _statusBuf.size() == _statusHeight.usize() then 
+    try _statusBuf.shift()? end
+  end
+  _statusBuf.push(StatusLine(content))
+  _paintAreas.set(STS)
+  paint()
 
 be clear() =>
-  Debug("Got a clear - clearing the status buffer" where stream = DebugErr)
   _statusBuf.clear()
   clearAll()
   _paintAreas.set(FRM)
   _paintAreas.set(CMD)
   paint()
+
 be size(rows: U16 val, cols: U16 val) =>
   """
     Called by ANSINotify to report the cmd window size
   """
   status("Windows size is " + rows.string() + " rows by " + cols.string() + " cols")
+
+be onTick(seconds : I64) =>
+  timeout(seconds)
+
+be exitAndReset() =>
+  clearAll()
+  try _timers.cancel(_uiTimer as Timer tag) else 
+    Debug("Exiting terminal but can't cancel UI timer" where stream = DebugErr)
+  end
 
 fun ref paint() =>
   _out.write(composite())
@@ -151,7 +183,6 @@ fun ref paint() =>
 fun ref clearAll() =>
   _out.write(ANSI.clear() + ANSI.reset() + ANSI.white() + windowSize(_width, _height))
   _out.flush()
-  Debug("Doing clearAll" where stream = DebugErr)
 
 fun ref composite() : String val =>
   var paintString : String val = String
@@ -181,7 +212,6 @@ fun windowSize(w : U32, h: U32) : String val =>
   "\e[8;" + h.string() + ";" + w.string() + "t" 
 
 fun cmdString() : String val =>
-  Debug(_command where stream = DebugErr)
   ANSI.cursor(_left,_cmdY) + _cmdColour + "Commands - " + _command
 fun ref boxString() : String val =>
   var result : String val = String
@@ -223,4 +253,9 @@ fun border(x : U32) : String val =>
       stg.append(ANSI.cursor(x,y) + "|")
     end
     stg
-  end  
+  end   
+fun ref timeout(seconds : I64) =>
+  var limit : I64 = seconds - 2
+  for line in _boxMap.values() do 
+    line.deadline(limit)
+  end 
