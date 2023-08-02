@@ -36,31 +36,32 @@ class Timestamp is TimerNotify
       stg.append(FmtDec(datetime.min))
       stg.append(":")
       stg.append(FmtDec(datetime.sec))
-      //Debug(stg)
       consume stg
      end
      var args = PublishArgs(_topic, timestring.array(), Qos2)
-/*      Debug("Sending time three times")
-    _pub.publish(args)
-    _pub.publish(args) */
     _pub.publish(args)
     _count < 10
 
   fun ref cancel(timer: Timer) =>
-    _reg[Router](KeyRouter()).next[None]({(r : Router)=>r.sendToTerminal("Timestamp publisher", "Cancelled")})
+    _reg[Router](KeyRouter()).next[None]({(r : Router)=>r.showStatus("Timestamp publisher cancelled")})
 
 
 actor Timestamper
   let _reg : Registrar
   let _pub : Publisher
   let _topic : String val = "timestamp"
+  var _timerTag : Timer tag
+  var _timers : Timers
+
   new create(reg : Registrar) =>
     _reg = reg
     _pub = Publisher(_reg,_topic)
     
-    let timers = Timers
-    let timer : Timer iso = Timer(Timestamp(_reg, _pub, _topic),5000000000, 5000000000)
-    timers(consume timer)
+    _timers = Timers
+    let timer : Timer iso = Timer(Timestamp(_reg, _pub, _topic),1000000000, 1000000000)
+    _timerTag = timer
+    _timers(consume timer)
 
-    
+  be mute() =>
+   _timers.cancel(_timerTag)  
 ```````

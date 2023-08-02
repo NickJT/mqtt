@@ -1,0 +1,85 @@
+---
+hide:
+  - toc
+search:
+  exclude: true
+---
+```````pony linenums="1"
+
+/* Uses *******************************************************************/
+  use "bureaucracy"
+  use "collections"
+  use "debug"
+  use "time"
+
+  use "package:../primitives"
+  use "package:../subscriber"
+
+actor Spawner
+  var _reg : Registrar 
+
+  var _subs : Map[String val, String val] val   = Map[String val, String val] 
+  var _subscribers : Map[String val, Subscriber tag] = Map[String val, Subscriber tag]  
+  var _publishers : Map[String val, Timestamper tag] = Map[String val, Timestamper tag]  
+  let _testSubs : Map[String val, String val] val  
+  
+  new create(reg: Registrar, subs : Map[String val, String val] val) =>
+    _reg = reg
+    _subs = subs
+
+    _testSubs = recover val
+      var t = Map[String val, String val]
+      t.insert("test/q0", "QOS0")
+      t.insert("test/q1", "QOS1")
+      t.insert("test/q2", "QOS2")
+      t.insert("timestamp", "QOS1")
+      t
+    end
+
+  be brokerSubs(cmd : SubControl) =>
+    subscribermicator(_subs, cmd)
+
+  be testSubs(cmd : SubControl) =>
+    subscribermicator(_testSubs, cmd)
+
+  be unSubAll() =>
+    //Debug("Unsubscribing all in spawner " where stream = DebugErr)    
+    subscribermicator(_subs, UnSub)
+    subscribermicator(_testSubs, UnSub)
+
+  be perfTest() =>
+    var t = Time.now()
+    //Debug("Starting perfTest at " + t._1.string() + ":" + t._2.string() where stream = DebugErr)
+    _publishers.insert("timestamp",Timestamper(_reg))
+
+  be loadTest() =>
+     Debug("loadTest not implemented  at " + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
+    None
+
+  be mute() =>
+    for publisher in _publishers.values() do
+      publisher.mute()
+    end
+    _publishers.clear()
+    
+  fun ref subscribermicator(subs : Map[String val, String val] val, cmd : SubControl) =>
+    """
+    Subscribing and unsubscribing from a map of topics
+    """
+    match cmd
+    | Sub =>  for (topic, qos) in subs.pairs() do
+                if not _subscribers.contains(topic) then 
+                  _subscribers.insert(topic, Subscriber(_reg, topic, qos))
+                end
+                try _subscribers(topic)?.subscribe() 
+                end
+              end
+    | UnSub =>  for topic in subs.keys() do
+                  try _subscribers(topic)?.unsubscribe() 
+                  end
+                end
+    end
+
+
+
+```````
