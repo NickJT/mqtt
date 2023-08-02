@@ -29,7 +29,6 @@ class Timestamp is TimerNotify
       stg.append(FmtDec(datetime.min))
       stg.append(":")
       stg.append(FmtDec(datetime.sec))
-      Debug(stg where stream = DebugErr )
       consume stg
      end
      var args = PublishArgs(_topic, timestring.array(), Qos2)
@@ -52,9 +51,9 @@ actor Timestamper
     _pub = Publisher(_reg,_topic)
     
     _timers = Timers
-    let timer : Timer iso = Timer(Timestamp(_reg, _pub, _topic),5000000000, 5000000000)
+    let timer : Timer iso = Timer(Timestamp(_reg, _pub, _topic),1000000000, 1000000000)
     _timerTag = timer
     _timers(consume timer)
 
-  be cancel() =>
+  be mute() =>
    _timers.cancel(_timerTag)  

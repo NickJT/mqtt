@@ -19,7 +19,7 @@
 class StatusLine is Paintable
   var _content : String val
   var _paint : Bool
-  var _colour : String val = ANSI.green()
+  var _colour : String val =  TerminalColour.status()
   new create(content' : String val) =>
     _content = content'
     _paint = true 
@@ -36,8 +36,9 @@ class StatusLine is Paintable
 class BoxLine is Paintable
   var _topic : String val
   var _content : String val
-  var _topicColour : String val =  ANSI.grey()
-  var _contentColour : String val =  ANSI.grey()
+  var _lastContent : String val = String
+  var _topicColour : String val =  TerminalColour.boxDormant()
+  var _contentColour : String val =  TerminalColour.boxDormant()
   var _paint : Bool
   var _timeStamp : I64
   new create(topic : String val, content' : String val) =>
@@ -48,20 +49,26 @@ class BoxLine is Paintable
   
   fun paint() : Bool => _paint
   fun ref deadline(seconds : I64) =>
-    if ((_contentColour == ANSI.red()) and (_timeStamp < seconds)) then 
-      //Debug(_topic + " past deadline" where stream = DebugErr)
-      _contentColour = ANSI.white()
+    if ((_contentColour == TerminalColour.boxChange()) and (_timeStamp < seconds)) then 
+      _contentColour = TerminalColour.boxNormal()
       _paint = true
     end
   
   fun ref update(content' : String val) =>
-    _timeStamp = Time.seconds()
-    _content = content'
-    if (_topicColour == ANSI.grey()) then  
-      _topicColour = ANSI.white()
+    if (_topicColour == TerminalColour.boxDormant()) then  
+      _topicColour = TerminalColour.boxNormal()
+      _paint = true
     end
-    _contentColour = ANSI.red()
-    _paint = true
+    
+    // TODO - Note that _timeStamp is the time of the last change NOT the
+    // last update. Don't use this for timing publication
+    if (content' != _content) then 
+      _timeStamp = Time.seconds()
+      _lastContent = _content = content'
+      _contentColour = TerminalColour.boxChange()
+      _paint = true
+    end
+   
   
   fun ref ansi(left : U32, right :U32, y : U32) : String val =>
     _paint = false
@@ -94,16 +101,9 @@ actor Terminal
 
   /* Structures *********************************************************/
     let _statusBuf : Array[StatusLine] = Array[StatusLine]
-    let _boxBuf : Array[BoxLine] = Array[BoxLine]
     let _boxMap : Map[String val, BoxLine] = Map[String val, BoxLine](_boxHeight.usize())
     let _paintAreas : Areas = Areas
-    var _command : String val = Commands()
-  /* Colours ********************************************************/
-    let _borderColour : String val = ANSI.grey()
-    let _separatorColour : String val = ANSI.grey()
-    let _cmdColour : String val = ANSI.grey()
-    let _boxColour : String val = ANSI.white()
-    let _statusColour : String val = ANSI.green()
+    var _commands : String val = Commands()
 
     var _timers : Timers
     var _uiTimer : (None | Timer tag) = None
@@ -130,7 +130,7 @@ new create(env: Env) =>
   for i in Range[U32](0,_statusHeight) do 
     _statusBuf.push(StatusLine("-"))
   end
-  clearAll()
+  clearScreen()
   _paintAreas.all()
   paint()
 
@@ -152,10 +152,11 @@ be status(content : String val) =>
   paint()
 
 be clear() =>
+  // Don't clear the subscriptions box because we haven't unsubscribed
+  //_boxMap.clear()
   _statusBuf.clear()
-  clearAll()
-  _paintAreas.set(FRM)
-  _paintAreas.set(CMD)
+  clearScreen()
+  _paintAreas.all()
   paint()
 
 be size(rows: U16 val, cols: U16 val) =>
@@ -169,7 +170,7 @@ be onTick(seconds : I64) =>
   // Anything else?
 
 be exitAndReset() =>
-  clearAll()
+  clearScreen()
   try _timers.cancel(_uiTimer as Timer tag) else 
     Debug("Exiting terminal but can't cancel UI timer" where stream = DebugErr)
   end
@@ -178,7 +179,7 @@ fun ref paint() =>
   _out.write(composite())
   _out.flush()
 
-fun ref clearAll() =>
+fun ref clearScreen() =>
   _out.write(ANSI.clear() + ANSI.reset() + ANSI.white() + windowSize(_width, _height))
   _out.flush()
 
@@ -203,14 +204,14 @@ fun ref composite() : String val =>
   end
 
   _paintAreas.clear()
-  paintString = paintString + ANSI.cursor(_width,_cmdY) + _cmdColour 
+  paintString = paintString + ANSI.cursor(_width,_cmdY) + TerminalColour.cmd() 
   paintString 
 
 fun windowSize(w : U32, h: U32) : String val =>
   "\e[8;" + h.string() + ";" + w.string() + "t" 
 
 fun cmdString() : String val =>
-  ANSI.cursor(_left,_cmdY) + _cmdColour + "Commands - " + _command
+  ANSI.cursor(_left,_cmdY) + TerminalColour.cmd() + "Commands - " + _commands
 fun ref boxString() : String val =>
   var result : String val = String
   let unsorted : Array[String val] = Array[String val].create(_boxMap.size()) 
@@ -234,7 +235,7 @@ fun ref statusString() : String val =>
   result
 
 fun separatorLine(y : U32, width : U32) : String val =>
-  ANSI.cursor(0,y) + _separatorColour + separator(width)
+  ANSI.cursor(0,y) + TerminalColour.separator() + separator(width)
 
 fun separator(width : U32) : String val =>
   var arrayVal : Array[U8] val = recover val
@@ -250,7 +251,7 @@ fun separator(width : U32) : String val =>
 fun border(x : U32) : String val =>
   recover val 
     var stg : String ref  = String
-    stg.append(_borderColour)
+    stg.append(TerminalColour.border())
     for y in Range[U32](1,_height) do 
       stg.append(ANSI.cursor(x,y) + "|")
     end

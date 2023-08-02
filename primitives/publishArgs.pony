@@ -1,8 +1,9 @@
 
 class PublishArgs
   """
-  A simple class to enable a set of args for a publish behaviour to be grouped 
-  and stored in an array
+  A simple class to enable a set of args for a publish behaviour to be created
+  with sensible defaults
+  TODO - This needs modifying to ensure that only the IDIssuer can call createWithId.
   """
   var cid : IdType 
   let topic : String val 

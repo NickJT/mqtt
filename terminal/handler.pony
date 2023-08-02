@@ -53,6 +53,8 @@ fun ref apply(term: ANSITerm ref, input: U8 val) =>
 
 fun ref fn_key(i: U8 val, ctrl: Bool val, alt: Bool val, shift: Bool val) =>
 /*f1:Connect f2:Test f3:Stats f4:Unsub f5:Perf f6:Load B f9:Mute f10:Clear f11:Disc f12:Quit */
+  _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.status("cmd: f" + i.string())})
+  Debug("Handler got: f" + i.string() where stream = DebugErr)
   match i
   | Connect()     => _reg[OsNetwork](KeyNetwork()).next[None]({(nw:OsNetwork)=>nw.connect()})
   | SubscribeTest()   => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.testSubs(Sub)}, {()=>Debug("No spawner")})
@@ -68,7 +70,6 @@ fun ref fn_key(i: U8 val, ctrl: Bool val, alt: Bool val, shift: Bool val) =>
   else
     _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.status("f"+ i.string() + " not used yet")})
   end
-  _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.status("cmd: f" + i.string())})
 
 fun ref size(rows: U16 val, cols: U16 val) =>
   None 
