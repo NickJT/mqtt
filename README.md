@@ -28,4 +28,4 @@ If you haven't used Pony, this is the best starting point -> [Pony Tutorial](htt
 2. Load and memory usage
 3. Optimise
 4. Build as library
-5. Demo app
+5. Add a demo app
