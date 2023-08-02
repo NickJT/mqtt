@@ -6,6 +6,7 @@
 
   use "primitives"
   use "assembler"
+  use "router"
 
 class Client is TCPConnectionNotify
   """

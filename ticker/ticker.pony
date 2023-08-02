@@ -2,6 +2,7 @@ use "time"
 use "bureaucracy"
 use "debug"
 use "../primitives"
+use "package:../router"
 use ".."
 
 class Tick is TimerNotify

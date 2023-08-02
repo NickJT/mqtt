@@ -3,6 +3,7 @@
   use "net"
   use "term"
   use "package:../"
+  use "package:../router"
   use "package:../primitives"
   use "package:../configurator"
 

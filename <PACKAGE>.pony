@@ -1,3 +1,4 @@
+"""
 # Pony MQTT Client #
 
 A MQTT 3.1.1 client - currently part-way through release 0.1, supporting QoS 0/1/2 but
@@ -62,3 +63,4 @@ it to the appropriate handlers. Keeps track of the incomming and outgoing messag
 are only tied to messages by id.
 
 
+"""

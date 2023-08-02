@@ -5,9 +5,10 @@
   use "term"
   use "bureaucracy"
   use "package:.."
-  use "package:../primitives"
-  use "package:../network"
   use "package:../configurator"
+  use "package:../network"
+  use "package:../primitives"
+  use "package:../router"
 
 class Aclass is InputNotify
   """

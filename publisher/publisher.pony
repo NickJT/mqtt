@@ -6,6 +6,7 @@
   use ".."
   use "../idIssuer"
   use "../primitives"
+  use "../router"
   use "../utilities"
 
 actor Publisher is (IdNotifyPub & MqActor)

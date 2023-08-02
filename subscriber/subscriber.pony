@@ -7,6 +7,7 @@
   use "../idIssuer"
   use "../primitives"
   use "../publisher"
+  use "../router"
   use "../utilities"
 
 actor Subscriber is (IdNotifySub & MqActor)

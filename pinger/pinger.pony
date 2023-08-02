@@ -2,6 +2,7 @@ use "time"
 use "bureaucracy"
 use "debug"
 use "../primitives"
+use "../router"
 use ".."
 
 class Ping is TimerNotify

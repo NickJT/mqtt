@@ -4,6 +4,7 @@ use "debug"
 use ".."
 use "../publisher"
 use "../primitives"
+use "../router"
 use "../utilities"
 
 class Timestamp is TimerNotify
