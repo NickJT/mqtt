@@ -213,9 +213,13 @@ fun cmdString() : String val =>
   ANSI.cursor(_left,_cmdY) + _cmdColour + "Commands - " + _command
 fun ref boxString() : String val =>
   var result : String val = String
+  let unsorted : Array[String val] = Array[String val].create(_boxMap.size()) 
+  unsorted.concat(_boxMap.keys(),0)
+  let sorted = Sort[Array[String val], String](unsorted)
+
   var y : U32 = 0
-  for line in _boxMap.values() do 
-    result = result + line.ansi(_left,_right,y + _boxTopY)
+  for topic in sorted.values() do 
+    try result = result + _boxMap(topic)?.ansi(_left,_right,y + _boxTopY) end
     y = y + 1
   end
   result

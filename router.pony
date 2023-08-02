@@ -18,19 +18,6 @@
   use "utilities"
 
 
-  /********************************************************************************/
-  trait MqActor 
-  """
-  This type def allows us to combine publishers and subscribers into one map of open
-  transactions. The map is indexed by client allocated id (cid) and cids are unique 
-  while checked-out so we know that we can't have clashing cids even if an actor 
-  has multiple transactions underway. A transaction finishing is denoted by the 
-  removal of the actor from the map and **then** the check-in of the cid. 
-  TODO - consider whether we need to add some safeguards for this (e.g. a single
-  router private function that atomically removes first and then checks-in)
-  """
-  be onData(basePacket : BasePacket val) 
-  be onTick(sec : I64)
 
 
 /********************************************************************************/
@@ -117,7 +104,7 @@ be route(basePacket : BasePacket val) =>
       return
     end
     
-    Debug("Router got a " + basePacket.controlType().string() where stream = DebugErr)
+    //Debug("Router got a " + basePacket.controlType().string() where stream = DebugErr)
     //Debug(basePacket.data())
 
     match basePacket.controlType()

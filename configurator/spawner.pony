@@ -3,6 +3,7 @@
   use "bureaucracy"
   use "collections"
   use "debug"
+  use "time"
 
   use "package:../primitives"
   use "package:../subscriber"
@@ -12,6 +13,7 @@ actor Spawner
 
   var _subs : Map[String val, String val] val   = Map[String val, String val] 
   var _subscribers : Map[String val, Subscriber tag] = Map[String val, Subscriber tag]  
+  var _publishers : Map[String val, Timestamper tag] = Map[String val, Timestamper tag]  
   let _testSubs : Map[String val, String val] val  
   
   new create(reg: Registrar, subs : Map[String val, String val] val) =>
@@ -23,6 +25,7 @@ actor Spawner
       t.insert("test/q0", "QOS0")
       t.insert("test/q1", "QOS1")
       t.insert("test/q2", "QOS2")
+      t.insert("timestamp", "QOS1")
       t
     end
 
@@ -44,10 +47,9 @@ actor Spawner
     subscribermicator(_testSubs, UnSub)
 
   be perfTest() =>
-    Debug("perfTest not implemented  at " 
-    + __loc.file() + ":" +__loc.method_name() 
-    where stream = DebugErr)
-    None
+    var t = Time.now()
+    Debug("Starting perfTest at " + t._1.string() + ":" + t._2.string() where stream = DebugErr)
+    _publishers.insert("timestamp",Timestamper(_reg))
 
   be loadTest() =>
      Debug("loadTest not implemented  at " 
@@ -55,6 +57,11 @@ actor Spawner
     where stream = DebugErr)
     None
 
+  be mute() =>
+    for publisher in _publishers.values() do
+      publisher.cancel()
+    end
+    
   fun ref subscribermicator(subs : Map[String val, String val] val, cmd : SubControl) =>
     """
     Subscribing and unsubscribing from a map of topics
