@@ -1,5 +1,5 @@
 # IniPassword
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-64)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-66)</span>
 ```pony
 primitive val IniPassword
 ```
@@ -7,7 +7,7 @@ primitive val IniPassword
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-64)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-66)</span>
 
 
 ```pony
@@ -24,7 +24,7 @@ new val create()
 ## Public Functions
 
 ### apply
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-64)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-66)</span>
 
 
 ```pony
@@ -39,7 +39,7 @@ fun box apply()
 ---
 
 ### eq
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-64)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-66)</span>
 
 
 ```pony
@@ -58,7 +58,7 @@ fun box eq(
 ---
 
 ### ne
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-64)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-66)</span>
 
 
 ```pony

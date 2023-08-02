@@ -5,7 +5,7 @@ search:
   exclude: true
 ---
 ```````pony linenums="1"
-/** use **/
+/** uses **/
   use "assert"
   use "bureaucracy"
   use "collections"
@@ -19,23 +19,12 @@ search:
   use "pinger"
   use "publisher"
   use "subscriber"
+  use "terminal"
+  use "network"
   use "ticker"
   use "utilities"
 
 
-  /********************************************************************************/
-  trait MqActor 
-  """
-  This type def allows us to combine publishers and subscribers into one map of open
-  transactions. The map is indexed by client allocated id (cid) and cids are unique 
-  while checked-out so we know that we can't have clashing cids even if an actor 
-  has multiple transactions underway. A transaction finishing is denoted by the 
-  removal of the actor from the map and **then** the check-in of the cid. 
-  TODO - consider whether we need to add some safeguards for this (e.g. a single
-  router private function that atomically removes first and then checks-in)
-  """
-  be onData(basePacket : BasePacket val) 
-  be onTick(sec : I64)
 
 
 /********************************************************************************/
@@ -64,14 +53,21 @@ actor Router
   Router also starts the Pinger actor responsible for keepAlive pings to the Broker, and the 
   system ticker used for checking message timetouts.
 
+  >The Client and Server MUST store Session state for the entire duration of the Session
+  [MQTT-4.1.0-1]. A Session MUST last at least as long it has an active Network Connection
+
+  The implication of this is that if there is a network disconnection then the Session state 
+  **does not** need to be stored. So the client can request any saved state from the Broker
+  but the Broker cannot demand any saved state from a client unless CleanSession = 0. But if
+  the client does set CleanSession = 0 then it must be prepared for resent Publish and PubRel
+  packets.
+
   Registrar usage  
   - Router adds IdIssuer actor that issues ids to other actors
   - Router adds the pinger actor that sends pingreq messages 
   """
   let _reg : Registrar
-  let _issuer : IdIssuer
-  let _pinger : Pinger
-  let _ticker : Ticker
+  var _pinger : (Pinger | None) = None
   var _connector : Connector
   var _pingTokens : USize = 3
   var _pingTokenCount : USize = _pingTokens
@@ -92,24 +88,13 @@ actor Router
   let _config :  Map[String val, String val] val
 
   var _tcpMaybe : (TCPConnection | None) = None
+  var _cleanSession : Bool = true
 
   new create(reg : Registrar, config :  Map[String val, String val] val) =>
     _reg = reg
     _config = config
     _connector = Connector(this)
-    _issuer = IdIssuer
-    _reg.update(KeyIssuer(), _issuer)
     
-    // The keepalive Pinger is currenty limited so that we disconnect
-    // cleanly during testing. Pinger responds via _reg
-    _pinger = Pinger(_reg, 5/* seconds delay*/, 50/*repetitions*/)
-    _reg.update(KeyPinger(), _pinger)
-
-    // System tick calls onTick every second. Tciker responds without going through 
-    // reg for comparison with pinger.
-    // TODO - Decide on best approach to router callbacks
-    _ticker = Ticker(this)
-
 
 /*********************************************************************************/
 be route(basePacket : BasePacket val) =>
@@ -122,11 +107,11 @@ be route(basePacket : BasePacket val) =>
     TODO - refactor into subtypes to reduce the number of matches
     """
     if (basePacket.isNotValid()) then
-      Debug("Router got an invalid packet at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+      Debug("Router got an invalid packet at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string() where stream = DebugErr)
       return
     end
     
-    //Debug("Router got a " + basePacket.controlType().string())
+    //Debug("Router got a " + basePacket.controlType().string() where stream = DebugErr)
     //Debug(basePacket.data())
 
     match basePacket.controlType()
@@ -147,7 +132,7 @@ be route(basePacket : BasePacket val) =>
       | ControlDisconnect => onControlDisconnect(basePacket)
       /*   BROKER PACKETS FOR DEV TESTING ONLY  */
     else
-      Debug("Shouldn't get to " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+      Debug("Shouldn't get to " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string() where stream = DebugErr)
     end
 
 /********************************************************************************/
@@ -164,8 +149,8 @@ fun _findActorById(basePacket : BasePacket val) =>
   try 
     _actorById(BytesToU16(basePacket.data().trim(2,4)))?.onData(basePacket)
   else
-    Debug("Couldn't match id and subscriber at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
-    Debug(basePacket.controlType().string() + " with id " + BytesToU16(basePacket.data().trim(2,4)).string())
+    Debug("Couldn't match id and subscriber at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string()  where stream = DebugErr)
+    Debug(basePacket.controlType().string() + " with id " + BytesToU16(basePacket.data().trim(2,4)).string() where stream = DebugErr)
   end
 
 /*********************************************************************************/
@@ -192,7 +177,7 @@ fun ref _findSubscriberByTopic(basePacket : BasePacket val) =>
   """   
   var pubPacket : PublishPacket val = PublishPacket.createFromPacket(basePacket)
   if (not pubPacket.isValid()) then
-    Debug("Invalid packet in " + __loc.file() + ":" +__loc.method_name())
+    Debug("Invalid packet in " + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
     return
   end  
 
@@ -212,7 +197,7 @@ fun ref _findSubscriberByTopic(basePacket : BasePacket val) =>
     _subscriberByBid.update(pubPacket.id() as IdType, subscriber)    // Now we can link our unique bid to the subscriber
     subscriber.onData(basePacket)                                    // we could combine this with the .onData above but that risks
   else                                                               // a subsequent packet before the subscriber is in the map   
-     _doAssignedSubscription(basePacket)
+     _doAssignedSubscription(basePacket)                             // Could be because of a restored session 
   end  
 
 /********************************************************************************/
@@ -223,8 +208,8 @@ fun _findPayloadById(basePacket : BasePacket val) =>
   try 
     _subscriberByBid(BytesToU16(basePacket.data().trim(2,4)))?.onData(basePacket)
   else
-    Debug("Couldn't match Bid and payload at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
-    Debug(basePacket.controlType().string() + " with id " + BytesToU16(basePacket.data().trim(2,4)).string())
+    Debug("Couldn't match Bid and payload at " + __loc.file() + ":" +__loc.method_name() + " This could be a re-transmission of a PubRel" where stream = DebugErr)
+    Debug(basePacket.controlType().string() + " with id " + BytesToU16(basePacket.data().trim(2,4)).string() where stream = DebugErr)
   end
 
 
@@ -239,25 +224,51 @@ fun ref _doAssignedSubscription(basePacket : BasePacket val) =>
   This can happen if the Broker:   
   1. automatically assigned a subscription to the Client  
   2. sends a Publish or PubRel message while the unsubscribe message is in-flight  
-  
+  3. **The client has connected with CleanSession=0 and is getting retransmissions** 
+
   >The Client MUST acknowledge any Publish Packet it receives according to the
   applicable QoS rules regardless of whether it elects to process the message it contains.  
   
-  We don't remove Subscription from router tables until we get a sub-ack so we should
-  be covered for 2 unless the broker continues to send pubRel after an unsubscribe 
-  (which it might?).
+  Note - the receiver **does not** ack any Publish packets it received but hadn't ack'd
+  at the time of the disconnect. Therefore don't save the incomming publication list because
+  the sender will re-send anything we haven't ack'd.
+
+  Case 1. We can include the subscription in the local subscriber map then re-route
+  the packet to let nature take its course. We don't use router.subscribe() because
+  we don't want subscriber to send a another subscription request to the Broker. 
+  TODO - We need to remove this local only subscriber from the maps at some
+  point in the cleanup process
+
+  Case 2. We don't remove Subscription from router tables until we get a sub-ack so
+  we should be covered for 2 unless the broker continues to send pubRel after an
+  unsubscribe (which it might?).
   TODO - Does the broker send a PubRel after getting an unsubscribe? If so, we probably
   have a potential error condition here. 
   
-  Assuming we only have to handle case 1. We can include the subscription in the
-  local subscriber map then re-route the packet to let nature take its course. We don't
-  use router.subscribe() because we don't want subscriber to send a another subscription
-  request to the Broker.  
+  Case 3 is expected behaviour and can result in a Publish or PubRel for which we have no 
+  subscriber. Publish messages will be caught by Case 1 but for PubRel all we will have
+  is the Bid. 
+
+  **If we implement Method A in 4.3.3 of the spec** then we need to retrieve the payload
+  by Bid, release it to the application and then send PubComp.  
+  
+  **If we implement Method B in 4.3.3 of the spec** (release the payload on receipt of
+  the publish), then all we need to do is send a PubComp with the same Bid. But, note 
+  that in Method B we are responsible for ensuring that duplicates are not sent 
+  to the application. This means we need to save a list of Bids for which we have released
+  the payload but not yet got a PubRel. 
+
+  So the choice is: a) persist the payload and the Bid and rely on the Broker to prevent
+  duplicates, or b) persist only bid but check each incomming bid against this and filter
+  any bids that appear in this list (i.e. where the Broker did not get the pubrec). Delete
+  the Bid from the list when a PubRel is received for it 
+
+  In keeping with the spirit of QoS 2 we have implemented Method A. So Subscriber must
+  persist messages in the event of a disconnect.
+
   Note - this section is synchronous so we know that the new subscriber is in the
   subscriber map before we call router.route(). Keep this in mind when changing this 
   function.  
-  TODO - We need to remove this local only subscriber from the maps at some
-  point in the cleanup process
 
   Also - during dev, this could be because are are a Mock Broker. In this event the 
   acks should just flow as required
@@ -265,20 +276,21 @@ fun ref _doAssignedSubscription(basePacket : BasePacket val) =>
 
   var publishPacket : PublishPacket val = PublishPacket.createFromPacket(basePacket)
   if (not publishPacket.isValid()) then
-    Debug("Invalid packet found at " + __loc.file() + ":" +__loc.method_name())
+    Debug("Invalid packet found at " + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
     return
   end  
 
   var topic : String val = ""
   try 
     topic = publishPacket.topic() as String val
-    var subscriber : Subscriber = Subscriber(_reg, topic, publishPacket.qos().string() )
+    //Debug("Assigned subscription to " + topic where stream = DebugErr)
+    var subscriber : Subscriber = Subscriber(_reg, topic, publishPacket.qos().string())
     _subscriberByTopic.update(topic, subscriber)
     // now we route it again (synchronously), safe in the knowledge that there is a subscriber waiting
     //to provide the acks and that the base packet still contains the original Broker id
     route(basePacket)
   else
-    Debug("Got an assigned Publish topic (!) and couldn't create subscriber at " + __loc.file() + ":" +__loc.method_name())
+    Debug("Got an assigned Publish topic (!) and couldn't create subscriber at " + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
   end
 
 
@@ -293,9 +305,9 @@ be onPayloadComplete(bid: IdType) =>
   """
   try
     _subscriberByBid.remove(bid)?
-    //Debug("Removing Broker id " + bid.string() + " from _subscriberByBid at " + __loc.file() + ":" +__loc.method_name())
+    //Debug("Removing Broker id " + bid.string() + " from _subscriberByBid at " + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
   else
-    Debug("Router can't remove Broker id " + bid.string() + " at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+    Debug("Router can't remove Broker id " + bid.string() + " at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string() where stream = DebugErr)
   end  
 
 /*********************************************************************************/
@@ -313,7 +325,7 @@ be onPublish(pub : Publisher tag, topic: String, id : IdType, packet : ArrayVal)
     end
     
     _actorById.update(id,pub)
-    //Debug("Publishing on topic : " + topic + " with id " + id.string() + " in " + __loc.file() + ":" +__loc.method_name())
+    //Debug("Publishing on topic : " + topic + " with id " + id.string() + " in " + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
     send(packet)
 
 
@@ -325,10 +337,11 @@ be onPublishComplete(id: IdType) =>
   """
   try
     _actorById.remove(id)?
-    _issuer.checkIn(id)
-    //Debug("Completed processing publish id " + id.string() + " in " + __loc.file() + ":" +__loc.method_name())
+    _reg[IdIssuer](KeyIssuer()).next[None]({(i:IdIssuer)=>i.checkIn(id)})
+
+    //Debug("Completed processing publish id " + id.string() + " in " + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
   else
-    Debug("Router can't remove id " + id.string() + "at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+    Debug("Router can't remove id " + id.string() + "at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string() where stream = DebugErr)
   end  
 
 /*********************************************************************************/
@@ -353,22 +366,23 @@ be onSubscribe(sub : Subscriber tag, topic: String, id : U16, packet : ArrayVal)
   case is an unecessary insert/remove in the unlikely event of a rejection. This also matches
   unsub case where we have to continue to ack messages between unsub and unsub ack
   TODO - Duplicate id check can be removed after testing
-  TODO - Decide what to do if we already have a subscription for that topic. Currently we just
-  return but this will need clean-up and possibly reporting to main. 
+  TODO - Decide what to do if we already have a subscription for a topic. This could be a duplicate
+  application request or it could be because we have restored a session, got a message on one of the
+  stored subscriptions and completed our assigned message behaviour.
   """
     
     if (_subscriberByTopic.contains(topic)) then 
-      Debug("Already subscribed to " + topic + " at " + __loc.file() + ":" +__loc.method_name())
+      Debug("Already subscribed to " + topic + " at " + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
       return
     end
     
     if (_actorById.contains(id)) then 
-      Debug("Found duplicate id " + id.string() +" in _actorById at " + __loc.file() + ":" +__loc.method_name())
+      Debug("Found duplicate id " + id.string() +" in _actorById at " + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
       return
     end
 
     _actorById.update(id,sub)
-    //Debug("Inserted id " + id.string() +" in _actorById at" + __loc.file() + ":" +__loc.method_name())
+    //Debug("Inserted id " + id.string() +" in _actorById at" + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
     
     _subscriberByTopic.update(topic, sub)
     send(packet)
@@ -392,10 +406,11 @@ be onSubscribeComplete(sub : Subscriber tag, id : IdType, accepted : Bool) =>
     _actorById.remove(id)? // always do this because the transaction is complete 
     //Debug("Removing id " + id.string() + " from _actorById at " + __loc.file() + ":" +__loc.method_name())
   else
-    Debug("Router can't remove id " + id.string() + " from subscriber map at " + __loc.file() + ":" +__loc.method_name())
+    Debug("Router can't remove id " + id.string() + " from subscriber map at " + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
   end  
   // Whatever, we've finished with the id
-  _issuer.checkIn(id)
+      _reg[IdIssuer](KeyIssuer()).next[None]({(i:IdIssuer)=>i.checkIn(id)})
+
 
 
 /*********************************************************************************/
@@ -410,10 +425,10 @@ be onUnsubscribe(sub : Subscriber tag, id : IdType, packet : ArrayVal) =>
   TODO - During dev we have a duplicate check but this can be removed later
   """
     if (_actorById.contains(id)) then 
-      Debug("Duplicate id " + id.string() + " found in  " + __loc.file() + ":" +__loc.method_name())
+      Debug("Duplicate id " + id.string() + " found in  " + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
     end
     _actorById.update(id,sub)
-    //Debug("Inserted id " + id.string() +" in _actorById at" + __loc.file() + ":" +__loc.method_name())
+    Debug("Router sending unsubscribe at " + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
     send(packet)
 
 /*********************************************************************************/
@@ -429,15 +444,16 @@ be onUnsubscribeComplete(sub : Subscriber tag, id : IdType) =>
 
   try
     _actorById.remove(id)?
-    //Debug("Removing id " + id.string() + " from _actorById at " + __loc.file() + ":" +__loc.method_name())
+    //Debug("Removing id " + id.string() + " from _actorById at " + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
   else
-    Debug("Router can't remove id " + id.string() + " at " + __loc.file() + ":" +__loc.method_name())
+    Debug("Router can't remove id " + id.string() + " at " + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
   end  
-  // Whatever, we've finished with the id
 
-  _issuer.checkIn(id)
+  // Whatever, we've finished with the id
+  _reg[IdIssuer](KeyIssuer()).next[None]({(i:IdIssuer)=>i.checkIn(id)})
+
   _removeSubscriber(sub)
-   //Debug("Completed processing unsubscribe with id " + id.string())
+   //Debug("Completed processing unsubscribe with id " + id.string() where stream = DebugErr)
 
 /*********************************************************************************/
 fun ref _removeSubscriber(sub : Subscriber tag) =>
@@ -451,7 +467,7 @@ fun ref _removeSubscriber(sub : Subscriber tag) =>
       try 
         _subscriberByTopic.remove(key)?
       else
-        Debug("Router couldn't remove subscriber to topic: " + key + " at " + __loc.file() + ":" +__loc.method_name())
+        Debug("Router couldn't remove subscriber to topic: " + key + " at " + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
       end 
       return
     end
@@ -470,7 +486,6 @@ be onTick(sec : I64) =>
   for mqActor in _actorById.values() do
     mqActor.onTick(sec)
   end
-  _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.onTick(sec)})
 
 
 /*********************************************************************************/
@@ -485,7 +500,7 @@ be doPing() =>
   send(PingReqPacket.compose())
   _pingTokenCount = _pingTokenCount - 1
   if (_pingTokenCount == 0) then // The Broker has missed three pings - time to quit
-    Debug("Broker has missed three pings - quitting")
+    showStatus("Broker has missed three pings - quitting")
     disconnectBroker()
   end  
 
@@ -516,20 +531,75 @@ be onTcpConnect(tcp : TCPConnection) =>
 be onBrokerConnect() =>
   """
   When this is called we should have a valid Broker connection with our local 
-  state reflecting the (potentially saved) state in Broker. So we cant tell Main
-  that we have a Broker ready to receive Publish messsages
+  state reflecting the (potentially saved) state in Broker.
   """
-  _reg[Terminal](KeyTerminal()).next[None]({(m : Main) => m.onBrokerConnect("Broker Connected")},{()=>Debug("No main in registrar")})
-
+  showStatus("Router - onBrokerConnect")
+  _reg[Ticker](KeyTicker()).next[None]({(t : Ticker) => t.start()})
+  
+  // The keepalive Pinger is currenty limited so that we disconnect
+  // cleanly during testing. Pinger responds via _reg
+  _pinger = Pinger(_reg, 5/* seconds delay*/, 50/*repetitions*/)
+  try _reg.update(KeyPinger(), _pinger as Pinger) end 
 
 /*********************************************************************************/
 be onBrokerRestore() =>
   """
-  When this is called we should have a valid Broker connection with a saved state in Broker.
-  Do the necessary to restore the session then call onBrokerConnect
+  This behaviour is called by connector if the Broker has accepted a connection with
+  CleanSession = 0 and has a saved session for this client. 
+  
+  >A Client with stored Session state will expect the Server to maintain its stored 
+  Session state. In the event that the value of Session Present received by the Client
+  from the Server is not as expected, the Client can choose whether to proceed with the
+  Session or to disconnect. The Client can discard the Session state on both Client and
+  Server by disconnecting, connecting with Clean Session set to 1 and then disconnecting
+  again.
+
+  This means that we should check here to see whether the value of cleansession returned
+  from the Broker matches our request in config
+  
+  So, when this is behavior is called by connector:  
+  1. we have a valid Broker connection
+  2. the Broker may send us unack'd Publish and PubRel messages
+  3. we need to save our state and persist it on disconnect (!)
+
+  >When a Client reconnects with CleanSession set to 0, both the Client and Server MUST re-send any 
+  unacknowledged PUBLISH Packets (where QoS > 0) and PUBREL Packets using their original Packet 
+  Identifiers [MQTT-4.4.0-1]. This is the only circumstance where a Client or Server is REQUIRED to 
+  redeliver messages.
+
+  So:  
+  1.  we may have unack'd Publish and pubRel messages with Cids to be re-sent,    
+  2.  we may receive Publish messages with Bids for which we have no subscriber yet, and
+  3.  we may receive PubRel messages with Bids which we do not have in our map  
+  Yikes
   """
-  Debug("Got a Session is present flag - how do we restore a session??")
+  _cleanSession = false
+  showStatus("Got a Session is present flag")
+  // 1.
+  // resend unacknowledged PUBLISH Packets (where QoS > 0) 
+  // we will get back PubAck messages for which we have no publisher yet
+  // resend and PUBREL Packets using their original Packet Identifiers
+  // we will get back PubComp messages for which we have no publisher yet
+
+  // 2.
+  // we will get Publish messages for which we have no subscriber but these will be
+  // picked-up as assigned subscriptions
+
   onBrokerConnect()
+
+
+/*********************************************************************************/
+be onBrokerStateNotFound() =>
+  """
+  This behaviour is called by connector if the Broker has accepted a connection with
+  CleanSession = 0 and but **cannot find a saved session for this client**. In this event
+  we must inform the app and await further instructions.   
+  TODO - Add main method for handling session not found?
+  """
+  showStatus("Session restoration requested but Broker has no saved session at " + __loc.file() + ":" +__loc.method_name())
+  // TODO - Drop saved state here
+
+  _cleanSession = true
 
 
 /*********************************************************************************/
@@ -537,8 +607,15 @@ be onBrokerRefusal(reason : ConnAckReturnCode) =>
   """
   Called by Connector if the Broker has refused the connection
   """
-  Debug("Router got a refusal - " + reason.string())
+  showStatus(ConnectionRefused.string() + " " + reason.string())
 
+
+/*********************************************************************************/
+be onErrorOrDisconnect(errorCode : ErrorCode) =>
+  """
+  Called if we detect a protocol error, broker timeout or network disconnect
+  """
+  showStatus(errorCode.string() + "  at " + __loc.file() + ":" +__loc.method_name())
 
 
 /*********************************************************************************/
@@ -549,24 +626,53 @@ be disconnectBroker() =>
   after sending DISCONNECT (so any clean-up from there on must be independent of the
   network)
   """
-  Debug("Disconnecting Broker")
-    // TODO - Add disconnect cleanup 
-    // dispose all of the pubs and subs from reg
-    // stop the ping timer
-    // dispose issuer from reg// remove tcp from reg to stop any write attempts
-    // remove this from reg
-    
-  _reg.remove("router", this)
-  _pinger.cancel()
+  showStatus("Disconnecting Broker")
+  cancelKeepAlive()
   send(DisconnectPacket.compose())
+
+  if (not _cleanSession) then
+    showStatus("Saving session")
+    saveState()
+  end  
+
+  showStatus("Deleting references to subscribers")
+  _subscriberByTopic.clear()
+  _subscriberByBid.clear()
+  _actorById.clear()
+
+  showStatus("Disconnecting network")
+  _reg[OsNetwork](KeyNetwork()).next[None]({(n:OsNetwork)=>n.disconnect()})
+
+  be cancelKeepAlive() =>
+  """
+  We make this a behaviour so that main can cancel it in the event of an error. Otherwise
+  router can terminate but leave pinger pinging - which means the process won't terminate.
+  """
+    try (_pinger as Pinger).cancel() end
+
 
 /*********************************************************************************/
 fun saveState() =>
   """
   Called when we have lost connection with the Broker and need to save our state in
-  the sure and certain hope of a ressurection
+  the sure and certain hope of the ressurection
   """
-  Debug("Save state not implemented at " + __loc.file() + ":" +__loc.method_name())
+
+  for (topic, subscriber) in _subscriberByTopic.pairs() do 
+    showStatus("Saving subscription" + topic)
+    subscriber.onDuckAndCover()
+  end
+
+  for (id, mqActor) in _actorById.pairs() do 
+    try 
+      var publisher : Publisher = mqActor as Publisher
+      Debug("Saving Publish state for publisher id " + id.string())
+      publisher.onDuckAndCover()
+    end
+    
+
+  end
+
 
 /*********************************************************************************/
 /**********************   Sending to other Actors    *****************************/
@@ -580,13 +686,16 @@ be send(data : ArrayVal) =>
     tcp = _tcpMaybe as TCPConnection
     tcp.write(data)
   else
-    Debug("Writing to invalid socket at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())  
+    showStatus("Writing to invalid socket at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string())  
   end      
 
 /*********************************************************************************/
-be sendToMain(s1 : String val, s2 : String val) =>
-  _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.onMessage(s1, s2)})
+be showMessage(s1 : String val, s2 : String val) =>
+  _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.message(s1,s2)})
 
+/*********************************************************************************/
+be showStatus(status : String val) =>
+  _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.status(status)})
 
 
 /*********************************************************************************/
@@ -598,10 +707,10 @@ fun onControlConnect(basePacket : BasePacket val) =>
   """
   Mock Broker - for testing only
   """
-  Debug("Mock Broker got a " + basePacket.controlType().string() + " at " + __loc.file() + ":" +__loc.method_name())
+  Debug("Mock Broker got a " + basePacket.controlType().string() + " at " + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
   let connack : ArrayVal = [32; 2; 0; 0]
-  Debug("Mock Broker sending " )
-  Debug(connack)
+  Debug("Mock Broker sending "  where stream = DebugErr)
+  Debug(connack where stream = DebugErr)
   send(connack)
 
 /*********************************************************************************/
@@ -616,7 +725,7 @@ fun ref onControlSubscribe(basePacket : BasePacket val)  =>
     subAck.push_u8(0)
    send(consume subAck)
   else  
-    Debug(basePacket.controlType().string())
+    Debug(basePacket.controlType().string() where stream = DebugErr)
   end
 
 /*********************************************************************************/
@@ -624,8 +733,7 @@ fun onControlUnsubscribe(basePacket : BasePacket val) =>
   """
   Mock Broker - for testing only
   """
-  Debug(basePacket.controlType().string())
-
+  Debug(basePacket.controlType().string() where stream = DebugErr)
 /*********************************************************************************/
 fun onControlPingReq(basePacket : BasePacket val) =>
   """
@@ -639,7 +747,7 @@ fun onControlDisconnect(basePacket : BasePacket val) =>
   """
   Mock Broker - for testing only
   """
-  Debug("Mock Broker got " + basePacket.controlType().string())
+  Debug("Mock Broker got " + basePacket.controlType().string() where stream = DebugErr)
 
 
 

@@ -17,12 +17,12 @@ interface ref IdNotifySub
 ```pony
 be apply(
   id: U16 val,
-  sub: Bool val)
+  sub: (Sub val | UnSub val))
 ```
 #### Parameters
 
 *   id: [U16](builtin-U16.md) val
-*   sub: [Bool](builtin-Bool.md) val
+*   sub: ([Sub](mqtt-primitives-Sub.md) val | [UnSub](mqtt-primitives-UnSub.md) val)
 
 ---
 

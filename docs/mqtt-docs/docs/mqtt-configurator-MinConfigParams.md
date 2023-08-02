@@ -1,5 +1,5 @@
 # MinConfigParams
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-20)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-21)</span>
 ```pony
 primitive val MinConfigParams
 ```
@@ -7,7 +7,7 @@ primitive val MinConfigParams
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-20)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-21)</span>
 
 
 ```pony
@@ -24,7 +24,7 @@ new val create()
 ## Public Functions
 
 ### apply
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-20)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-21)</span>
 
 
 Add strings to this literal array to read them from an ini file. Any strings 
@@ -44,7 +44,7 @@ fun box apply()
 ---
 
 ### eq
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-20)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-21)</span>
 
 
 ```pony
@@ -63,7 +63,7 @@ fun box eq(
 ---
 
 ### ne
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-20)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-21)</span>
 
 
 ```pony

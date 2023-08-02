@@ -1,30 +1,30 @@
-# KeyTerminal
-<span class="source-link">[[Source]](src/mqtt-primitives/regStrings.md#L-0-7)</span>
+# KeyMain
+<span class="source-link">[[Source]](src/mqtt-primitives/regStrings.md#L-0-6)</span>
 ```pony
-primitive val KeyTerminal
+primitive val KeyMain
 ```
 
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-primitives/regStrings.md#L-0-7)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/regStrings.md#L-0-6)</span>
 
 
 ```pony
 new val create()
-: KeyTerminal val^
+: KeyMain val^
 ```
 
 #### Returns
 
-* [KeyTerminal](mqtt-primitives-KeyTerminal.md) val^
+* [KeyMain](mqtt-primitives-KeyMain.md) val^
 
 ---
 
 ## Public Functions
 
 ### apply
-<span class="source-link">[[Source]](src/mqtt-primitives/regStrings.md#L-0-7)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/regStrings.md#L-0-6)</span>
 
 
 ```pony
@@ -39,17 +39,17 @@ fun box apply()
 ---
 
 ### eq
-<span class="source-link">[[Source]](src/mqtt-primitives/regStrings.md#L-0-7)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/regStrings.md#L-0-6)</span>
 
 
 ```pony
 fun box eq(
-  that: KeyTerminal val)
+  that: KeyMain val)
 : Bool val
 ```
 #### Parameters
 
-*   that: [KeyTerminal](mqtt-primitives-KeyTerminal.md) val
+*   that: [KeyMain](mqtt-primitives-KeyMain.md) val
 
 #### Returns
 
@@ -58,17 +58,17 @@ fun box eq(
 ---
 
 ### ne
-<span class="source-link">[[Source]](src/mqtt-primitives/regStrings.md#L-0-7)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/regStrings.md#L-0-6)</span>
 
 
 ```pony
 fun box ne(
-  that: KeyTerminal val)
+  that: KeyMain val)
 : Bool val
 ```
 #### Parameters
 
-*   that: [KeyTerminal](mqtt-primitives-KeyTerminal.md) val
+*   that: [KeyMain](mqtt-primitives-KeyMain.md) val
 
 #### Returns
 

@@ -56,14 +56,14 @@ multiple topics in one subscribe message.
     var result : U8 = 0x80  // Default to rejected
 
     if (basePacket.isNotValid()or (basePacket.isNotA(ControlSubAck))) then 
-           Debug("Invalid packet at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+           Debug("Invalid packet at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string()  where stream = DebugErr)
         return
     end
 
     try 
       result = basePacket.data()(4)?
     else
-      Debug("Can't read SubAck code at at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
+      Debug("Can't read SubAck code at at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string()  where stream = DebugErr)
       return
     end
 

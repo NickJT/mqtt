@@ -35,39 +35,33 @@ class Client is TCPConnectionNotify
   Otherwise, the client contains the callbacks called by TCPConnection when the connection state
   changes.
 
-  Registrar usage  
-  - Client adds the router to reg 
   """
   let _env: Env
-  let _reg : Registrar
   """
   The registrar defined in Main and passed on to router
   """
-  let _config : Map[String, String] val
   var _router : Router
   var _assembler : Assembler
 
-new iso create(env: Env, reg : Registrar, config : Map[String val, String val] val) =>
+new iso create(env: Env, router : Router) =>
   _env = env
-  _reg = reg
-  _config = config
+  _router = router
   
-  _router = Router(_reg, _config)
-  _reg.update(KeyRouter(), _router)
-
   _assembler = Assembler(_router)
   // assembler is only used by client so don't add it to reg
 
 fun ref connecting(conn: TCPConnection ref, count: U32) =>
-  _reg[Terminal](KeyTerminal()).next[None]({(m : Main)=>m.onMessage("Connecting ", "attempt " + count.string() + ")")})
-  
+  _router.showStatus("Connection attempt " + count.string())
+  None
+
 fun ref accepted(conn: TCPConnection ref) =>
-  _reg[Terminal](KeyTerminal()).next[None]({(m : Main)=>m.onMessage("Connection Accepted","")})
-  
+  _router.showStatus("Connection Accepted")
+  None
+
 fun ref connected(conn: TCPConnection ref) =>
   try
     (let host, let service) = conn.remote_address().name()?
-    _reg[Terminal](KeyTerminal()).next[None]({(m : Main)=>m.onMessage("Client connected to ", host + ":" + service)})
+    _router.showStatus("Client connected to " + host + ":" + service)
   end
   conn.set_nodelay(true)
   conn.set_keepalive(10)
@@ -78,10 +72,12 @@ fun ref received(conn: TCPConnection ref, data: Array[U8 val] iso, times: USize)
   true  
   
 fun ref connect_failed(conn: TCPConnection ref) =>
-    _reg[Terminal](KeyTerminal()).next[None]({(m : Main)=>m.onExit("TCP connection failed")})
+  try (let host, let service) = conn.remote_address().name()?
+    _router.showStatus("Connection failed " + host + ":" + service)
+  end
 
 fun ref closed(conn: TCPConnection ref) =>
-     _reg[Terminal](KeyTerminal()).next[None]({(m : Main)=>m.onExit("TCP connection closed")})
+  _router.onErrorOrDisconnect(ConnectionClosed)
 
 
 ```````

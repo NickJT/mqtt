@@ -49,7 +49,6 @@ appear in the order
   Fixed by the specification
   """
     var _connectFlags : U8 = DefaultConnectFlags()
-    //var _connectFlags : U8 = RestoreConnectFlags()
   """
   Connect Flag Bits  
   - B7    User Name Flag  (set if user name is in payload)
@@ -69,6 +68,11 @@ appear in the order
   var _keepAlive : Array[U8] val  = [0 ; defaultKeepAlive]
   """
   Default keep alive is set to 60 seconds. Format is MSB LSB
+  """
+
+  var _cleansession : Bool  = false
+  """
+  Default value for cleansession
   """
 
   var _willTopic : Array[U8] val = Array[U8]
@@ -105,7 +109,7 @@ appear in the order
   We're using this to enable testing with the Mock Broker - It can probably be optimised
   out later
   """
-  
+
   new create(config : Map[String val, String val] val) =>
   """
   Create an instance of a connect packet using the passed config parameters
@@ -116,7 +120,7 @@ appear in the order
     _password = MqString(config(IniPassword())?)
     
     _keepAlive = _makeKeepAlive(config(IniKeepalive())?)
-
+    _cleansession = _makeSession(config(IniCleansession())?)
     _setWill(config(IniTopic())?, config(IniMessage())?, config(IniQos())?)    
 
     _isValid = true
@@ -161,16 +165,16 @@ appear in the order
   - User Name  
   - Password  */
 
-    if (_isSet(ConnectWill)) then
+    if (isSet(ConnectWill)) then
       payload.append(_willTopic)
       payload.append(_willMessage)
     end
 
-    if (_isSet(ConnectUserName)) then
+    if (isSet(ConnectUserName)) then
         payload.append(_userName)
     end
 
-    if (_isSet(ConnectPassword)) then
+    if (isSet(ConnectPassword)) then
         payload.append(_password)
     end
 
@@ -183,7 +187,11 @@ appear in the order
     packet
   end     
 
-  fun _isSet(flag : ConnectFlags) : Bool =>
+  fun isSet(flag : ConnectFlags) : Bool =>
+    """
+    Test the value of the passed flag in the class field and returns
+    true if it is set
+    """
     var testFlag : U8 = 0
     match flag
     | ConnectUserName => testFlag =  ConnectUserName() 
@@ -214,6 +222,22 @@ appear in the order
       consume result
     end
 
+
+  fun ref _makeSession(csString : String) : Bool =>
+  """
+  Sets the field controling whether we start with a clean session or restore a past 
+  session. If it is true then client and broker delete the old session. If it is false
+  then the client and the Broker must restore from disc and save the session after the 
+  network disconnect.
+  """
+    if (csString == "0") then  // clear the clean session flag
+      _connectFlags = _connectFlags and (not ConnectClean())
+    else  // set the clean session flag
+      _connectFlags = _connectFlags or ConnectClean()
+    end  
+    isSet(ConnectClean)
+
+
   fun ref _setWill(topic : String , msg : String , qos: String, retain : Bool = true) =>
   """
   Sets the will topic, message and handling flags  
@@ -227,7 +251,7 @@ appear in the order
     end
 
     //if the Will Flag is set to 0, then the Will Retain Flag MUST be set to 0 (so, just in case)
-    if ((not _isSet(ConnectWill))) then
+    if ((not isSet(ConnectWill))) then
       _connectFlags = (_connectFlags and (not ConnectWRetain()))
     end
 

@@ -1,5 +1,5 @@
 # IniReader
-<span class="source-link">[[Source]](src/mqtt-configurator/mqttConfig.md#L-0-149)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/mqttConfig.md#L-0-145)</span>
 
 Called once for each line in the .ini file. Currently written to terminate on the first error.
 Uses primitive SupportedQos to determine whether subscriptions are valild
@@ -19,7 +19,7 @@ class ref IniReader is
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-configurator/mqttConfig.md#L-0-163)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/mqttConfig.md#L-0-159)</span>
 
 
 ```pony
@@ -40,7 +40,7 @@ new ref create(
 ## Public Functions
 
 ### getConfig
-<span class="source-link">[[Source]](src/mqtt-configurator/mqttConfig.md#L-0-173)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/mqttConfig.md#L-0-170)</span>
 
 
 Destructive read on new (unpopulated) map should return the old (populated) map
@@ -59,7 +59,7 @@ fun box getConfig()
 ---
 
 ### getSubs
-<span class="source-link">[[Source]](src/mqtt-configurator/mqttConfig.md#L-0-184)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/mqttConfig.md#L-0-182)</span>
 
 
 Destructive read on new (unpopulated) map should return the old (populated) map
@@ -77,7 +77,7 @@ fun box getSubs()
 ---
 
 ### apply
-<span class="source-link">[[Source]](src/mqtt-configurator/mqttConfig.md#L-0-194)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/mqttConfig.md#L-0-193)</span>
 
 
 ```pony
@@ -100,7 +100,7 @@ fun ref apply(
 ---
 
 ### add_section
-<span class="source-link">[[Source]](src/mqtt-configurator/mqttConfig.md#L-0-242)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/mqttConfig.md#L-0-244)</span>
 
 
 Part of the interface but we don't need it here
@@ -122,7 +122,7 @@ fun box add_section(
 ---
 
 ### errors
-<span class="source-link">[[Source]](src/mqtt-configurator/mqttConfig.md#L-0-249)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/mqttConfig.md#L-0-252)</span>
 
 
 This is called for each error encountered. Returns false to halt processing.
@@ -173,7 +173,7 @@ fun box _isValidParam(
 ---
 
 ### _isValidSub
-<span class="source-link">[[Source]](src/mqtt-configurator/mqttConfig.md#L-0-234)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/mqttConfig.md#L-0-235)</span>
 
 
 The subscription validator function that checks a topic of a topic:

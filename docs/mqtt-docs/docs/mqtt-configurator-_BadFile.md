@@ -1,5 +1,5 @@
 # _BadFile
-<span class="source-link">[[Source]](src/mqtt-configurator/tests.md#L-0-97)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/tests.md#L-0-98)</span>
 ```pony
 class iso _BadFile is
   UnitTest ref
@@ -14,7 +14,7 @@ class iso _BadFile is
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-configurator/tests.md#L-0-97)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/tests.md#L-0-98)</span>
 
 
 ```pony
@@ -31,7 +31,7 @@ new iso create()
 ## Public Functions
 
 ### name
-<span class="source-link">[[Source]](src/mqtt-configurator/tests.md#L-0-98)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/tests.md#L-0-99)</span>
 
 
 ```pony
@@ -46,7 +46,7 @@ fun box name()
 ---
 
 ### apply
-<span class="source-link">[[Source]](src/mqtt-configurator/tests.md#L-0-99)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/tests.md#L-0-100)</span>
 
 
 ```pony

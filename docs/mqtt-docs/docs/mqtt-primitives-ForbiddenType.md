@@ -1,5 +1,5 @@
 # ForbiddenType
-<span class="source-link">[[Source]](src/mqtt-primitives/errorCodes.md#L-0-10)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/errorCodes.md#L-0-11)</span>
 ```pony
 primitive val ForbiddenType
 ```
@@ -7,7 +7,7 @@ primitive val ForbiddenType
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-primitives/errorCodes.md#L-0-10)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/errorCodes.md#L-0-11)</span>
 
 
 ```pony
@@ -24,7 +24,7 @@ new val create()
 ## Public Functions
 
 ### apply
-<span class="source-link">[[Source]](src/mqtt-primitives/errorCodes.md#L-0-10)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/errorCodes.md#L-0-11)</span>
 
 
 ```pony
@@ -39,7 +39,7 @@ fun box apply()
 ---
 
 ### string
-<span class="source-link">[[Source]](src/mqtt-primitives/errorCodes.md#L-0-10)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/errorCodes.md#L-0-11)</span>
 
 
 ```pony
@@ -54,7 +54,7 @@ fun box string()
 ---
 
 ### eq
-<span class="source-link">[[Source]](src/mqtt-primitives/errorCodes.md#L-0-10)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/errorCodes.md#L-0-11)</span>
 
 
 ```pony
@@ -73,7 +73,7 @@ fun box eq(
 ---
 
 ### ne
-<span class="source-link">[[Source]](src/mqtt-primitives/errorCodes.md#L-0-10)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/errorCodes.md#L-0-11)</span>
 
 
 ```pony

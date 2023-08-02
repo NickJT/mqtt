@@ -20,8 +20,6 @@ assembled packets. Assembler is not added to registrar because only client needs
 Otherwise, the client contains the callbacks called by TCPConnection when the connection state
 changes.
 
-Registrar usage  
-- Client adds the router to reg 
 
 
 ```pony
@@ -38,21 +36,19 @@ class ref Client is
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt/client.md#L-0-43)</span>
+<span class="source-link">[[Source]](src/mqtt/client.md#L-0-39)</span>
 
 
 ```pony
 new iso create(
   env: Env val,
-  reg: Registrar tag,
-  config: HashMap[String val, String val, HashEq[String val] val] val)
+  router: Router tag)
 : Client iso^
 ```
 #### Parameters
 
 *   env: [Env](builtin-Env.md) val
-*   reg: [Registrar](bureaucracy-Registrar.md) tag
-*   config: [HashMap](collections-HashMap.md)\[[String](builtin-String.md) val, [String](builtin-String.md) val, [HashEq](collections-HashEq.md)\[[String](builtin-String.md) val\] val\] val
+*   router: [Router](mqtt-Router.md) tag
 
 #### Returns
 
@@ -63,7 +59,7 @@ new iso create(
 ## Public Functions
 
 ### connecting
-<span class="source-link">[[Source]](src/mqtt/client.md#L-0-54)</span>
+<span class="source-link">[[Source]](src/mqtt/client.md#L-0-46)</span>
 
 
 ```pony
@@ -84,7 +80,7 @@ fun ref connecting(
 ---
 
 ### accepted
-<span class="source-link">[[Source]](src/mqtt/client.md#L-0-57)</span>
+<span class="source-link">[[Source]](src/mqtt/client.md#L-0-50)</span>
 
 
 ```pony
@@ -103,7 +99,7 @@ fun ref accepted(
 ---
 
 ### connected
-<span class="source-link">[[Source]](src/mqtt/client.md#L-0-60)</span>
+<span class="source-link">[[Source]](src/mqtt/client.md#L-0-54)</span>
 
 
 ```pony
@@ -122,7 +118,7 @@ fun ref connected(
 ---
 
 ### received
-<span class="source-link">[[Source]](src/mqtt/client.md#L-0-69)</span>
+<span class="source-link">[[Source]](src/mqtt/client.md#L-0-63)</span>
 
 
 ```pony
@@ -145,7 +141,7 @@ fun ref received(
 ---
 
 ### connect_failed
-<span class="source-link">[[Source]](src/mqtt/client.md#L-0-73)</span>
+<span class="source-link">[[Source]](src/mqtt/client.md#L-0-67)</span>
 
 
 ```pony
@@ -164,7 +160,7 @@ fun ref connect_failed(
 ---
 
 ### closed
-<span class="source-link">[[Source]](src/mqtt/client.md#L-0-76)</span>
+<span class="source-link">[[Source]](src/mqtt/client.md#L-0-72)</span>
 
 
 ```pony

@@ -28,7 +28,7 @@ actor tag Publisher is
 #### Implements
 
 * [IdNotifyPub](mqtt-idIssuer-IdNotifyPub.md) ref
-* [MqActor](mqtt-MqActor.md) ref
+* [MqActor](mqtt-primitives-MqActor.md) ref
 
 ---
 
@@ -131,6 +131,19 @@ be onTick(
 #### Parameters
 
 *   sec: [I64](builtin-I64.md) val
+
+---
+
+### onDuckAndCover
+<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-283)</span>
+
+
+We need to save state because the broker is disconnecting or something has gone awry.   
+
+
+```pony
+be onDuckAndCover()
+```
 
 ---
 

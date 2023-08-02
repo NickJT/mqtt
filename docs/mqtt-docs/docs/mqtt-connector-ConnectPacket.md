@@ -31,7 +31,7 @@ class ref ConnectPacket
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-connector/connectPacket.md#L-0-102)</span>
+<span class="source-link">[[Source]](src/mqtt-connector/connectPacket.md#L-0-106)</span>
 
 
 Create an instance of a connect packet using the passed config parameters
@@ -55,7 +55,7 @@ new ref create(
 ## Public fields
 
 ### let defaultKeepAlive: [U8](builtin-U8.md) val
-<span class="source-link">[[Source]](src/mqtt-connector/connectPacket.md#L-0-57)</span>
+<span class="source-link">[[Source]](src/mqtt-connector/connectPacket.md#L-0-56)</span>
 
 This is a default value of the _keepAlive LSB which is used in the event we can't retrieve the 
 the string in the .ini file or convert it into a valid 16 bit number.
@@ -68,7 +68,7 @@ the string in the .ini file or convert it into a valid 16 bit number.
 ## Public Functions
 
 ### getPacket
-<span class="source-link">[[Source]](src/mqtt-connector/connectPacket.md#L-0-122)</span>
+<span class="source-link">[[Source]](src/mqtt-connector/connectPacket.md#L-0-126)</span>
 
 
 Return a connect packet ready to send to the broker
@@ -86,7 +86,7 @@ fun box getPacket()
 ---
 
 ### isValid
-<span class="source-link">[[Source]](src/mqtt-connector/connectPacket.md#L-0-128)</span>
+<span class="source-link">[[Source]](src/mqtt-connector/connectPacket.md#L-0-132)</span>
 
 
 This is set false on instantiation and only set true if we have valid data
@@ -103,32 +103,16 @@ fun box isValid()
 
 ---
 
-## Private Functions
-
-### _assemble
-<span class="source-link">[[Source]](src/mqtt-connector/connectPacket.md#L-0-134)</span>
+### isSet
+<span class="source-link">[[Source]](src/mqtt-connector/connectPacket.md#L-0-183)</span>
 
 
-Build a connect packet based on the current state of the local variables for each field
-
-
-```pony
-fun box _assemble()
-: Array[U8 val] val
-```
-
-#### Returns
-
-* [Array](builtin-Array.md)\[[U8](builtin-U8.md) val\] val
-
----
-
-### _isSet
-<span class="source-link">[[Source]](src/mqtt-connector/connectPacket.md#L-0-179)</span>
+Test the value of the passed flag in the class field and returns
+true if it is set
 
 
 ```pony
-fun box _isSet(
+fun box isSet(
   flag: (ConnectUserName val | ConnectPassword val | ConnectWill val | 
     ConnectWQos0 val | ConnectWQos1 val | ConnectWQos2 val | 
     ConnectWRetain val | ConnectClean val))
@@ -146,8 +130,28 @@ fun box _isSet(
 
 ---
 
+## Private Functions
+
+### _assemble
+<span class="source-link">[[Source]](src/mqtt-connector/connectPacket.md#L-0-138)</span>
+
+
+Build a connect packet based on the current state of the local variables for each field
+
+
+```pony
+fun box _assemble()
+: Array[U8 val] val
+```
+
+#### Returns
+
+* [Array](builtin-Array.md)\[[U8](builtin-U8.md) val\] val
+
+---
+
 ### _makeKeepAlive
-<span class="source-link">[[Source]](src/mqtt-connector/connectPacket.md#L-0-191)</span>
+<span class="source-link">[[Source]](src/mqtt-connector/connectPacket.md#L-0-199)</span>
 
 
 Sets the class variable _keepAlive that determines the keep alive time is seconds
@@ -170,8 +174,33 @@ fun ref _makeKeepAlive(
 
 ---
 
+### _makeSession
+<span class="source-link">[[Source]](src/mqtt-connector/connectPacket.md#L-0-219)</span>
+
+
+Sets the field controling whether we start with a clean session or restore a past 
+session. If it is true then client and broker delete the old session. If it is false
+then the client and the Broker must restore from disc and save the session after the 
+network disconnect.
+
+
+```pony
+fun ref _makeSession(
+  csString: String val)
+: Bool val
+```
+#### Parameters
+
+*   csString: [String](builtin-String.md) val
+
+#### Returns
+
+* [Bool](builtin-Bool.md) val
+
+---
+
 ### _setWill
-<span class="source-link">[[Source]](src/mqtt-connector/connectPacket.md#L-0-210)</span>
+<span class="source-link">[[Source]](src/mqtt-connector/connectPacket.md#L-0-234)</span>
 
 
 Sets the will topic, message and handling flags  

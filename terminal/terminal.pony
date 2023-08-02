@@ -6,9 +6,6 @@
   use "../primitives"
 
 /* Primitives ********************************************************************/
-  trait Paintable
-    fun paint() : Bool 
-
   primitive HighlightPeriod  fun apply() : U64 => 3
   primitive MSG fun value(): U64 => 1
   primitive STS fun value(): U64 => 2
@@ -16,7 +13,7 @@
   primitive CMD fun value(): U64 => 8
   type Areas is Flags[(MSG | STS | FRM | CMD)] 
 
-class StatusLine is Paintable
+class StatusLine
   var _content : String val
   var _paint : Bool
   var _colour : String val =  TerminalColour.status()
@@ -33,7 +30,7 @@ class StatusLine is Paintable
   fun string() : String val =>
     _content + "(" + _paint.string() + ")"
 
-class BoxLine is Paintable
+class BoxLine
   var _topic : String val
   var _content : String val
   var _lastContent : String val = String

@@ -1,5 +1,5 @@
 # MiniSubs
-<span class="source-link">[[Source]](src/mqtt-configurator/tests.md#L-0-69)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/tests.md#L-0-70)</span>
 ```pony
 primitive val MiniSubs
 ```
@@ -7,7 +7,7 @@ primitive val MiniSubs
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-configurator/tests.md#L-0-69)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/tests.md#L-0-70)</span>
 
 
 ```pony
@@ -24,7 +24,7 @@ new val create()
 ## Public Functions
 
 ### apply
-<span class="source-link">[[Source]](src/mqtt-configurator/tests.md#L-0-69)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/tests.md#L-0-70)</span>
 
 
 ```pony
@@ -39,7 +39,7 @@ fun box apply()
 ---
 
 ### eq
-<span class="source-link">[[Source]](src/mqtt-configurator/tests.md#L-0-69)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/tests.md#L-0-70)</span>
 
 
 ```pony
@@ -58,7 +58,7 @@ fun box eq(
 ---
 
 ### ne
-<span class="source-link">[[Source]](src/mqtt-configurator/tests.md#L-0-69)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/tests.md#L-0-70)</span>
 
 
 ```pony

@@ -3,11 +3,13 @@ No package doc string provided for mqtt/configurator.
 ## Public Types
 
 * [primitive ConfigFile](mqtt-configurator-ConfigFile.md)
+* [primitive DefaultBroker](mqtt-configurator-DefaultBroker.md)
 * [primitive FullConfig](mqtt-configurator-FullConfig.md)
 * [primitive FullConfigFile](mqtt-configurator-FullConfigFile.md)
 * [primitive FullConfigParams](mqtt-configurator-FullConfigParams.md)
 * [primitive FullSubs](mqtt-configurator-FullSubs.md)
 * [primitive IniAddress](mqtt-configurator-IniAddress.md)
+* [primitive IniCleansession](mqtt-configurator-IniCleansession.md)
 * [primitive IniId](mqtt-configurator-IniId.md)
 * [primitive IniKeepalive](mqtt-configurator-IniKeepalive.md)
 * [primitive IniMessage](mqtt-configurator-IniMessage.md)
@@ -30,7 +32,10 @@ No package doc string provided for mqtt/configurator.
 * [primitive MiniSubs](mqtt-configurator-MiniSubs.md)
 * [class MqttConfig](mqtt-configurator-MqttConfig.md)
 * [primitive QosPrefix](mqtt-configurator-QosPrefix.md)
+* [actor Spawner](mqtt-configurator-Spawner.md)
 * [primitive SupportedQos](mqtt-configurator-SupportedQos.md)
+* [class Timestamp](mqtt-configurator-Timestamp.md)
+* [actor Timestamper](mqtt-configurator-Timestamper.md)
 
 
 ## Private Types

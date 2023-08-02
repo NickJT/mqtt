@@ -28,7 +28,7 @@ actor tag Subscriber is
 #### Implements
 
 * [IdNotifySub](mqtt-idIssuer-IdNotifySub.md) ref
-* [MqActor](mqtt-MqActor.md) ref
+* [MqActor](mqtt-primitives-MqActor.md) ref
 
 ---
 
@@ -60,7 +60,7 @@ new tag create(
 ## Public Behaviours
 
 ### apply
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-45)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-48)</span>
 
 
 The packet id is the last piece of the jigsaw. Once we have this we can build our 
@@ -70,17 +70,17 @@ subscribe or unsubscribe packet and send it to the broker
 ```pony
 be apply(
   id: U16 val,
-  sub: Bool val)
+  sub: (Sub val | UnSub val))
 ```
 #### Parameters
 
 *   id: [U16](builtin-U16.md) val
-*   sub: [Bool](builtin-Bool.md) val
+*   sub: ([Sub](mqtt-primitives-Sub.md) val | [UnSub](mqtt-primitives-UnSub.md) val)
 
 ---
 
 ### onTick
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-61)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-65)</span>
 
 
 This is the target for the TickListener trait that is called by the system tick
@@ -97,14 +97,33 @@ be onTick(
 
 ---
 
+### onDuckAndCover
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-74)</span>
+
+
+We need to save state because the broker is disconnecting or something has gone awry.   
+
+
+```pony
+be onDuckAndCover()
+```
+
+---
+
 ### onDisconnect
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-70)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-81)</span>
 
 
-All Subscribers get informed of a broker disconnect will a call to the onDisconnect behaviour.
+All Subscribers get informed of a broker disconnect with a call to the onDisconnect behaviour.
 This enables the Subscriber to take whatever application level action is to respond 
-to this externally (to the actor) generated break in data. 
-Note there is no Broker connection at this point so no point in unsubscribing
+to this externally (to the actor) generated break in data. Actions depend on QoS of messages:
+QoS 0 - Nothing to be done
+QoS 1 - Nothing to be done. If we haven't acked a received packet the Broker will re-send it
+QoS 2 - Save the _pktMap entries because the app may want to restore the session
+Note - Disconnect may be a result of an error so we can't assume there is a Broker connection
+at this point but we will try to unsubscribe anyway.
+If we have packets in _pktMap onDisconnect and CleanSession is false then they are awaiting
+PubRels from the Broker. We need to save these by sending them to main. 
 
 
 ```pony
@@ -114,7 +133,7 @@ be onDisconnect()
 ---
 
 ### onData
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-81)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-104)</span>
 
 
 The Router sends data packets from the Broker, to actors who have requested it, using the
@@ -157,7 +176,7 @@ be onData(
 ---
 
 ### subscribe
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-283)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-304)</span>
 
 
 ```pony
@@ -167,7 +186,7 @@ be subscribe()
 ---
 
 ### unsubscribe
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-290)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-311)</span>
 
 
 ```pony
@@ -179,7 +198,7 @@ be unsubscribe()
 ## Public Functions
 
 ### onSubAck
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-122)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-145)</span>
 
 
 Our subscription has been acknowledged so we need to notify the app of the
@@ -203,7 +222,7 @@ fun box onSubAck(
 ---
 
 ### onUnsubAck
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-144)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-167)</span>
 
 
 Our unsubscribe has been acknowledged so we need to tell router to remove us from
@@ -229,7 +248,7 @@ fun ref onUnsubAck(
 ---
 
 ### onPayload
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-168)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-187)</span>
 
 
 Note - We name this function onPayload to avoid confusion with message publication.
@@ -240,7 +259,7 @@ We have received a publish message. The publish message is either:
 If it is QoS 0 then just release the packet
 
 If it is QoS 1 then send a PubAck in return and release the message. Then tell
-router we have completed processing the id
+router we have completed processing the id. The packet is never stored in _pktMap
 
 If it is QoS 2 then save the message, send a PubRec and wait for a PubRel
 
@@ -261,11 +280,12 @@ fun ref onPayload(
 ---
 
 ### doPubAck
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-199)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-218)</span>
 
 
 All we have is an id, so make the pubAck packet and send it. No look-ups with id
 so we don't care whether it is Broker or Client assigned.
+Note that QoS 1 packets are never stored in _pktMap so there is no remove to do
 
 
 ```pony
@@ -284,7 +304,7 @@ fun box doPubAck(
 ---
 
 ### doPubRec
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-213)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-233)</span>
 
 
 We have received a publish message with QoS 2. We acknowledge this with a 
@@ -308,14 +328,16 @@ fun ref doPubRec(
 ---
 
 ### onPubRel
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-229)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-248)</span>
 
 
 We have received a publish release message for a QoS 2 packet. Send a pubComp
 to ack this. The payload was stored when we received the publish message and 
-we need to retrieve this from the packetMap to release it. Then we can delete it
-and tell router we have completed processing. 
-We do a lookup with id on _pktMap so we can't mix Bid and Cid in one subscriber instance 
+we need to retrieve this from the packetMap to release it. 
+Then we **delete the message** from the packet Map and tell router we have completed
+processing.
+Note - we do a lookup with id on _pktMap so we can't mix Bid and Cid in one
+subscriber instance. 
 
 
 ```pony
@@ -334,7 +356,7 @@ fun ref onPubRel(
 ---
 
 ### doPubComp
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-253)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-274)</span>
 
 
 We have received a PubRel from a sender so we acknowledge this with a PubComp 
@@ -358,7 +380,7 @@ fun box doPubComp(
 ---
 
 ### releasePkt
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-262)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-283)</span>
 
 
 We are at an appropriate place in the protocol to release the message to the 
@@ -387,7 +409,7 @@ fun box releasePkt(
 ---
 
 ### payloadComplete
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-298)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-319)</span>
 
 
 Informs router that we have finished processing this id.

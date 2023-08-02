@@ -1,5 +1,5 @@
 # QosPrefix
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-37)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-38)</span>
 ```pony
 primitive val QosPrefix
 ```
@@ -7,7 +7,7 @@ primitive val QosPrefix
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-37)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-38)</span>
 
 
 ```pony
@@ -24,7 +24,7 @@ new val create()
 ## Public Functions
 
 ### apply
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-37)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-38)</span>
 
 
 In case we decide to change the case later (or something)
@@ -42,7 +42,7 @@ fun box apply()
 ---
 
 ### eq
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-37)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-38)</span>
 
 
 ```pony
@@ -61,7 +61,7 @@ fun box eq(
 ---
 
 ### ne
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-37)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-38)</span>
 
 
 ```pony

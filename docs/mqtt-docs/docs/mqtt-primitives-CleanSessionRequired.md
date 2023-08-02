@@ -1,5 +1,5 @@
 # CleanSessionRequired
-<span class="source-link">[[Source]](src/mqtt-primitives/errorCodes.md#L-0-24)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/errorCodes.md#L-0-25)</span>
 ```pony
 primitive val CleanSessionRequired
 ```
@@ -7,7 +7,7 @@ primitive val CleanSessionRequired
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-primitives/errorCodes.md#L-0-24)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/errorCodes.md#L-0-25)</span>
 
 
 ```pony
@@ -24,7 +24,7 @@ new val create()
 ## Public Functions
 
 ### apply
-<span class="source-link">[[Source]](src/mqtt-primitives/errorCodes.md#L-0-24)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/errorCodes.md#L-0-25)</span>
 
 
 ```pony
@@ -39,7 +39,7 @@ fun box apply()
 ---
 
 ### string
-<span class="source-link">[[Source]](src/mqtt-primitives/errorCodes.md#L-0-24)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/errorCodes.md#L-0-25)</span>
 
 
 ```pony
@@ -54,7 +54,7 @@ fun box string()
 ---
 
 ### eq
-<span class="source-link">[[Source]](src/mqtt-primitives/errorCodes.md#L-0-24)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/errorCodes.md#L-0-25)</span>
 
 
 ```pony
@@ -73,7 +73,7 @@ fun box eq(
 ---
 
 ### ne
-<span class="source-link">[[Source]](src/mqtt-primitives/errorCodes.md#L-0-24)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/errorCodes.md#L-0-25)</span>
 
 
 ```pony

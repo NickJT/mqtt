@@ -1,7 +1,7 @@
 # Ticker
 <span class="source-link">[[Source]](src/mqtt-ticker/ticker.md#L-0-34)</span>
 
-Ticker is used by router to schedule calls to every pulisher and subscriber to 
+Ticker is used by router to schedule calls to every publisher and subscriber to 
 check message queues for expiry
 The timer fires every <period> seconds for a maximum of <repetitions> times. 
 If <repetitions> is zero then the timer fires until it is cancelled 
@@ -14,7 +14,7 @@ actor tag Ticker
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-ticker/ticker.md#L-0-45)</span>
+<span class="source-link">[[Source]](src/mqtt-ticker/ticker.md#L-0-47)</span>
 
 
 ```pony
@@ -38,8 +38,18 @@ new tag create(
 
 ## Public Behaviours
 
+### start
+<span class="source-link">[[Source]](src/mqtt-ticker/ticker.md#L-0-55)</span>
+
+
+```pony
+be start()
+```
+
+---
+
 ### cancel
-<span class="source-link">[[Source]](src/mqtt-ticker/ticker.md#L-0-54)</span>
+<span class="source-link">[[Source]](src/mqtt-ticker/ticker.md#L-0-63)</span>
 
 
 ```pony

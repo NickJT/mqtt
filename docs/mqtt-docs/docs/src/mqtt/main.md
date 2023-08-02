@@ -16,6 +16,7 @@ search:
 3. Separate classes for each packet type so we don't miss any variations 
 4. Consistent api to avoid programming errors while things stabiliise 
 5. No hard split between library and application
+6. Simple ui for start/stop
 
 ### Release .2 ###
 1. Consider edge cases and errors
@@ -23,13 +24,16 @@ search:
 3. Consolidate similar classes into factory classes
 4. Optimise the api (public: simple, private: efficient)  
 5. Remove unnecessary intermediate variable, guards and debug checks
-6. Simple GUI for testing
+6. Simple text terminal for testing
 
 ### Release .3 ###
 1. Performance 
 2. Load and memory usage
 3. Optimise
+4. Build as library
+5. Demo app
 """
+
 /************************************************************************/
   use "bureaucracy"
   use "collections"
@@ -38,201 +42,104 @@ search:
   use "term"
 
   use "configurator"
-  use "examples"
+  use "idIssuer"
+  use "network"
   use "primitives"
   use "publisher"
   use "subscriber"
+  use "terminal"
+  use "ticker"
 
-actor Main
-  """
-  Main is responsible for reading the config.ini file identified in the ConfigFile primitive
-  and passing the Client into the TCPConnection
-  Once the client is established and the Broker is connected, main subscribes to the topics
-  in the .ini file 
-  """
-  let _reg : Registrar  = Registrar
-  var _subs: Map[String val, String val] val = Map[String val, String val] 
-  var _sBuf: Map[String val, String val] = Map[String val, String val]
-  var _sPos: Map[String val, U32] = Map[String val, U32]
-  var _sCol: Map[String val, String val] = Map[String val, String val]
-  var _sFirst :  Map[String val, Bool] = Map[String val, Bool]
-  let _out : OutStream
 
-  let _yCommand : U32 = 4
-  let _yMessage : U32 = 6
-  let _yLine : U32 = 5
-  let _yBuf : U32 = 8
-  let _xTopic : U32 = 3
-  let _xContent : U32 = 45
+/************************************************************************/
+  actor Main
+  let _env : Env
+  var _reg : Registrar 
+  let _issuer : IdIssuer 
+  let _router : Router
+  let _spawner : Spawner
+  let _ticker : Ticker
+  let _terminal : Terminal
+  let _ansiTerm : ANSITerm
 
-  let _xCursor : U32 = 3
-  let _yCursor : U32 = 2
+  let _network : OsNetwork
+  var _config : Map[String val, String val] val = Map[String val, String val]  
+  var _subs : Map[String val, String val] val   = Map[String val, String val] 
 
-  new create(env: Env) =>
-    _out = env.out
-    _out.write(ANSI.clear())
-    showMsg("Initialising", "")
+    
+  new create(env : Env) =>
+    _env = env
   
-    if (not _initialise(env, _reg) ) then 
-      showMsg("Unable to initialise connection", "Quitting")
-    else 
-      showMsg("")
-    end
-
-    var y :U32 = _yBuf
-    for key in _subs.keys() do
-      _sBuf.insert(key,"")
-      _sPos.insert(key,y)
-      _sFirst.insert(key,true)
-      _sCol.insert(key,ANSI.grey())
-      y = y + 1
-    end
-    refreshTopics()
-
-
-    let term = ANSITerm(Readline(recover Handler(env) end, env.out), env.input)
-    _out.write(ANSI.cursor(_xCursor,_yCursor))
-    term.prompt("> ")
-
-    let notify = object iso
-      let term: ANSITerm = term
-      fun ref apply(data: Array[U8] iso) => term(consume data)
-      fun ref dispose() => term.dispose()
-    end
-
-    env.input(consume notify)
-
-
-/********************************************************************************/    
-be onExit(diagnostic : String val) =>
-  """
-  Called by Client when the TCP connection is closed or if the network connection request fails 
-  """
-      showMsg("Exit: ", diagnostic)
-
-/********************************************************************************/    
-be onTick(sec : I64) =>
-  for (topic,content) in _sBuf.pairs() do
-    try if (_sCol(topic)? == ANSI.red()) then _sCol.update(topic, ANSI.green()) end end
-  end
-  refresh()
-/********************************************************************************/    
-be onMessage(topic : String val, content : String val) =>
-  """
-  This is the primary route into main for messages received over MQTT. It is called
-  by the router for subscription receipts.
-  """
-  try
-    if (_sFirst(topic)? == true) then 
-      _sFirst.update(topic,false)
-    elseif (_sBuf(topic)?.ne(content)) then 
-      _sCol.update(topic,ANSI.red())
-    end
-    _sBuf.update(topic,content)
-    refresh()
-  end
-
-
-/********************************************************************************/    
-be onBrokerConnect(message: String val) =>
-  """
-  Called once when the router has confirmed that we have a valid connection to the
-  broker. This is the location for any app setup such as starting publication actors
-  or subscribing to topics.
-  TODO - Add local collection of subscribers so we can call unsubscriber on them later
-  """
-    showMsg(message, "")
-
-    for (topic , qos) in _subs.pairs() do 
-      var subscriber = Subscriber(_reg, topic, qos)  
-      subscriber.subscribe()
-    end
-
-    showMsg("Starting timestamp publication at ", __loc.file() + " : " +__loc.method_name())
-    Timestamper(_reg)
-/************************************************************************/
-fun ref _initialise(env: Env, reg : Registrar) : Bool =>
-  let configReader = MqttConfig(env, ConfigFile(), FullConfigParams())
-  //Debug("Opening " + ConfigFile())
-  if (not configReader.isValid()) then
-    showMsg("Unable to read valid configuration")
-    return false 
-  end
-
-  try
-    var config = configReader.getConfig()
-    _subs = configReader.getSubscriptions()
-    var address :String val = config(IniAddress())? 
-    var ipv4Address : String val = ""
-    try
-      ipv4Address = toIPv4(env, address) as String val
+    let configReader = MqttConfig(env, ConfigFile(), FullConfigParams())
+    if (configReader.isValid()) then
+      _config = configReader.getConfig()
+      _subs = configReader.getSubscriptions()
     else
-      showMsg("Unable to resolve an IPv4 address from " , address)
-      return false
-    end  
+      _config = DefaultBroker()
+    end 
 
-    var port: String val = config(IniPort())?
-    showMsg("Connecting to " , address + ":" + port)
-    TCPConnection(TCPConnectAuth(env.root), recover Client(env, _reg, config) end, ipv4Address, port)  
-  else
-    showMsg("Unable to read address and port config in ", ConfigFile())
-    return false
-  end
+    _reg = Registrar
+    _reg.update(KeyMain(), this)
 
-  reg.update(KeyTerminal(), this)
-  true
+    _issuer = IdIssuer
+    _reg.update(KeyIssuer(),_issuer)
 
+    _router = Router(_reg, _config)
+    _reg.update(KeyRouter(),_router)
 
-/************************************************************************/
-fun ref refreshTopics() =>
-  for (topic,content) in _sBuf.pairs() do
-    try
-      var y = _sPos(topic)? 
-      _out.write(ANSI.cursor(_xTopic,y) + ANSI.erase(EraseLine))
-      _out.write(ANSI.white() + topic)
-      _out.write(ANSI.cursor(_xCursor,_yCursor))
-      _out.flush()
-    else
-      showMsg("Error in refreshTopics" + topic," " + content)
-    end
-  end
+    _spawner = Spawner(_reg, _subs)
+    _reg.update(KeySpawner(),_spawner)
 
-/************************************************************************/
-fun ref refresh() =>
-  for (topic,content) in _sBuf.pairs() do
-    try  
-      var y = _sPos(topic)? 
-      _out.write(ANSI.cursor(_xContent,y)+ ANSI.erase(EraseRight))
-      _out.write(_sCol(topic)? + content)
-      _out.flush()
-      _out.write(ANSI.white())
-      _out.write(ANSI.cursor(_xCursor,_yCursor))
-      _out.flush()
-    else
-      showMsg("Error in refresh " + topic," " + content)
-    end
-  end
-/************************************************************************/
-fun showMsg(topic : String val, content: String val = "") =>
-  _out.write(ANSI.cursor(_xTopic,_yMessage) + ANSI.erase(EraseLine) + ANSI.white())
-  _out.flush()
-  _out.write(ANSI.cursor(_xTopic,_yMessage) + topic)
-  _out.write(ANSI.cursor(_xContent,_yMessage) + content)
-  _out.write(ANSI.cursor(_xCursor,_yCursor))
-  _out.flush()
+    _terminal = Terminal(_env)
+    _reg.update(KeyTerminal(),_terminal)
 
-/************************************************************************/
-fun toIPv4(env : Env, arg : String val) : (String val | None) =>
-  """
-  This doesn't fit comfortably anywhere yet so we'll leave it in main for now
-  TODO - Decide where network utilities should go
-  """  
-  if (DNS.is_ip4(arg)) then return arg end
-  
-  try
-    var addrs : Array[NetAddress val] = DNS.ip4(DNSAuth(env.root), arg, "")
-    (var addr, var port) = addrs(0)?.name()?
-    return addr
-  end
-  None
+    _ticker = Ticker(_router)
+    _reg.update(KeyTicker(),_ticker)
+
+    _network = OsNetwork(_env, _router, _config)
+    _reg.update(KeyNetwork(), _network)
+
+    // Start by creating the ansiNotifier. We pass it a reference to the onExit
+    // behaviour of main so we can call dispose when we're done
+    var ansiNotify : Handler iso = Handler(_env, _reg, recover iso this~onExit() end)
+
+    // Now create the ANSITerm object
+    _ansiTerm = ANSITerm(consume ansiNotify, env.input)
+
+    // Next create the inputNotifier and pass in the ANSITerm. Data received by 
+    // _env.input will be passed to inputNotify and forwarded to ansiNotify's
+    // apply method 
+    var inputNotify : Aclass iso =  Aclass(_env, _ansiTerm)
+
+    // Finally, pass inputNotify to _env.input so it has access to stdin
+    _env.input(consume inputNotify, 512)
+ 
+
+  be onExit(code : U8) =>
+    """
+    Only called when we are exiting the program and all of the actors need to
+    be cleanly terminated
+    """  
+    cleanup()
+    Debug("Main.onExit code is " + code.string() where stream = DebugErr)
+    
+
+  fun ref cleanup() =>
+    Debug("Main cleanup underway" where stream = DebugErr)
+    _ansiTerm.dispose()
+    _env.input.dispose()
+    _reg.remove(KeyMain(),this)
+    _reg.remove(KeyIssuer(),_issuer)
+    // In case the user didn't disconnect the Broker
+    _reg[Router](KeyRouter()).next[None]({(r:Router)=>r.cancelKeepAlive()})
+    _reg[OsNetwork](KeyNetwork()).next[None]({(n:OsNetwork)=>n.disconnect()})
+    _reg.remove(KeyNetwork(),_network)
+    _reg.remove(KeyRouter(),_router)
+    _ticker.cancel()
+    _reg.remove(KeyTicker(),_ticker)
+    _reg.remove(KeyTerminal(),_terminal)
+    _env.out.write(ANSI.reset() + ANSI.clear() + ANSI.white())
+    _env.out.flush()
+    Debug("Main cleanup completed" where stream = DebugErr)
+
 ```````

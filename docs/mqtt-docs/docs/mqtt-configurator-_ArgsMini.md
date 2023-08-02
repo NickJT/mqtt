@@ -1,5 +1,5 @@
 # _ArgsMini
-<span class="source-link">[[Source]](src/mqtt-configurator/tests.md#L-0-119)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/tests.md#L-0-120)</span>
 ```pony
 class iso _ArgsMini is
   UnitTest ref
@@ -14,7 +14,7 @@ class iso _ArgsMini is
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-configurator/tests.md#L-0-119)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/tests.md#L-0-120)</span>
 
 
 ```pony
@@ -31,7 +31,7 @@ new iso create()
 ## Public Functions
 
 ### name
-<span class="source-link">[[Source]](src/mqtt-configurator/tests.md#L-0-120)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/tests.md#L-0-121)</span>
 
 
 ```pony
@@ -46,7 +46,7 @@ fun box name()
 ---
 
 ### apply
-<span class="source-link">[[Source]](src/mqtt-configurator/tests.md#L-0-121)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/tests.md#L-0-122)</span>
 
 
 ```pony

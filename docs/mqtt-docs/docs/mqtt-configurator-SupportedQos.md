@@ -1,5 +1,5 @@
 # SupportedQos
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-29)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-30)</span>
 ```pony
 primitive val SupportedQos
 ```
@@ -7,7 +7,7 @@ primitive val SupportedQos
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-29)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-30)</span>
 
 
 ```pony
@@ -24,7 +24,7 @@ new val create()
 ## Public Functions
 
 ### apply
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-29)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-30)</span>
 
 
 01
@@ -41,7 +41,7 @@ fun box apply()
 ---
 
 ### eq
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-29)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-30)</span>
 
 
 ```pony
@@ -60,7 +60,7 @@ fun box eq(
 ---
 
 ### ne
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-29)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-30)</span>
 
 
 ```pony

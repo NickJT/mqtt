@@ -14,21 +14,22 @@ use "debug"
 /*****************************************************/  
 // Application Error Codes
 /*****************************************************/  
-primitive ForbiddenType fun apply() : U8 => 0 fun string() : String => "Forbidden Type" 
-primitive ForbiddenFlags fun apply() : U8 => 1   fun string() : String => "Forbidden Flags" 
-primitive ForbiddenCode fun apply() : U8 => 2 fun string() : String => "Forbidden Code" 
-primitive ForbiddenWillQos fun apply() : U8 => 3  fun string() : String => "Forbidden Will QoS" 
-primitive ForbiddenQos fun apply() : U8 => 4  fun string() : String => "Forbidden QoS" 
+primitive NoError fun apply() : U8 => 0 fun string() : String => "OK" 
+primitive ForbiddenType fun apply() : U8 => 1 fun string() : String => "Forbidden Type" 
+primitive ForbiddenFlags fun apply() : U8 => 2   fun string() : String => "Forbidden Flags" 
+primitive ForbiddenCode fun apply() : U8 => 3 fun string() : String => "Forbidden Code" 
+primitive ForbiddenWillQos fun apply() : U8 => 4  fun string() : String => "Forbidden Will QoS" 
+primitive ForbiddenQos fun apply() : U8 => 5  fun string() : String => "Forbidden QoS" 
 
-primitive InvalidType  fun apply() : U8 => 5 fun string() : String => "Invalid Type" 
-primitive InvalidControl fun apply() : U8 => 6 fun string() : String => "Invalid Control" 
-primitive InvalidFlags  fun apply() : U8 => 7 fun string() : String => "Invalid Flags" 
-primitive InvalidRemainingLength fun apply() : U8 => 8 fun string() : String => "Invalid Remaining Length" 
+primitive InvalidType  fun apply() : U8 => 6 fun string() : String => "Invalid Type" 
+primitive InvalidControl fun apply() : U8 => 7 fun string() : String => "Invalid Control" 
+primitive InvalidFlags  fun apply() : U8 => 8 fun string() : String => "Invalid Flags" 
+primitive InvalidRemainingLength fun apply() : U8 => 9 fun string() : String => "Invalid Remaining Length" 
 
-primitive MalformedRequest fun apply() : U8 => 9 fun string() : String => "Malformed Request" 
-primitive MalformedResponse fun apply() : U8 => 10 fun string() : String => "Malformed Response" 
+primitive MalformedRequest fun apply() : U8 => 10 fun string() : String => "Malformed Request" 
+primitive MalformedResponse fun apply() : U8 => 11 fun string() : String => "Malformed Response" 
 
-primitive CleanSessionRequired fun apply() : U8 => 11  fun string() : String => "Clean Session Required" 
+primitive CleanSessionRequired fun apply() : U8 => 12  fun string() : String => "Clean Session Required" 
 
 primitive NotConnected fun apply() : U8 => 13  fun string() : String => "Not Connected" 
 primitive SocketError fun apply() : U8 => 14   fun string() : String => "Socket Error" 
@@ -38,11 +39,15 @@ primitive ReconnectFailed fun apply() : U8 => 16  fun string() : String => "Reco
 primitive SubscribeFailed fun apply() : U8 => 17   fun string() : String => "Subscribe Failed" 
 primitive ConnectionRefused fun apply() : U8 => 18 fun string() : String => "Connection Refused" 
 
-primitive NotImplemented fun apply() : U8 => 19  fun string() : String => "Not Implemented" 
+primitive BrokerDisconnect fun apply() : U8 => 19  fun string() : String => "Broker Disconnect" 
+primitive ConfigurationError fun apply() : U8 => 20  fun string() : String => "Configuration Error" 
+
+primitive NotImplemented fun apply() : U8 => 21 fun string() : String => "Not Implemented" 
 primitive UnknownError fun apply() : U8 => 255  fun string() : String => "Unknown error" 
 
 type ErrorCode is (
-  ForbiddenType 
+  NoError
+| ForbiddenType 
 | ForbiddenFlags 
 | ForbiddenCode 
 | ForbiddenWillQos

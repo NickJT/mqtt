@@ -1,5 +1,5 @@
 # IniPort
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-56)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-57)</span>
 ```pony
 primitive val IniPort
 ```
@@ -7,7 +7,7 @@ primitive val IniPort
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-56)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-57)</span>
 
 
 ```pony
@@ -24,7 +24,7 @@ new val create()
 ## Public Functions
 
 ### apply
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-56)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-57)</span>
 
 
 ```pony
@@ -39,7 +39,7 @@ fun box apply()
 ---
 
 ### eq
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-56)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-57)</span>
 
 
 ```pony
@@ -58,7 +58,7 @@ fun box eq(
 ---
 
 ### ne
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-56)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-57)</span>
 
 
 ```pony

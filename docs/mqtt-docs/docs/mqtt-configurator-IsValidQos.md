@@ -1,5 +1,5 @@
 # IsValidQos
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-43)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-44)</span>
 ```pony
 primitive val IsValidQos
 ```
@@ -7,7 +7,7 @@ primitive val IsValidQos
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-43)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-44)</span>
 
 
 ```pony
@@ -24,7 +24,7 @@ new val create()
 ## Public Functions
 
 ### apply
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-43)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-44)</span>
 
 
 The subscription validator function that checks the qos field
@@ -46,7 +46,7 @@ fun box apply(
 ---
 
 ### eq
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-43)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-44)</span>
 
 
 ```pony
@@ -65,7 +65,7 @@ fun box eq(
 ---
 
 ### ne
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-43)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-44)</span>
 
 
 ```pony

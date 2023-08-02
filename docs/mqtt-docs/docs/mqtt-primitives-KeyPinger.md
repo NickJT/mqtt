@@ -1,5 +1,5 @@
 # KeyPinger
-<span class="source-link">[[Source]](src/mqtt-primitives/regStrings.md#L-0-8)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/regStrings.md#L-0-9)</span>
 ```pony
 primitive val KeyPinger
 ```
@@ -7,7 +7,7 @@ primitive val KeyPinger
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-primitives/regStrings.md#L-0-8)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/regStrings.md#L-0-9)</span>
 
 
 ```pony
@@ -24,7 +24,7 @@ new val create()
 ## Public Functions
 
 ### apply
-<span class="source-link">[[Source]](src/mqtt-primitives/regStrings.md#L-0-8)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/regStrings.md#L-0-9)</span>
 
 
 ```pony
@@ -39,7 +39,7 @@ fun box apply()
 ---
 
 ### eq
-<span class="source-link">[[Source]](src/mqtt-primitives/regStrings.md#L-0-8)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/regStrings.md#L-0-9)</span>
 
 
 ```pony
@@ -58,7 +58,7 @@ fun box eq(
 ---
 
 ### ne
-<span class="source-link">[[Source]](src/mqtt-primitives/regStrings.md#L-0-8)</span>
+<span class="source-link">[[Source]](src/mqtt-primitives/regStrings.md#L-0-9)</span>
 
 
 ```pony

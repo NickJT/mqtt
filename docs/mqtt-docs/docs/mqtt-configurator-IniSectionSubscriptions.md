@@ -1,5 +1,5 @@
 # IniSectionSubscriptions
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-71)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-73)</span>
 ```pony
 primitive val IniSectionSubscriptions
 ```
@@ -7,7 +7,7 @@ primitive val IniSectionSubscriptions
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-71)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-73)</span>
 
 
 ```pony
@@ -24,7 +24,7 @@ new val create()
 ## Public Functions
 
 ### apply
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-71)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-73)</span>
 
 
 ```pony
@@ -39,7 +39,7 @@ fun box apply()
 ---
 
 ### eq
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-71)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-73)</span>
 
 
 ```pony
@@ -58,7 +58,7 @@ fun box eq(
 ---
 
 ### ne
-<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-71)</span>
+<span class="source-link">[[Source]](src/mqtt-configurator/iniStrings.md#L-0-73)</span>
 
 
 ```pony

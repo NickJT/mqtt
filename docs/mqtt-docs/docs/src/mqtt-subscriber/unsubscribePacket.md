@@ -30,7 +30,7 @@ B4  Length of topic filter in bytes - LSB
 B.. Characters of topic filter '$SYS/broker/load/bytes/sent/1min'
 
 """
- var _isValid : Bool = false
+  var _isValid : Bool = false
   var _id : IdType = 0
 
   new create() =>

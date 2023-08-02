@@ -5,6 +5,7 @@ search:
   exclude: true
 ---
 ```````pony linenums="1"
+use "collections"
 
 // String defines for the config.ini file so we have them all in one place 
 use "debug"
@@ -21,7 +22,7 @@ Add strings to this literal array to read them from an ini file. Any strings
 added here which are not represented as non-zero length strings in the ini
 file will cause the overall ini read to fail (by design).
 """
-[IniAddress() ; IniPort(); IniId() ;IniKeepalive() ; IniName() ; IniPassword() ; IniTopic() ; IniMessage(); IniQos()]
+[IniAddress(); IniPort(); IniId(); IniKeepalive(); IniCleansession(); IniName(); IniPassword(); IniTopic(); IniMessage(); IniQos()]
 
 
 primitive MinConfigParams fun apply() : Array[String val] val => 
@@ -30,7 +31,7 @@ Add strings to this literal array to read them from an ini file. Any strings
 added here which are not represented as non-zero length strings in the ini
 file will cause the overall ini read to fail (by design).
 """
-[IniAddress() ; IniPort(); IniId() ;IniKeepalive()]
+[IniAddress() ; IniPort(); IniId() ;IniKeepalive(); IniCleansession()]
 
 
 primitive SupportedQos fun apply() : String val => "01"  // or "012"  or "0123"
@@ -51,7 +52,7 @@ primitive  IsValidQos fun apply(qosString : String) : Bool =>
 """
 The subscription validator function that checks the qos field
 """
-  //Debug("Valid qos " + qosString.compare_sub(QosPrefix(),3,0,0,true).string()) 
+  //Debug("Valid qos " + qosString.compare_sub(QosPrefix(),3,0,0,true).string() where stream = DebugErr)
   (qosString.size() == 4)  and
   (qosString.compare_sub(QosPrefix(),3,0,0,true) is Equal) and 
   (SupportedQos().contains(qosString.trim(3)))
@@ -65,6 +66,7 @@ primitive IniPort fun apply() : String val => "port"
 primitive IniSectionClient fun apply() : String val => "client"
 primitive IniId fun apply() : String val => "id" 
 primitive IniKeepalive fun apply() : String val => "keepalive"
+primitive IniCleansession fun apply() : String val => "cleansession"
 
 primitive IniSectionCredentials fun apply() : String val => "credentials"
 primitive IniName fun apply() : String val => "name" 
@@ -78,7 +80,13 @@ primitive IniQos fun apply() : String val => "qos"
 primitive IniSectionSubscriptions fun apply() : String val => "subscriptions"
 
 
-
+primitive DefaultBroker fun apply() : Map[String val, String val] val=>
+          recover val
+          var temp : Map[String val, String val] =   Map[String val, String val]
+          temp.insert(IniAddress(),"localhost")
+          temp.insert(IniPort(),"1883")
+          temp
+          end
 
 
 ```````
