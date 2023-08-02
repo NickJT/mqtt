@@ -45,16 +45,17 @@ new create(reg : Registrar, topic: String val, qos : String val) =>
   _qos = qos
 
 /********************************************************************************/
-be apply(id : U16, sub : Bool) =>
+be apply(id : U16, sub : SubControl) =>
   """
   The packet id is the last piece of the jigsaw. Once we have this we can build our 
   subscribe or unsubscribe packet and send it to the broker
   """
   var subscriber : Subscriber tag = this
-  if (sub) then 
+  if (sub is Sub) then 
     var arrayVal = SubscribePacket.compose(id, _topic, _qos)
     _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onSubscribe(subscriber, _topic ,id, arrayVal)})
   else
+    Debug("Unsubscribing from " + _topic  + " at " + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
     var arrayVal = UnsubscribePacket.compose(id, _topic)
     _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onUnsubscribe(subscriber, id, arrayVal)})
   end
@@ -74,7 +75,7 @@ be onDuckAndCover() =>
   """
   We need to save state because the broker is disconnecting or something has gone awry.   
   """
-  Debug(_pktMap.size().string() + " unreleased packets in " + _topic + " subscriber")
+  Debug(_pktMap.size().string() + " unreleased packets in " + _topic + " subscriber" where stream = DebugErr)
 
 /********************************************************************************/
 be onDisconnect() => 
@@ -91,7 +92,7 @@ be onDisconnect() =>
   PubRels from the Broker. We need to save these by sending them to main. 
   """
   Debug("Disconnecting " + _topic where stream = DebugErr)
-  if (_pktMap.size() != 0) then Debug("Sending " + _pktMap.size().string() + " unreleased packets for storage") end
+  if (_pktMap.size() != 0) then Debug("Sending " + _pktMap.size().string() + " unreleased packets for storage" where stream = DebugErr) end
 
   // TODO - We need to send them in the original order and this might not do it...
   for (k,v) in _pktMap.pairs() do 
@@ -171,20 +172,16 @@ fun ref onUnsubAck(basePacket : BasePacket val)  =>
   TODO - We may also have some packets in our queue and we need to decide what to do
   about these
   """
-  var unsubAckPacket = UnsubscribePacket.createFromPacket(basePacket)
-  if (not unsubAckPacket.isValid()) then
-    Debug("Invalid UnsubAck packet at " + __loc.file() + ":" +__loc.method_name())
-    return
-  end  
-  
-  try 
-    var cid = unsubAckPacket.id() as IdType
+  // Note this is an unsuback packet NOT a UNSUBSCRIBE packet
+ 
+  // id is in bytes 2 and 3
+  var cid = BytesToU16(basePacket.data().trim(2,4)) 
+  if cid > 0 then 
     _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onUnsubscribeComplete(_this, cid)})
     _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.showMessage(_topic, "Unsubscribed")})
   else
-    Debug("Unknown id in UnsubAck packet at " + __loc.file() + ":" +__loc.method_name())
-  end 
-  
+    Debug("Zero id in UnsubAck packet at " + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
+  end
 
 /********************************************************************************/
 fun ref onPayload(basePacket: BasePacket val) : None =>
@@ -212,8 +209,8 @@ fun ref onPayload(basePacket: BasePacket val) : None =>
     if (pubPacket.qos() is Qos0) then
       releasePkt(pubPacket) 
     else
-      Debug("Invalid Id in publish packet at " + __loc.file() + ":" +__loc.method_name())
-      Debug(basePacket.data())
+      Debug("Invalid Id in publish packet at " + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
+      Debug(basePacket.data() where stream = DebugErr)
     end  
   end
 
@@ -225,7 +222,7 @@ fun doPubAck(id : IdType) =>
   Note that QoS 1 packets are never stored in _pktMap so there is no remove to do
   """
   if (id == 0) then
-      Debug("Zero Id found in " + __loc.file() + ":" +__loc.method_name())
+      Debug("Zero Id found in " + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
       return
   end
   //Debug("Pub ack at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string()  where stream = DebugErr)
@@ -240,7 +237,7 @@ fun ref doPubRec(id : IdType) =>
   care whether this is a Bid or  Cid
   """
   if (id == 0) then
-      Debug("Zero Id found in " + __loc.file() + ":" +__loc.method_name())
+      Debug("Zero Id found in " + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
       return
   end
 
@@ -269,7 +266,7 @@ fun ref onPubRel(basePacket : BasePacket val) =>
     (var bid , var packet ) = _pktMap.remove(pubRelPacket.id())?
     releasePkt(packet) 
   else
-    Debug("Unable to release QoS 2 packet id " + pubRelPacket.id().string()  +  " in " + __loc.file() + ":" +__loc.method_name())
+    Debug("Unable to release QoS 2 packet id " + pubRelPacket.id().string()  +  " in " + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
   end
   payloadComplete(pubRelPacket.id())
 
@@ -299,7 +296,7 @@ fun releasePkt(pubPacket : PublishPacket val) =>
     var payloadString : String val = pubPacket.payloadAsString() as String
   _reg[Router](KeyRouter()).next[None]({ (r: Router)=>r.showMessage(topic, payloadString)},{()=>Debug("Mock Broker got " + payloadString)})
   else
-    Debug ("Packet error in " + __loc.method_name())
+    Debug ("Packet error in " + __loc.method_name() where stream = DebugErr)
   end
 
 
@@ -324,7 +321,7 @@ fun ref payloadComplete(bid : IdType) =>
   Informs router that we have finished processing this id.
   """
   if (bid == 0) then
-      Debug("Zero Broker Id found in " + __loc.file() + ":" +__loc.method_name())
+      Debug("Zero Broker Id found in " + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
       return
   end
   _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onPayloadComplete(bid)})

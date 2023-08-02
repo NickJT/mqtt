@@ -7,6 +7,7 @@
   use "package:.."
   use "package:../primitives"
   use "package:../network"
+  use "package:../configurator"
 
 class Aclass is InputNotify
   """
@@ -51,13 +52,18 @@ fun ref apply(term: ANSITerm ref, input: U8 val) =>
   end 
 
 fun ref fn_key(i: U8 val, ctrl: Bool val, alt: Bool val, shift: Bool val) =>
-  //Debug("User f" + i.string() where stream = DebugErr)
+/*f1:Connect f2:Test f3:Stats f4:Unsub f5:Perf f6:Load B f9:Mute f10:Clear f11:Disc f12:Quit */
   match i
-  | Connect() => _reg[OsNetwork](KeyNetwork()).next[None]({(nw:OsNetwork)=>nw.connect()})
-  | Discon()  => _reg[Router](KeyRouter()).next[None]({ (r: Router)=>r.disconnectBroker()})
-  | Clear()   => _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.clear()})
-  | Quit()    => _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.exitAndReset()})
-                 _exitCall(0)
+  | Connect()     => _reg[OsNetwork](KeyNetwork()).next[None]({(nw:OsNetwork)=>nw.connect()})
+  | SubscribeTest()   => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.testSubs(Sub)}, {()=>Debug("No spawner")})
+  | SubscribeStats()  => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.brokerSubs(Sub)})
+  | UnSubscribe() => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.unSubAll()})
+  | PerfTest()    => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.perfTest()})
+  | LoadTest()    => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.loadTest()})
+  | Discon()      => _reg[Router](KeyRouter()).next[None]({ (r: Router)=>r.disconnectBroker()})
+  | Clear()       => _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.clear()})
+  | Quit()        => _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.exitAndReset()})
+                     _exitCall(0)
   else
     _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.status("f"+ i.string() + " not used yet")})
   end

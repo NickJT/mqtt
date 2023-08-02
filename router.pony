@@ -117,7 +117,7 @@ be route(basePacket : BasePacket val) =>
       return
     end
     
-    //Debug("Router got a " + basePacket.controlType().string())
+    Debug("Router got a " + basePacket.controlType().string() where stream = DebugErr)
     //Debug(basePacket.data())
 
     match basePacket.controlType()
@@ -434,7 +434,7 @@ be onUnsubscribe(sub : Subscriber tag, id : IdType, packet : ArrayVal) =>
       Debug("Duplicate id " + id.string() + " found in  " + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
     end
     _actorById.update(id,sub)
-    //Debug("Inserted id " + id.string() +" in _actorById at" + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
+    Debug("Router sending unsubscribe at " + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
     send(packet)
 
 /*********************************************************************************/
@@ -539,9 +539,7 @@ be onBrokerConnect() =>
   When this is called we should have a valid Broker connection with our local 
   state reflecting the (potentially saved) state in Broker.
   """
-  _reg[Terminal](KeyTerminal()).next[None]({(t : Terminal) => 
-    t.status("Router onBrokerConnect")
-    },{()=>Debug("No main in registrar" where stream = DebugErr)})
+  showStatus("Router - onBrokerConnect")
   _reg[Ticker](KeyTicker()).next[None]({(t : Ticker) => t.start()})
   
   // The keepalive Pinger is currenty limited so that we disconnect
@@ -615,7 +613,7 @@ be onBrokerRefusal(reason : ConnAckReturnCode) =>
   """
   Called by Connector if the Broker has refused the connection
   """
-  _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.status(ConnectionRefused.string() + " " + reason.string())})
+  showStatus(ConnectionRefused.string() + " " + reason.string())
 
 
 /*********************************************************************************/
@@ -623,7 +621,7 @@ be onErrorOrDisconnect(errorCode : ErrorCode) =>
   """
   Called if we detect a protocol error, broker timeout or network disconnect
   """
-  _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.status(errorCode.string() + "  at " + __loc.file() + ":" +__loc.method_name())})
+  showStatus(errorCode.string() + "  at " + __loc.file() + ":" +__loc.method_name())
 
 
 /*********************************************************************************/

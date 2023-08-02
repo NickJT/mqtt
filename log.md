@@ -1,46 +1,415 @@
-UI Tick at 1690882006
-UI Tick at 1690882007
-UI Tick at 1690882008
-UI Tick at 1690882009
-User f11
-UI Tick at 1690882010
-UI Tick at 1690882011
-UI Tick at 1690882012
-UI Tick at 1690882013
-UI Tick at 1690882014
-User f10
-UI Tick at 1690882015
-UI Tick at 1690882016
-User f11
-UI Tick at 1690882017
-UI Tick at 1690882018
-UI Tick at 1690882019
-UI Tick at 1690882020
-User f8
-UI Tick at 1690882021
-User f7
-User f6
-UI Tick at 1690882022
-User f5
-UI Tick at 1690882023
-User f4
-User f3
-User f2
-UI Tick at 1690882024
-UI Tick at 1690882025
-UI Tick at 1690882026
-UI Tick at 1690882027
-User f12
+Passed 15 topics
+3 Test topics
+15 Broker stats topics
+Router got a Conn Ack
+Router got a Ping Resp
+In testSubs 
+Subscribing to 3 topics
+Inserted subscription for test/q1
+Spawner subscribed to test/q1
+Inserted subscription for test/q2
+Spawner subscribed to test/q2
+Inserted subscription for test/q0
+Spawner subscribed to test/q0
+Router got a SubAck
+Router got a SubAck
+Router got a SubAck
+Router got a Ping Resp
+In brokerSubs 
+Subscribing to 15 topics
+Inserted subscription for $SYS/broker/subscriptions/count
+Spawner subscribed to $SYS/broker/subscriptions/count
+Inserted subscription for $SYS/broker/load/publish/sent/1min
+Spawner subscribed to $SYS/broker/load/publish/sent/1min
+Inserted subscription for $SYS/broker/load/bytes/received/1min
+Spawner subscribed to $SYS/broker/load/bytes/received/1min
+Inserted subscription for $SYS/broker/load/publish/dropped/1min
+Spawner subscribed to $SYS/broker/load/publish/dropped/1min
+Inserted subscription for $SYS/broker/messages/inflight
+Spawner subscribed to $SYS/broker/messages/inflight
+Inserted subscription for $SYS/broker/bytes/sent
+Spawner subscribed to $SYS/broker/bytes/sent
+Inserted subscription for $SYS/broker/load/bytes/sent/1min
+Spawner subscribed to $SYS/broker/load/bytes/sent/1min
+Inserted subscription for $SYS/broker/messages/dropped
+Spawner subscribed to $SYS/broker/messages/dropped
+Inserted subscription for $SYS/broker/messages/sent
+Spawner subscribed to $SYS/broker/messages/sent
+Inserted subscription for $SYS/broker/publish/messages/received
+Spawner subscribed to $SYS/broker/publish/messages/received
+Inserted subscription for $SYS/broker/retained messages/count
+Spawner subscribed to $SYS/broker/retained messages/count
+Inserted subscription for $SYS/broker/bytes/received
+Spawner subscribed to $SYS/broker/bytes/received
+Inserted subscription for $SYS/broker/publish/messages/sent
+Spawner subscribed to $SYS/broker/publish/messages/sent
+Inserted subscription for $SYS/broker/messages/received
+Spawner subscribed to $SYS/broker/messages/received
+Inserted subscription for $SYS/broker/load/publish/received/1min
+Spawner subscribed to $SYS/broker/load/publish/received/1min
+Router got a SubAck
+Router got a SubAck
+Router got a Publish
+Router got a SubAck
+Router got a Publish
+Router got a SubAck
+Router got a SubAck
+Router got a SubAck
+Router got a Publish
+Router got a SubAck
+Router got a SubAck
+Router got a Publish
+Router got a SubAck
+Router got a SubAck
+Router got a SubAck
+Router got a Publish
+Router got a SubAck
+Router got a SubAck
+Router got a Publish
+Router got a SubAck
+Router got a SubAck
+Router got a Publish
+Router got a Pub Rel
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Pub Rel
+Router got a Ping Resp
+Router got a Ping Resp
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Pub Rel
+Router got a Ping Resp
+Router got a Ping Resp
+Router got a Ping Resp
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Pub Rel
+Router got a Ping Resp
+Router got a Ping Resp
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Pub Rel
+Router got a Ping Resp
+Router got a Ping Resp
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Pub Rel
+Router got a Ping Resp
+Router got a Ping Resp
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Pub Rel
+Router got a Ping Resp
+Router got a Ping Resp
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Pub Rel
+Router got a Ping Resp
+Router got a Ping Resp
+Router got a Ping Resp
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Pub Rel
+Router got a Ping Resp
+Unsubscribing all in spawner 
+Unsubscribing from 15 topics
+Spawner unsubscribed from $SYS/broker/subscriptions/count
+Spawner unsubscribed from $SYS/broker/load/publish/sent/1min
+Spawner unsubscribed from $SYS/broker/load/bytes/received/1min
+Spawner unsubscribed from $SYS/broker/load/publish/dropped/1min
+Spawner unsubscribed from $SYS/broker/messages/inflight
+Spawner unsubscribed from $SYS/broker/bytes/sent
+Spawner unsubscribed from $SYS/broker/load/bytes/sent/1min
+Spawner unsubscribed from $SYS/broker/messages/dropped
+Spawner unsubscribed from $SYS/broker/messages/sent
+Spawner unsubscribed from $SYS/broker/publish/messages/received
+Spawner unsubscribed from $SYS/broker/retained messages/count
+Spawner unsubscribed from $SYS/broker/bytes/received
+Spawner unsubscribed from $SYS/broker/publish/messages/sent
+Spawner unsubscribed from $SYS/broker/messages/received
+Spawner unsubscribed from $SYS/broker/load/publish/received/1min
+Unsubscribing from 3 topics
+Spawner unsubscribed from test/q1
+Spawner unsubscribed from test/q2
+Spawner unsubscribed from test/q0
+Unsubscribing from $SYS/broker/subscriptions/count at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Unsubscribing from $SYS/broker/load/bytes/received/1min at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Unsubscribing from $SYS/broker/load/publish/dropped/1min at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Unsubscribing from $SYS/broker/messages/inflight at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Unsubscribing from $SYS/broker/bytes/sent at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Unsubscribing from $SYS/broker/load/bytes/sent/1min at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Unsubscribing from $SYS/broker/messages/dropped at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Unsubscribing from $SYS/broker/messages/sent at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Unsubscribing from $SYS/broker/publish/messages/received at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Unsubscribing from $SYS/broker/retained messages/count at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Unsubscribing from $SYS/broker/bytes/received at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Unsubscribing from $SYS/broker/publish/messages/sent at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Unsubscribing from $SYS/broker/messages/received at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Unsubscribing from $SYS/broker/load/publish/received/1min at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Unsubscribing from test/q1 at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Unsubscribing from test/q2 at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Unsubscribing from test/q0 at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Unsubscribing from $SYS/broker/load/publish/sent/1min at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Ping Resp
+Router got a Ping Resp
+Router got a Ping Resp
+In testSubs 
+Subscribing to 3 topics
+Spawner subscribed to test/q1
+Spawner subscribed to test/q2
+Spawner subscribed to test/q0
+Router got a SubAck
+Router got a SubAck
+Router got a SubAck
+Router got a Ping Resp
+Router got a Ping Resp
+Router got a Ping Resp
+Router got a Ping Resp
+In brokerSubs 
+Subscribing to 15 topics
+Spawner subscribed to $SYS/broker/subscriptions/count
+Spawner subscribed to $SYS/broker/load/publish/sent/1min
+Spawner subscribed to $SYS/broker/load/bytes/received/1min
+Spawner subscribed to $SYS/broker/load/publish/dropped/1min
+Spawner subscribed to $SYS/broker/messages/inflight
+Spawner subscribed to $SYS/broker/bytes/sent
+Spawner subscribed to $SYS/broker/load/bytes/sent/1min
+Spawner subscribed to $SYS/broker/messages/dropped
+Spawner subscribed to $SYS/broker/messages/sent
+Spawner subscribed to $SYS/broker/publish/messages/received
+Spawner subscribed to $SYS/broker/retained messages/count
+Spawner subscribed to $SYS/broker/bytes/received
+Spawner subscribed to $SYS/broker/publish/messages/sent
+Spawner subscribed to $SYS/broker/messages/received
+Spawner subscribed to $SYS/broker/load/publish/received/1min
+Router got a SubAck
+Router got a Publish
+Router got a SubAck
+Router got a Publish
+Router got a SubAck
+Router got a Publish
+Router got a SubAck
+Router got a SubAck
+Router got a Publish
+Router got a SubAck
+Router got a SubAck
+Router got a Publish
+Router got a SubAck
+Router got a Publish
+Router got a SubAck
+Router got a Publish
+Router got a SubAck
+Router got a SubAck
+Router got a Publish
+Router got a SubAck
+Router got a SubAck
+Router got a SubAck
+Router got a SubAck
+Router got a Publish
+Router got a Pub Rel
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Pub Rel
+Router got a Ping Resp
+Router got a Ping Resp
+Router got a Ping Resp
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Pub Rel
+Router got a Ping Resp
+Router got a Ping Resp
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Publish
+Router got a Pub Rel
+Router got a Ping Resp
+Unsubscribing all in spawner 
+Unsubscribing from 15 topics
+Spawner unsubscribed from $SYS/broker/subscriptions/count
+Spawner unsubscribed from $SYS/broker/load/publish/sent/1min
+Spawner unsubscribed from $SYS/broker/load/bytes/received/1min
+Spawner unsubscribed from $SYS/broker/load/publish/dropped/1min
+Spawner unsubscribed from $SYS/broker/messages/inflight
+Spawner unsubscribed from $SYS/broker/bytes/sent
+Spawner unsubscribed from $SYS/broker/load/bytes/sent/1min
+Spawner unsubscribed from $SYS/broker/messages/dropped
+Spawner unsubscribed from $SYS/broker/messages/sent
+Spawner unsubscribed from $SYS/broker/publish/messages/received
+Spawner unsubscribed from $SYS/broker/retained messages/count
+Spawner unsubscribed from $SYS/broker/bytes/received
+Spawner unsubscribed from $SYS/broker/publish/messages/sent
+Spawner unsubscribed from $SYS/broker/messages/received
+Spawner unsubscribed from $SYS/broker/load/publish/received/1min
+Unsubscribing from 3 topics
+Spawner unsubscribed from test/q1
+Spawner unsubscribed from test/q2
+Spawner unsubscribed from test/q0
+Unsubscribing from $SYS/broker/messages/inflight at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Unsubscribing from $SYS/broker/publish/messages/sent at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Unsubscribing from test/q2 at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Unsubscribing from $SYS/broker/load/bytes/received/1min at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Unsubscribing from $SYS/broker/load/publish/dropped/1min at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Unsubscribing from $SYS/broker/bytes/received at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Unsubscribing from $SYS/broker/load/publish/received/1min at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Unsubscribing from test/q0 at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Unsubscribing from $SYS/broker/bytes/sent at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Unsubscribing from $SYS/broker/load/bytes/sent/1min at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Unsubscribing from $SYS/broker/messages/sent at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Unsubscribing from $SYS/broker/publish/messages/received at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Unsubscribing from $SYS/broker/retained messages/count at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Unsubscribing from $SYS/broker/messages/received at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Unsubscribing from test/q1 at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Unsubscribing from $SYS/broker/subscriptions/count at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Unsubscribing from $SYS/broker/load/publish/sent/1min at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Unsub Ack
+Unsubscribing from $SYS/broker/messages/dropped at /home/nick/mqtt/subscriber/subscriber.pony:apply
+Router sending unsubscribe at /home/nick/mqtt/router.pony:onUnsubscribe
+Router got a Unsub Ack
+Router got a Unsub Ack
+Router got a Ping Resp
+Router got a Ping Resp
+Exiting terminal but can't cancel UI timer
 Main cleanup underway
 Main cleanup completed
 Main.onExit code is 0
 InputNotify being disposed
-UI Tick at 1690882028
-UI Tick at 1690882029
-UI Tick at 1690882030
-UI Tick at 1690882031
-UI Tick at 1690882032
-UI Tick at 1690882033
-UI Tick at 1690882034
-UI Tick at 1690882035
-UI Tick at 1690882036
+SystemTick cancelled

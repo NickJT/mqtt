@@ -2,6 +2,10 @@ use "debug"
 use "time"
 
 class UiTimer is TimerNotify
+"""
+TODO - Not used at present. Instead we're using a manually constructed delegate in
+the Terminal actor. 
+"""
   var _count: U64 = 0
   var _cb : {(I64)}
 

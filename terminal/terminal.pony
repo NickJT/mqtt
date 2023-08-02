@@ -8,7 +8,6 @@
 /* Primitives ********************************************************************/
   trait Paintable
     fun paint() : Bool 
-    fun ref content() : String val
 
   primitive HighlightPeriod  fun apply() : U64 => 3
   primitive MSG fun value(): U64 => 1
@@ -26,8 +25,7 @@ class StatusLine is Paintable
     _paint = true 
 
   fun paint() : Bool => _paint
-  fun ref content() : String val =>
-    _content
+
   fun ansi(left : U32, y : U32) : String val =>
     ANSI.cursor(left,y) 
     + _colour
@@ -47,31 +45,30 @@ class BoxLine is Paintable
     _content = content'
     _timeStamp = Time.seconds()
     _paint = true
-  fun ref setPaint() => _paint = true
-    _timeStamp = Time.seconds()
-
+  
   fun paint() : Bool => _paint
   fun ref deadline(seconds : I64) =>
     if ((_contentColour == ANSI.red()) and (_timeStamp < seconds)) then 
-      _contentColour == ANSI.white()
+      //Debug(_topic + " past deadline" where stream = DebugErr)
+      _contentColour = ANSI.white()
+      _paint = true
     end
-  fun ref content() : String val => 
-    _paint = false
-    _content
   
   fun ref update(content' : String val) =>
     _timeStamp = Time.seconds()
     _content = content'
-    if (_contentColour == ANSI.grey()) then  
-      _contentColour = ANSI.red()
+    if (_topicColour == ANSI.grey()) then  
       _topicColour = ANSI.white()
     end
+    _contentColour = ANSI.red()
     _paint = true
-  fun ansi(left : U32, right :U32, y : U32) : String val =>
-    ANSI.cursor(left,y) 
+  
+  fun ref ansi(left : U32, right :U32, y : U32) : String val =>
+    _paint = false
+    ANSI.cursor(left,y) + ANSI.erase(EraseRight)
     + _topicColour
     + _topic
-    + ANSI.cursor(right,y) 
+    + ANSI.cursor(right,y) + ANSI.erase(EraseRight)
     + _contentColour
     + _content
 
@@ -169,6 +166,7 @@ be size(rows: U16 val, cols: U16 val) =>
 
 be onTick(seconds : I64) =>
   timeout(seconds)
+  // Anything else?
 
 be exitAndReset() =>
   clearAll()
@@ -256,6 +254,13 @@ fun border(x : U32) : String val =>
   end   
 fun ref timeout(seconds : I64) =>
   var limit : I64 = seconds - 2
+  var refreshNeeded : Bool = false
   for line in _boxMap.values() do 
     line.deadline(limit)
+    refreshNeeded = refreshNeeded or line.paint()
   end 
+  if refreshNeeded then  
+    //status("Timeout refresh at " + seconds.string())
+    _paintAreas.set(MSG)
+    paint()
+  end

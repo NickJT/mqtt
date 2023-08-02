@@ -6,7 +6,7 @@ interface IdNotifySub
   """
   Notifications for issuance of a packet Id.
   """
-  be apply(id: U16, sub : Bool)
+  be apply(id: U16, sub : SubControl)
 
 
 /********************************************************************************/
@@ -74,7 +74,7 @@ Reissuing Returned Ids
   A request for an id to be returned in the provided callback. Because ids are returned  
   and reassigned subsequent calls to checkOutSub may not return consecutive values
   """
-  notifySub(_nextId(), true)
+  notifySub(_nextId(), Sub)
 
 /********************************************************************************/
   be checkOutUnsub(notifySub :IdNotifySub tag) =>
@@ -82,7 +82,7 @@ Reissuing Returned Ids
   A request for an id to be returned in the provided callback. Because ids are returned  
   and reassigned subsequent calls to checkOutSub may not return consecutive values
   """
-  notifySub(_nextId(), false)
+  notifySub(_nextId(), UnSub)
 
 /********************************************************************************/
   be checkOutPub(notifyArgs : IdNotifyPub tag, args : PublishArgs val) =>

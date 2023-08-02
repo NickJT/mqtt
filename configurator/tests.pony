@@ -12,7 +12,7 @@ primitive FullConfig fun apply() : Map[String val, String val] val =>
     config.insert(IniPort(), "1883")
     config.insert(IniId(),"PonyClient")
     config.insert(IniKeepalive(),"10")
-
+    config.insert(IniCleansession(),"1")
     config.insert(IniTopic(),"LWandT")
     config.insert(IniMessage(),"Goodbye, and thanks for all the fish!")
     config.insert(IniQos(),"qos1")
@@ -41,6 +41,7 @@ primitive MinConfig fun apply() : Map[String val, String val] val =>
     config.insert(IniPort(), "1883")
     config.insert(IniId(),"PonyClient")
     config.insert(IniKeepalive(),"10")
+    config.insert(IniCleansession(),"1")
     consume config
   end
 
