@@ -2,3 +2,5 @@
 **/docs
 **/bin
 **/vscode
+**/*.o
+*.yaml
