@@ -34,7 +34,7 @@ primitive BytesToU16
     try 
       (bytes(0)?.u16() << 8) + bytes(1)?.u16()
     else
-      Debug("Couldn't read id data at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string() where stream = DebugErr)
+      Debug.err("Couldn't read id data at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
       0
     end 
 
@@ -102,7 +102,7 @@ primitive U8ToQos fun apply(value : U8) : (Qos | None) =>
   | 1 => Qos1
   | 2 => Qos2
   else
-    Debug("Got invalid QoS value ("+value.string() + ") at" + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string() where stream = DebugErr)
+    Debug.err("Got invalid QoS value ("+value.string() + ") at" + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
     None
   end 
 
@@ -146,7 +146,7 @@ primitive BytesToValue fun  apply(data : Array[U8] box) : USize =>
   index = index + 1
   value = value + ((encodedByte and 127).u32() * multiplier)
   multiplier = multiplier * 128
-  if (index > 4) then Debug("Error inBytesToValue") ; return 0 end
+  if (index > 4) then Debug.err("Error inBytesToValue") ; return 0 end
     until ((encodedByte and 128) == 0) end
     value.usize()
 
@@ -162,7 +162,7 @@ primitive RlByteCount fun  apply(data : Array[U8] box) : USize =>
   repeat
   try encodedByte = data(startIndex + index)? end
   index = index + 1
-  if (index > 4) then Debug("Remaining Length Overflow" where stream = DebugErr) ; return 0 end
+  if (index > 4) then Debug.err("Remaining Length Overflow") ; return 0 end
   until ((encodedByte and 128) == 0) end
   index
 

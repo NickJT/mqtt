@@ -105,12 +105,12 @@ fun ref _build(basePacket : BasePacket val) =>
   // can use it with a Publish Packet to extract the control byte and
   // the flags  
   if(basePacket.isNotValid()) then
-    Debug("Invalid packet found at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string()  where stream = DebugErr)
+    Debug.err("Invalid packet found at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string() )
     return
   end
   
   if (basePacket.isNotA(ControlPublish)) then
-    Debug(ControlPublish.string() + " found at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string()  where stream = DebugErr)
+    Debug.err(ControlPublish.string() + " found at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string() )
     return
   end
 
@@ -120,7 +120,7 @@ fun ref _build(basePacket : BasePacket val) =>
     _isDuplicate = IsDup(_controlByte)
     _isRetain = IsRetain(_controlByte)
   else
-    Debug("Couldn't get control byte at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string()  where stream = DebugErr)
+    Debug.err("Couldn't get control byte at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string() )
     return
   end
 
@@ -151,7 +151,7 @@ fun ref _build(basePacket : BasePacket val) =>
   if (not (_qos is Qos0)) then  
     _id = BytesToU16( basePacket.data().trim(iIdStart, iIdStart+2))
     if (_id == 0) then 
-      Debug("No packet id (" + _id.string() + ") found at" + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string()  where stream = DebugErr)
+      Debug.err("No packet id (" + _id.string() + ") found at" + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string() )
       return
     end 
   end
@@ -164,7 +164,7 @@ fun compose(args : PublishArgs val)  : ArrayVal =>
   """
 
   if (args.cid == 0 ) then  
-    Debug ("Error - Publish with id = 0  at" + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string()  where stream = DebugErr)
+    Debug ("Error - Publish with id = 0  at" + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string() )
   end
 
   recover val

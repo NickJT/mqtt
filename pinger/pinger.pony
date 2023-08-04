@@ -51,4 +51,4 @@ If <repetitions> is zero then the timer fires until it is cancelled
 
 be cancel() =>
   _timers.cancel(_pingTime')
-  //Debug("Pinger cancelled")
+  //Debug.err("Pinger cancelled")

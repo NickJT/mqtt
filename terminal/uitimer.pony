@@ -19,4 +19,4 @@ the Terminal actor.
     true
     
   fun ref cancel(timer: Timer) =>
-    Debug("UI timer cancelled" where stream = DebugErr)
+    Debug.err("UI timer cancelled")

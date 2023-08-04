@@ -59,11 +59,11 @@ Reissuing Returned Ids
     try // to re-issue an id that has been returned
 
       var id = _ids.pop()?
-      //Debug("Re-issuing id " + id.string())
+      //Debug.err("Re-issuing id " + id.string())
       return id
     else  // there is nothing in the bucket, so issue a new id
       _id = _id + 1
-      //Debug("Issuing id " + _id.string())
+      //Debug.err("Issuing id " + _id.string())
       return _id
     end
   
@@ -99,8 +99,8 @@ Reissuing Returned Ids
   id can be re-used
   """
     if (not _ids.contains(id, {(x,y) => x == y})) then  // put this in the returns bucket
-      //Debug("Checking in id " + id.string() + " at " + __loc.file() + ":" +__loc.method_name() )
+      //Debug.err("Checking in id " + id.string() + " at " + __loc.file() + ":" +__loc.method_name() )
       _ids.push(id)
     else  // this id was already in the returns bucket - which shouldn't have happened
-      Debug("Error - checking in id " + id.string() + " which hasn't been checked out")
+      Debug.err("Error - checking in id " + id.string() + " which hasn't been checked out")
     end

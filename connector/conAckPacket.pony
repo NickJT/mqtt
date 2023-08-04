@@ -35,12 +35,12 @@ var _isSessionPresent: Bool = false
   new create (basePacket : BasePacket val) =>
 
    if (basePacket.isNotValid()) then  
-      Debug("Invalid data passed to ConnAckpacket is not valid")
+      Debug.err("Invalid data passed to ConnAckpacket is not valid")
       return
     end    
 
     if (basePacket.isNotA(ControlConnAck)) then
-      Debug("Wrong packet type passed to ConnAckpacket")
+      Debug.err("Wrong packet type passed to ConnAckpacket")
       return
     end  
 
@@ -50,14 +50,14 @@ var _isSessionPresent: Bool = false
       _isSessionPresent = ((basePacket.data()(_sessionPresentByte)? and 0b00000001) ==1)
       _isValid = true
     else
-      Debug("Couldn't read return code in ConAckPacket")
+      Debug.err("Couldn't read return code in ConAckPacket")
        return
     end 
        
     if (_isValid and (not _isSessionAccepted)) then 
-      Debug("Return code = " + _returnCode.string() + " Present = " + _isSessionPresent.string() + "  " + RejectionCode(_returnCode) + " at " + __loc.file() + ":" +__loc.method_name())
-      Debug(basePacket.data())
-      Debug("at " + __loc.file() + ":" +__loc.method_name() + " line")
+      Debug.err("Return code = " + _returnCode.string() + " Present = " + _isSessionPresent.string() + "  " + RejectionCode(_returnCode) + " at " + __loc.file() + ":" +__loc.method_name())
+      Debug.err(basePacket.data())
+      Debug.err("at " + __loc.file() + ":" +__loc.method_name() + " line")
   
     end
      

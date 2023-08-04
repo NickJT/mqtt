@@ -26,7 +26,7 @@ class Aclass is InputNotify
     _term(consume data)
 
   fun ref dispose() =>
-    Debug("InputNotify being disposed" where stream = DebugErr)
+    Debug.err("InputNotify being disposed")
 
 
 class Handler is ANSINotify
@@ -46,7 +46,7 @@ class Handler is ANSINotify
   
 fun ref apply(term: ANSITerm ref, input: U8 val) =>
   _term = term
-  Debug("[" + input.string() + "]" where stream = DebugErr )
+  Debug.err("[" + input.string() + "]")
   // ctrl q [17] to quit
   if input == 17 then 
     _exitCall(0)
@@ -55,10 +55,10 @@ fun ref apply(term: ANSITerm ref, input: U8 val) =>
 fun ref fn_key(i: U8 val, ctrl: Bool val, alt: Bool val, shift: Bool val) =>
 /*f1:Connect f2:Test f3:Stats f4:Unsub f5:Perf f6:Load B f9:Mute f10:Clear f11:Disc f12:Quit */
   _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.status("cmd: f" + i.string())})
-  Debug("Handler got: f" + i.string() where stream = DebugErr)
+  Debug.err("Handler got: f" + i.string())
   match i
   | Connect()     => _reg[OsNetwork](KeyNetwork()).next[None]({(nw:OsNetwork)=>nw.connect()})
-  | SubscribeTest()   => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.testSubs(Sub)}, {()=>Debug("No spawner")})
+  | SubscribeTest()   => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.testSubs(Sub)}, {()=>Debug.err("No spawner")})
   | SubscribeStats()  => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.brokerSubs(Sub)})
   | UnSubscribe() => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.unSubAll()})
   | PerfTest()    => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.perfTest()})
@@ -74,47 +74,47 @@ fun ref fn_key(i: U8 val, ctrl: Bool val, alt: Bool val, shift: Bool val) =>
 
 fun ref size(rows: U16 val, cols: U16 val) =>
   None 
-  //Debug("Rows: " + rows.string() + " Cols: " + cols.string() where stream = DebugErr )
+  //Debug.err("Rows: " + rows.string() + " Cols: " + cols.string())
   //_reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.size(rows,cols)})
 
 fun ref close() =>
-  Debug("Window closed" where stream = DebugErr)
+  Debug.err("Window closed")
   _exitCall(0)
 
 fun ref dispose() =>
-  Debug("ANSINotify being disposed" where stream = DebugErr )
+  Debug.err("ANSINotify being disposed")
 
 /* Unused key handlers*********************************************************/
   fun ref prompt(term: ANSITerm ref, value: String val) =>
-    Debug("[prompt = " + value + "]" where stream = DebugErr )
+    Debug.err("[prompt = " + value + "]")
 
   fun ref home(ctrl: Bool val, alt: Bool val, shift: Bool val) =>
-    Debug("[Home]" where stream = DebugErr )
+    Debug.err("[Home]")
 
   fun ref up(ctrl: Bool val, alt: Bool val, shift: Bool val) =>
-    Debug("[up]" where stream = DebugErr )
+    Debug.err("[up]")
 
   fun ref down(ctrl: Bool val, alt: Bool val, shift: Bool val) =>
-    Debug("[down]" where stream = DebugErr )
+    Debug.err("[down]")
 
   fun ref left(ctrl: Bool val, alt: Bool val, shift: Bool val) =>
-    Debug("[left]" where stream = DebugErr )
+    Debug.err("[left]")
 
   fun ref right(ctrl: Bool val, alt: Bool val, shift: Bool val) =>
-    Debug("[right]" where stream = DebugErr )
+    Debug.err("[right]")
 
   fun ref delete(ctrl: Bool val, alt: Bool val, shift: Bool val) =>
-    Debug("[delete]" where stream = DebugErr )
+    Debug.err("[delete]")
 
   fun ref insert(ctrl: Bool val, alt: Bool val, shift: Bool val) =>
-    Debug("[insert]" where stream = DebugErr )
+    Debug.err("[insert]")
 
   fun ref end_key(ctrl: Bool val, alt: Bool val, shift: Bool val) =>
-    Debug("[end]" where stream = DebugErr )
+    Debug.err("[end]")
 
   fun ref page_up(ctrl: Bool val, alt: Bool val, shift: Bool val) =>
-    Debug("[page_up]" where stream = DebugErr )
+    Debug.err("[page_up]")
 
   fun ref page_down(ctrl: Bool val, alt: Bool val, shift: Bool val) =>
-      Debug("[page_down]" where stream = DebugErr )
+      Debug.err("[page_down]")
 

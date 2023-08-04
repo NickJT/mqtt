@@ -107,7 +107,7 @@ fun ref _readConfig() : Bool =>
   let path : FilePath = FilePath(FileAuth(_env.root), _fileName)
 
   if (not path.exists()) then
-    Debug(_fileName + " does not exist")
+    Debug.err(_fileName + " does not exist")
     return false
   end   
 
@@ -119,7 +119,7 @@ fun ref _readConfig() : Bool =>
       // does not cause _ini to return false.
       return _ini(ini_file.lines(), _reader)
   else
-    Debug(fileError(ini_file.errno()))
+    Debug.err(fileError(ini_file.errno()))
   end
   
   false
@@ -202,7 +202,7 @@ fun ref apply(section: String ,  key: String ,  value: String ) : Bool =>
       _subscriptions.insert(key,value) 
       return true
     else
-      Debug("Invalid subscription " + key + " : " + value)
+      Debug.err("Invalid subscription " + key + " : " + value)
     end
   end
 
@@ -219,7 +219,7 @@ fun ref apply(section: String ,  key: String ,  value: String ) : Bool =>
   end
 
   // If we get here then something is wrong with our ini file  
-  Debug("Invalid ini file entry => " + section + ": [" + key + "] = " + value)
+  Debug.err("Invalid ini file entry => " + section + ": [" + key + "] = " + value)
   false
 
 /********************************************************************************/
@@ -245,7 +245,7 @@ fun add_section(section: String val): Bool =>
   """
   Part of the interface but we don't need it here
   """
-    ///Debug("Ini file section " + section)
+    ///Debug.err("Ini file section " + section)
   true
 
 /********************************************************************************/
@@ -255,8 +255,8 @@ fun ref errors(line: USize val,  err: (IniIncompleteSection val | IniNoDelimiter
   """
     var debugString : String = "ini file error in line " + line.string()
     match err
-    | IniIncompleteSection => Debug(debugString + " Incomplete Section" )
-    | IniNoDelimiter => Debug(debugString + " No Delimiter")
+    | IniIncompleteSection => Debug.err(debugString + " Incomplete Section" )
+    | IniNoDelimiter => Debug.err(debugString + " No Delimiter")
     end
   false  //Terminate further processing
 

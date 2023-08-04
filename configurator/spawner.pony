@@ -36,17 +36,17 @@ actor Spawner
     subscribermicator(_testSubs, cmd)
 
   be unSubAll() =>
-    //Debug("Unsubscribing all in spawner " where stream = DebugErr)    
+    //Debug.err("Unsubscribing all in spawner ")    
     subscribermicator(_subs, UnSub)
     subscribermicator(_testSubs, UnSub)
 
   be perfTest() =>
     var t = Time.now()
-    //Debug("Starting perfTest at " + t._1.string() + ":" + t._2.string() where stream = DebugErr)
+    //Debug.err("Starting perfTest at " + t._1.string() + ":" + t._2.string())
     _publishers.insert("timestamp",Timestamper(_reg))
 
   be loadTest() =>
-     Debug("loadTest not implemented  at " + __loc.file() + ":" +__loc.method_name() where stream = DebugErr)
+     Debug.err("loadTest not implemented  at " + __loc.file() + ":" +__loc.method_name())
     None
 
   be mute() =>

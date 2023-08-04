@@ -87,11 +87,11 @@
     be cleanly terminated
     """  
     cleanup()
-    Debug("Main.onExit code is " + code.string() where stream = DebugErr)
+    Debug.err("Main.onExit code is " + code.string())
     
 
   fun ref cleanup() =>
-    Debug("Main cleanup underway" where stream = DebugErr)
+    Debug.err("Main cleanup underway")
     _ansiTerm.dispose()
     _env.input.dispose()
     _reg.remove(KeyMain(),this)
@@ -106,4 +106,4 @@
     _reg.remove(KeyTerminal(),_terminal)
     _env.out.write(ANSI.reset() + ANSI.clear() + ANSI.white())
     _env.out.flush()
-    Debug("Main cleanup completed" where stream = DebugErr)
+    Debug.err("Main cleanup completed")

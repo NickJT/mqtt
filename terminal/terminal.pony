@@ -169,7 +169,7 @@ be onTick(seconds : I64) =>
 be exitAndReset() =>
   clearScreen()
   try _timers.cancel(_uiTimer as Timer tag) else 
-    Debug("Exiting terminal but can't cancel UI timer" where stream = DebugErr)
+    Debug.err("Exiting terminal but can't cancel UI timer")
   end
 
 fun ref paint() =>

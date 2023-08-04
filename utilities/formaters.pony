@@ -17,16 +17,16 @@ primitive FmtDec fun apply(v: I32): String =>
 
 
 primitive DumpBin fun apply(name : String, data : Array[U8] val) =>
-  Debug(name + " - " + data.size().string() + " bytes")
+  Debug.err(name + " - " + data.size().string() + " bytes")
   var i : USize = 0
   while (i < data.size()) do 
     try 
-      Debug("["+ i.string() + "]\t")
-      Debug(FmtBin(data(i)?) + "\t" + FmtHex(data(i)?)) 
+      Debug.err("["+ i.string() + "]\t")
+      Debug.err(FmtBin(data(i)?) + "\t" + FmtHex(data(i)?)) 
       i = i+ 1
     end 
   end   
-  Debug("------------------")
+  Debug.err("------------------")
 
 
 primitive Dump fun apply(data : ArrayVal) =>
@@ -50,4 +50,4 @@ primitive Dump fun apply(data : ArrayVal) =>
   consume def
   end
 
-  Debug(result)
+  Debug.err(result)

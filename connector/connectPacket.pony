@@ -119,7 +119,7 @@ appear in the order
     _isValid = true
 
     else
-      Debug("Couldn't create a ConnectPacket")
+      Debug.err("Couldn't create a ConnectPacket")
     end
 
 
@@ -210,7 +210,7 @@ appear in the order
       result(0)? = msb
       result(1)? = lsb
     else
-      Debug("Couldn't convert keepAlive string <<" + kaString + ">> - using default")
+      Debug.err("Couldn't convert keepAlive string <<" + kaString + ">> - using default")
     end  
       consume result
     end

@@ -49,19 +49,19 @@ multiple topics in one subscribe message.
     var result : U8 = 0x80  // Default to rejected
 
     if (basePacket.isNotValid()or (basePacket.isNotA(ControlSubAck))) then 
-           Debug("Invalid packet at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string()  where stream = DebugErr)
+           Debug.err("Invalid packet at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string() )
         return
     end
 
     try 
       result = basePacket.data()(4)?
     else
-      Debug("Can't read SubAck code at at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string()  where stream = DebugErr)
+      Debug.err("Can't read SubAck code at at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string() )
       return
     end
 
     if (result == SubAckFailure()) then
-      Debug("Subscription request rejected")
+      Debug.err("Subscription request rejected")
       return
     end
   

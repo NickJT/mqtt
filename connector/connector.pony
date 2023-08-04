@@ -46,7 +46,7 @@ of going through the registrar.
   be connect( config : Map[String val, String val] val) =>
     var cp : ConnectPacket = ConnectPacket(config)
     if (not cp.isValid()) then 
-      Debug("Invalid connect packet (or I'm a Mock Broker) at " + __loc.file() + ":" +__loc.method_name())
+      Debug.err("Invalid connect packet (or I'm a Mock Broker) at " + __loc.file() + ":" +__loc.method_name())
       return
     end
     _cleanSessionRequested = (cp.isSet(ConnectClean))

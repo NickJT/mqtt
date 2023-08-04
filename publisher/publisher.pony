@@ -72,7 +72,7 @@ be publish(args : PublishArgs val) =>
   Public API call to publish a payload
   """
   _reg[IdIssuer tag](KeyIssuer()).next[None]({(issuer) => issuer.checkOutPub(_idNotify, args)},
-    {()=> Debug("No issuer!")})
+    {()=> Debug.err("No issuer!")})
 
 
 /********************************************************************************/
@@ -119,7 +119,7 @@ fun ref nextQos1Args(argsOrNone : (PublishArgs val | None)) =>
   if (inFlightLimitReached()) then  // We can't send any more packets from the queue so return
     try  //TODO - Only for debugging. Remove converson and fail silently later. 
       var args = argsOrNone as PublishArgs val
-      Debug("Queued QoS 1 id " + args.cid.string() + " In-flight: " + _qos1Map.size().string() + " Queued: " + _pending.size().string())
+      Debug.err("Queued QoS 1 id " + args.cid.string() + " In-flight: " + _qos1Map.size().string() + " Queued: " + _pending.size().string())
     end  
     return  
   end
@@ -129,7 +129,7 @@ fun ref nextQos1Args(argsOrNone : (PublishArgs val | None)) =>
   try
     nextArgs = _pending.shift()?
   else 
-    Debug("\nProgram error in " + __loc.file() + ":" +__loc.method_name() + "\n")
+    Debug.err("\nProgram error in " + __loc.file() + ":" +__loc.method_name() + "\n")
     return
   end  
   sendToRouter(nextArgs)
@@ -155,7 +155,7 @@ fun ref nextQos2Args(argsOrNone : (PublishArgs val | None)) =>
     _qos2Map.insert(args.cid, args)
     sendToRouter(args)
   else
-    Debug("\nProgram error in " + __loc.file() + ":" +__loc.method_name() + "\n")
+    Debug.err("\nProgram error in " + __loc.file() + ":" +__loc.method_name() + "\n")
   end
 
 /********************************************************************************/
@@ -170,7 +170,7 @@ be onData(basePacket : BasePacket val) =>
   | ControlPubRec => onPubRec(basePacket)
   | ControlPubComp => onPubComp(basePacket)
   else
-    Debug ("Unexpected " + basePacket.controlType().string() + " at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string()  where stream = DebugErr)
+    Debug ("Unexpected " + basePacket.controlType().string() + " at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string() )
   end    
 
 /********************************************************************************/
@@ -187,7 +187,7 @@ be onTick(sec : I64) =>
   This is the target for the TickListener trait that is called by the system tick
   tick timer. Each time we get this we scan the in-flight queue for expired messages
   """
-  Debug(_topic.string() + " publisher got system tick " + sec.string()+ " at " + __loc.file() + ":" +__loc.method_name())
+  Debug.err(_topic.string() + " publisher got system tick " + sec.string()+ " at " + __loc.file() + ":" +__loc.method_name())
 
 /********************************************************************************/
 fun ref onPubAck(basePacket : BasePacket val) =>
@@ -198,14 +198,14 @@ fun ref onPubAck(basePacket : BasePacket val) =>
   """
   var pubAckPacket : PubAckPacket val = PubAckPacket.createFromPacket(basePacket)
   if (not pubAckPacket.isValid()) then 
-    Debug("Got invalid PubAck packet - id = " + pubAckPacket.id().string())  
+    Debug.err("Got invalid PubAck packet - id = " + pubAckPacket.id().string())  
     return
   end
 
   try 
     _qos1Map.remove(pubAckPacket.id())?
   else
-    Debug("Couldn't find QoS 1 publication with id " + pubAckPacket.id().string() + "  in " + __loc.file() + ":" +__loc.method_name())
+    Debug.err("Couldn't find QoS 1 publication with id " + pubAckPacket.id().string() + "  in " + __loc.file() + ":" +__loc.method_name())
   end  
   publishComplete(pubAckPacket.id())
 
@@ -221,7 +221,7 @@ fun ref onPubRec(basePacket: BasePacket val) =>
   """
   var pubRecPacket : PubRecPacket val = PubRecPacket.createFromPacket(basePacket)
   if (not pubRecPacket.isValid()) then 
-    Debug("Got invalid PubRec packet - id = " + pubRecPacket.id().string())  
+    Debug.err("Got invalid PubRec packet - id = " + pubRecPacket.id().string())  
     return
   end
   // Our QoS 2 publication has been received so we can delete the packet from 
@@ -230,7 +230,7 @@ fun ref onPubRec(basePacket: BasePacket val) =>
   try
     _qos2Map.remove(pubRecPacket.id())?
   else
-    Debug("Couldn't remove QoS 2 message id " + pubRecPacket.id().string() + "  at " + __loc.file() + ":" +__loc.method_name())
+    Debug.err("Couldn't remove QoS 2 message id " + pubRecPacket.id().string() + "  at " + __loc.file() + ":" +__loc.method_name())
   end
   doPubRel(pubRecPacket.id())
 
@@ -241,7 +241,7 @@ fun ref doPubRel(cid : IdType) =>
   Send a PubRelPacket with the passed Cid to the router.
   """
   var data  = PubRelPacket.compose(cid)
-  //Debug("Inserted id " + id.string() + " in _pubRel at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string()  where stream = DebugErr)
+  //Debug.err("Inserted id " + id.string() + " in _pubRel at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string() )
   
   _pubRelMap.insert(cid,data)
   _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.send(data)})
@@ -256,16 +256,16 @@ fun ref onPubComp(basePacket: BasePacket val) =>
   """
   var pubCompPacket : PubCompPacket val = PubCompPacket.createFromPacket(basePacket)
   if (not pubCompPacket.isValid()) then 
-    Debug("Got invalid PubComp packet - cid = " + pubCompPacket.id().string())  
+    Debug.err("Got invalid PubComp packet - cid = " + pubCompPacket.id().string())  
     // TODO - Add some cleanup here
     return
   end
 
   try
     _pubRelMap.remove(pubCompPacket.id())?
-    //Debug("Removed id " + pubCompPacket.id().string() + " in _pubRel at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string()  where stream = DebugErr)
+    //Debug.err("Removed id " + pubCompPacket.id().string() + " in _pubRel at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string() )
   else
-    Debug("Unable to remove client id " + pubCompPacket.id().string() + " at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string()  where stream = DebugErr)
+    Debug.err("Unable to remove client id " + pubCompPacket.id().string() + " at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string() )
   end
   publishComplete(pubCompPacket.id())
   
@@ -285,8 +285,8 @@ be onDuckAndCover() =>
   """
   We need to save state because the broker is disconnecting or something has gone awry.   
   """
-  Debug(_qos1Map.size().string() + " unreleased packets in " + _topic + " _qos1Map")
-  Debug(_pending.size().string() + " unreleased packets in " + _topic + " _pending")
-  Debug(_qos2Map.size().string() + " unreleased packets in " + _topic + " _qos2Map")
-  Debug(_pubRelMap.size().string() + " unreleased packets in " + _topic + " _pubRelMap")
+  Debug.err(_qos1Map.size().string() + " unreleased packets in " + _topic + " _qos1Map")
+  Debug.err(_pending.size().string() + " unreleased packets in " + _topic + " _pending")
+  Debug.err(_qos2Map.size().string() + " unreleased packets in " + _topic + " _qos2Map")
+  Debug.err(_pubRelMap.size().string() + " unreleased packets in " + _topic + " _pubRelMap")
 

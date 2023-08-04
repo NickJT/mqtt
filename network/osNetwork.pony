@@ -25,13 +25,13 @@ actor OsNetwork
     _port = config(IniPort())?
     _config = config
   else
-    Debug("Unable to read address and port config in " + ConfigFile() where stream = DebugErr)
+    Debug.err("Unable to read address and port config in " + ConfigFile())
   end
 
 
 /************************************************************************/
 be connect() =>
-  //Debug("Connecting to " + _ipv4Address + ":" + _port where stream = DebugErr)
+  //Debug.err("Connecting to " + _ipv4Address + ":" + _port)
   _maybe = TCPConnection(TCPConnectAuth(_env.root), recover Client(_env, _router) end, _ipv4Address, _port)
   
 /************************************************************************/

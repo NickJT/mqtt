@@ -54,7 +54,7 @@ while (true) do
 end
 
 ////////////// Determine how often this happens - then remove /////
-//if (packets.size() == 0) then Debug("Partial packet") end
+//if (packets.size() == 0) then Debug.err("Partial packet") end
 //if (packets.size() > 1) then Debug ("Multiple packets")end
 ///////////////////////////////////////////////////////////////////
 
