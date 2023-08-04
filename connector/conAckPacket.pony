@@ -56,7 +56,7 @@ var _isSessionPresent: Bool = false
        
     if (_isValid and (not _isSessionAccepted)) then 
       Debug.err("Return code = " + _returnCode.string() + " Present = " + _isSessionPresent.string() + "  " + RejectionCode(_returnCode) + " at " + __loc.file() + ":" +__loc.method_name())
-      Debug.err(basePacket.data())
+      Debug(basePacket.data() where stream = DebugErr)
       Debug.err("at " + __loc.file() + ":" +__loc.method_name() + " line")
   
     end

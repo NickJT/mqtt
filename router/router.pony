@@ -703,7 +703,7 @@ fun onControlConnect(basePacket : BasePacket val) =>
   Debug.err("Mock Broker got a " + basePacket.controlType().string() + " at " + __loc.file() + ":" +__loc.method_name())
   let connack : ArrayVal = [32; 2; 0; 0]
   Debug.err("Mock Broker sending " )
-  Debug.err(connack)
+  Debug(connack where stream = DebugErr)
   send(connack)
 
 /*********************************************************************************/

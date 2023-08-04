@@ -211,7 +211,7 @@ fun ref onPayload(basePacket: BasePacket val) : None =>
       releasePkt(pubPacket) 
     else
       Debug.err("Invalid Id in publish packet at " + __loc.file() + ":" +__loc.method_name())
-      Debug.err(basePacket.data())
+      Debug(basePacket.data() where stream = DebugErr)
     end  
   end
 

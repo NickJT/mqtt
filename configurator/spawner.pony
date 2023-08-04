@@ -26,6 +26,7 @@ actor Spawner
       t.insert("test/q1", "QOS1")
       t.insert("test/q2", "QOS2")
       t.insert("timestamp", "QOS1")
+      t.insert("MessageTest/q0result","Qos2")
       t
     end
 
@@ -41,13 +42,12 @@ actor Spawner
     subscribermicator(_testSubs, UnSub)
 
   be perfTest() =>
-    var t = Time.now()
+    MessageTest(_reg)
     //Debug.err("Starting perfTest at " + t._1.string() + ":" + t._2.string())
-    _publishers.insert("timestamp",Timestamper(_reg))
+ 
 
   be loadTest() =>
-     Debug.err("loadTest not implemented  at " + __loc.file() + ":" +__loc.method_name())
-    None
+    _publishers.insert("timestamp",Timestamper(_reg))
 
   be mute() =>
     for publisher in _publishers.values() do
