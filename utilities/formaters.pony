@@ -1,4 +1,5 @@
 use "format"
+use "time"
 use "../primitives"
 use "debug"
 
@@ -51,3 +52,19 @@ primitive Dump fun apply(data : ArrayVal) =>
   end
 
   Debug.err(result)
+
+primitive Datestamp fun apply() : String val =>
+  try
+    (var sec, var nano) = Time.now()
+    return PosixDate.create(sec,nano).format("%Y:%m:%d %H:%M:%S")?
+  else  
+    return "err"
+  end
+
+  primitive Timestamp fun apply() : String val =>
+  try
+    (var sec, var nano) = Time.now()
+    return PosixDate.create(sec,nano).format("%Y:%m:%d %H:%M:%S")? + "  " + nano.string()
+  else  
+    return "err"
+  end

@@ -7,7 +7,7 @@ use "../primitives"
 use "../router"
 use "../utilities"
 
-class Timestamp is TimerNotify
+class TsNotify is TimerNotify
   var _count: U64 = 0
   var _reg : Registrar
   var _pub : Publisher
@@ -20,20 +20,7 @@ class Timestamp is TimerNotify
 
   fun ref apply(timer: Timer,count: U64): Bool =>
     _count = _count + count
-    var timestring : String val = 
-    recover val
-      (var sec, var nano) = Time.now()
-      var datetime : PosixDate = PosixDate.create(sec,nano)
-      var stg : String ref = String
-      stg.append(FmtDec(datetime.hour))
-      stg.append(":")
-      stg.append(FmtDec(datetime.min))
-      stg.append(":")
-      stg.append(FmtDec(datetime.sec))
-      consume stg
-     end
-     var args = PublishArgs(_topic, timestring.array(), Qos2)
-    _pub.publish(args)
+    _pub.publish(PublishArgs(_topic, Timestamp().array(), Qos2))
     _count < 10
 
   fun ref cancel(timer: Timer) =>
@@ -52,7 +39,7 @@ actor Timestamper
     _pub = Publisher(_reg,_topic)
     
     _timers = Timers
-    let timer : Timer iso = Timer(Timestamp(_reg, _pub, _topic),1000000000, 1000000000)
+    let timer : Timer iso = Timer(TsNotify(_reg, _pub, _topic),1000000000, 1000000000)
     _timerTag = timer
     _timers(consume timer)
 

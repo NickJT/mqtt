@@ -187,7 +187,7 @@ be onTick(sec : I64) =>
   This is the target for the TickListener trait that is called by the system tick
   tick timer. Each time we get this we scan the in-flight queue for expired messages
   """
-  Debug.err(_topic.string() + " publisher got system tick " + sec.string()+ " at " + __loc.file() + ":" +__loc.method_name())
+  //Debug.err(_topic.string() + " publisher got system tick " + sec.string()+ " at " + __loc.file() + ":" +__loc.method_name())
 
 /********************************************************************************/
 fun ref onPubAck(basePacket : BasePacket val) =>
