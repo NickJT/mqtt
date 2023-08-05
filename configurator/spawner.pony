@@ -26,7 +26,6 @@ actor Spawner
       t.insert("test/q1", "QOS1")
       t.insert("test/q2", "QOS2")
       t.insert("timestamp", "QOS1")
-      t.insert("MessageTest/q0result","Qos2")
       t
     end
 

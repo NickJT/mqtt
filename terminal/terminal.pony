@@ -4,6 +4,7 @@
   use "term"
   use "debug"
   use "../primitives"
+  use "../utilities"
 
 /* Primitives ********************************************************************/
   primitive HighlightPeriod  fun apply() : U64 => 3
@@ -102,12 +103,12 @@ actor Terminal
     let _paintAreas : Areas = Areas
     var _commands : String val = Commands()
 
-    var _timers : Timers
-    var _uiTimer : (None | Timer tag) = None
+    let _timers : Timers
+    var _uiTimer : (Timer tag | None) = None
 
 new create(env: Env) =>
   _out = env.out
-
+  _timers = Timers  
   let t = recover
     object is TimerNotify
       let term: Terminal = this
@@ -119,10 +120,9 @@ new create(env: Env) =>
         None
     end
   end  
-  _timers = Timers  
   let timer = Timer(consume t, 1_000_000_000, 1_000_000_000)
 //_uiTimer = timer    // TODO - causes a segfault if compiled for debug
-  _timers(consume timer)
+  _timers(consume timer) 
 
   for i in Range[U32](0,_statusHeight) do 
     _statusBuf.push(StatusLine("-"))
@@ -132,6 +132,11 @@ new create(env: Env) =>
   paint()
 
 be message(topic: String val, content : String val) =>
+  (var s, var ns) = Time.now()
+  if (topic == "benchmark") then
+   Debug.err(Elapsed(s,ns,content))
+  end
+
   if _boxMap.contains(topic) then
     try _boxMap(topic)?.update(content) end
   else
