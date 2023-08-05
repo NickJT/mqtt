@@ -4,6 +4,7 @@
   use "collections"
   use "debug"
   use "net"
+  use "time"
 
   use "../assembler"
   use "../connector"
@@ -16,9 +17,6 @@
   use "../network"
   use "../ticker"
   use "../utilities"
-
-
-
 
 /********************************************************************************/
 actor Router
@@ -320,6 +318,12 @@ be onPublish(pub : Publisher tag, topic: String, id : IdType, packet : ArrayVal)
     _actorById.update(id,pub)
     //Debug.err("Publishing on topic : " + topic + " with id " + id.string() + " in " + __loc.file() + ":" +__loc.method_name())
     send(packet)
+    if (topic == "benchmark") then
+      (var s, var ns) = Time.now()
+      var sz = packet.size()
+      var payload : String val = String.from_array(packet.trim(sz-22,sz-1))
+      Debug(Elapsed(s,ns,payload) where stream = DebugErr) 
+    end
 
 
 /*********************************************************************************/

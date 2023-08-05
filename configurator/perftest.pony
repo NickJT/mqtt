@@ -20,10 +20,9 @@ actor MessageTest
     _reg = reg
     _testPub = Publisher(_reg,_testTopic)
     _testSub = Subscriber(_reg,_testTopic, "qos0")
-    var args = PublishArgs(_testTopic, Timestamp().array(), Qos2)
     _testSub.subscribe()
     for i in Range[U64](0,_count) do 
-      _testPub.publish(args)
+      _testPub.publish(PublishArgs(_testTopic, Timestamp().array(), Qos0))
     end
     
   be mute() =>

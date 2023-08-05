@@ -80,6 +80,7 @@ primitive Elapsed fun apply(s: I64, ns: I64, content : String val) : String val 
   try 
     var temp : String val = content.substring((content.find("[")?+1),content.size().isize()-1) 
     var pos : USize = temp.find(",")?.usize() 
+    var sStart = temp.trim(0,pos).i64()?
     var nsStart = temp.trim(pos+1).i64()?
     var sWithCarry = s
     var nsWithCarry = ns

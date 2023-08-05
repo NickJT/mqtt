@@ -132,11 +132,6 @@ new create(env: Env) =>
   paint()
 
 be message(topic: String val, content : String val) =>
-  (var s, var ns) = Time.now()
-  if (topic == "benchmark") then
-   Debug.err(Elapsed(s,ns,content))
-  end
-
   if _boxMap.contains(topic) then
     try _boxMap(topic)?.update(content) end
   else
