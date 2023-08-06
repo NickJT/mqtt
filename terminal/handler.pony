@@ -6,6 +6,7 @@
   use "bureaucracy"
   use "package:.."
   use "package:../configurator"
+  use "package:../examples"
   use "package:../network"
   use "package:../primitives"
   use "package:../router"
@@ -53,15 +54,12 @@ fun ref apply(term: ANSITerm ref, input: U8 val) =>
   end 
 
 fun ref fn_key(i: U8 val, ctrl: Bool val, alt: Bool val, shift: Bool val) =>
-/*f1:Connect f2:Test f3:Stats f4:Unsub f5:Perf f6:Load B f9:Mute f10:Clear f11:Disc f12:Quit */
-  //_reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.status("cmd: f" + i.string())})
-  //Debug.err("Handler got: f" + i.string())
   match i
   | Connect()     => _reg[OsNetwork](KeyNetwork()).next[None]({(nw:OsNetwork)=>nw.connect()})
   | SubscribeTest()   => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.testSubs(Sub)}, {()=>Debug.err("No spawner")})
   | SubscribeStats()  => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.brokerSubs(Sub)})
   | UnSubscribe() => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.unSubAll()})
-  | PerfTest()    => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.perfTest()})
+  | SoakTest()    => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.soakTest()})
   | LoadTest()    => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.loadTest()})
   | Mute()        => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.mute()})
   | Discon()      => _reg[Router](KeyRouter()).next[None]({ (r: Router)=>r.disconnectBroker()})

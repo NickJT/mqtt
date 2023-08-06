@@ -132,6 +132,10 @@ new create(env: Env) =>
   paint()
 
 be message(topic: String val, content : String val) =>
+  if (topic.contains("stats/",0)) then 
+    stats(topic,content)
+    return
+  end
   if _boxMap.contains(topic) then
     try _boxMap(topic)?.update(content) end
   else
@@ -266,3 +270,14 @@ fun ref timeout(seconds : I64) =>
     _paintAreas.set(MSG)
     paint()
   end
+fun ref stats(topic: String val, content : String val) =>
+  """
+    Messages are diverted here if we want to use them for testing purposes and
+    not necessarily display every message
+    All messages getting here have a topic starting with /stats 
+  """
+    match topic.trim(6)
+    | "soaktest" => None
+    else
+      None
+    end

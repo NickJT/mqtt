@@ -8,6 +8,7 @@
 
   use "configurator"
   use "idIssuer"
+  use "examples"
   use "network"
   use "primitives"
   use "publisher"

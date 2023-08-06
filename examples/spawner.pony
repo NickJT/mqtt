@@ -26,6 +26,7 @@ actor Spawner
       t.insert("test/q1", "QOS1")
       t.insert("test/q2", "QOS2")
       t.insert("timestamp", "QOS1")
+      t.insert("stats/soaktest","Qos0")
       t
     end
 
@@ -42,6 +43,11 @@ actor Spawner
 
   be perfTest() =>
     MessageTest(_reg)
+    //Debug.err("Starting perfTest at " + t._1.string() + ":" + t._2.string())
+ 
+
+  be soakTest() =>
+    SoakTester(_reg)
     //Debug.err("Starting perfTest at " + t._1.string() + ":" + t._2.string())
  
 
