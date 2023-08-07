@@ -297,14 +297,14 @@ fun ref _soaktest(topic: String val, content : String val) =>
     status("Started " + topic + " at " + Timestamp())
     _start.update()
   end
-  if ((_count != 0) and ((_count % 100) == 0)) then 
+/*   if ((_count != 0) and ((_count % 100) == 0)) then 
     status(topic + ": " + _count.string())
-  end
+  end */
   
   _count = _count + 1
-  if (_count > (TestLength() - 100)) then status(_count.string() + " msg " + content) end
   if (_count == TestLength()) then 
     var finish : MqTime = MqTime
     status("Finished " + topic + " - " + _count.string() + " messages in " + _start.elapsedString(finish))
+    status(_count.string() + " msg " + content)
     _started = false
   end

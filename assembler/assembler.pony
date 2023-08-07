@@ -34,7 +34,8 @@ other than when router extracts the data in its send behaviour.
   let _router : Router tag
   var _remainder : ArrayVal = Array[U8]
   var _pkt : ArrayVal = Array[U8]
-  var packets : Array[ArrayVal] = packets.create()
+  var _packets : Array[ArrayVal] = _packets.create()
+  var _last : Array[ArrayVal] = _packets.create()
 
   new create(router : Router tag) =>
     _router = router
@@ -45,7 +46,7 @@ be assemble(input: ArrayVal) =>
 var buf : ArrayVal = input
 while (true) do
   _pkt = split(buf)
-  if (_pkt.size() > 0) then packets.push(_pkt) end
+  if (_pkt.size() > 0) then _packets.push(_pkt) end
   var needed : USize = 0
   needed = TotalLength(_remainder)   // This returns zero if _remainder is empty
   if ((needed == 0) or (_remainder.size() < needed)) then break end
@@ -54,27 +55,37 @@ while (true) do
 end
 
 ////////////// Determine how often this happens - then remove /////
-if (packets.size() == 0) then Debug.err("Partial packet") end
-if (packets.size() > 1) then Debug.err("Multiple packets")end
+//if (packets.size() == 0) then Debug.err("Partial packet") end
+//if (packets.size() > 1) then Debug.err("Multiple packets")end
 ///////////////////////////////////////////////////////////////////
 
-for packet in packets.values() do 
+for packet in _packets.values() do 
   var basePacket : BasePacket val = recover val BasePacket(packet,"Assembler") end
   if (basePacket.isNotValid()) then 
     dumpBuffer()
     break
   else  
+    //if basePacket.isA(ControlPublish) then Debug(basePacket.data() where stream = DebugErr) end
     _router.route(consume basePacket)
   end
  end
-packets.clear()
+ _packets.copy_to(_last,0,0,_packets.size())
+ _packets.clear()
 
 fun ref dumpBuffer() =>
-  Debug.err("Assembler error")
-  for packet in packets.values() do 
+  for last in _last.values() do 
+    Debug(last where stream = DebugErr)
+    var stg : String val = String.from_array(last.trim(4))
+    Debug("[" + stg + "]" where stream = DebugErr)
+  end
+  Debug.err("Assembler error here")
+  for packet in _packets.values() do 
     Debug(packet where stream = DebugErr)
+    var stg : String val = String.from_array(packet.trim(4))
+    Debug("[" + stg + "]" where stream = DebugErr)
     _router.onError(MalformedResponse)
   end
+  Debug.err("-----------------")
   
 
 /********************************************************************************/

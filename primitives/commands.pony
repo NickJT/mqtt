@@ -36,5 +36,5 @@ type Command is (Connect | SubscribeTest | SubscribeStats | UnSubscribe | SoakTe
 
 primitive TestPrefix fun apply() : String val => "stats/"
 primitive TestTopic fun apply() : String val => "soaktest"
-primitive TestLength fun apply() : U64 => 8000
-primitive TestInterval fun apply() : U64 => 10_000_000
+primitive TestLength fun apply() : U64 => 10000
+primitive TestInterval fun apply() : U64 => 1_00_000

@@ -532,10 +532,8 @@ be onBrokerConnect() =>
   """
   showStatus("Router - onBrokerConnect")
   _reg[Ticker](KeyTicker()).next[None]({(t : Ticker) => t.start()})
-  
-  // The keepalive Pinger is currenty limited so that we disconnect
-  // cleanly during testing. Pinger responds via _reg
-  _pinger = Pinger(_reg, 5/* seconds delay*/, 50/*repetitions*/)
+
+  _pinger = Pinger(_reg, 5/* seconds delay*/)
   try _reg.update(KeyPinger(), _pinger as Pinger) end 
 
 /*********************************************************************************/

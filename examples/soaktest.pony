@@ -23,7 +23,7 @@ class SoakPublisher is TimerNotify
 
   fun ref apply(timer : Timer, count : U64) : Bool =>
     _count = _count + count
-    var payload : String val = _count.string() + " - " + Timestamp()
+    var payload : String val = _count.string() + " !"
     _publisher.publish(PublishArgs(_testTopic, payload.array(), Qos0))
     _count < _reps
 

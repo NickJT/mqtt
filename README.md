@@ -14,7 +14,7 @@ If you haven't used Pony, this is the best starting point -> [Pony Tutorial](htt
 3. Separate classes for each packet type so we don't miss any variations
 4. Consistent api to avoid programming errors while things stabiliise
 5. No hard split between library and application
-6. Simple ui for start/stop
+6. Simple ui for start/stop (Note - The ANSI terminal codes don't work on Windows)
 
 ### Release .2 ###
 

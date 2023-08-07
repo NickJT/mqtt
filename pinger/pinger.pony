@@ -24,7 +24,7 @@ Fire the time <reps> number of times and then cancel. If reps is zero
     _count = _count + count
     _reg[Router](KeyRouter()).next[None]({(r : Router) => r.doPing()})
     // false to cancel
-    (_reps > _count)
+    (_reps == 0) or (_count < _reps)
 
   fun ref cancel(timer: Timer) =>
     _reg[Router](KeyRouter()).next[None]({(r : Router) => r.showStatus("KeepAlive cancelled")})
@@ -41,7 +41,7 @@ If <repetitions> is zero then the timer fires until it is cancelled
   let _pingTime' : Timer tag
   let _timers :Timers 
 
-  new create(reg: Registrar, period /* seconds */: U64 val, repetitions : U64) =>
+  new create(reg: Registrar, period /* seconds */: U64 val, repetitions : U64 = 0) =>
    _reg = reg
    _timers = Timers
    var delay : U64 val = 3 /*seconds*/
