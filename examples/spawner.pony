@@ -26,7 +26,6 @@ actor Spawner
       t.insert("test/q1", "QOS1")
       t.insert("test/q2", "QOS2")
       t.insert("timestamp", "QOS1")
-      t.insert("stats/soaktest","Qos0")
       t
     end
 
@@ -58,7 +57,7 @@ actor Spawner
     for publisher in _publishers.values() do
       publisher.mute()
     end
-    _publishers.clear()
+      _publishers.clear()
     
   fun ref subscribermicator(subs : Map[String val, String val] val, cmd : SubControl) =>
     """

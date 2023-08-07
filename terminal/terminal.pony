@@ -105,6 +105,11 @@ actor Terminal
 
     let _timers : Timers
     var _uiTimer : (Timer tag | None) = None
+  /* Stats *********************************************************/
+    var _sequence : U64 = 0
+    var _count : U64 = 0
+    var _start : MqTime = MqTime
+    var _started : Bool = false
 
 new create(env: Env) =>
   _out = env.out
@@ -132,8 +137,8 @@ new create(env: Env) =>
   paint()
 
 be message(topic: String val, content : String val) =>
-  if (topic.contains("stats/",0)) then 
-    stats(topic,content)
+  if (topic.contains(TestPrefix(),0)) then 
+    _stats(topic,content)
     return
   end
   if _boxMap.contains(topic) then
@@ -270,14 +275,36 @@ fun ref timeout(seconds : I64) =>
     _paintAreas.set(MSG)
     paint()
   end
-fun ref stats(topic: String val, content : String val) =>
+fun ref _stats(topic: String val, content : String val) =>
   """
     Messages are diverted here if we want to use them for testing purposes and
     not necessarily display every message
     All messages getting here have a topic starting with /stats 
   """
     match topic.trim(6)
-    | "soaktest" => None
+    | TestTopic() => _soaktest(topic,content)
     else
-      None
+      status("unmatched test topic: " + topic.trim(6))
     end
+
+fun ref _soaktest(topic: String val, content : String val) =>
+  if not _started then
+    _started = true
+    _sequence = 0
+    _count = 0    
+  end
+  if (_count == 1) then 
+    status("Started " + topic + " at " + Timestamp())
+    _start.update()
+  end
+  if ((_count != 0) and ((_count % 100) == 0)) then 
+    status(topic + ": " + _count.string())
+  end
+  
+  _count = _count + 1
+  if (_count > (TestLength() - 100)) then status(_count.string() + " msg " + content) end
+  if (_count == TestLength()) then 
+    var finish : MqTime = MqTime
+    status("Finished " + topic + " - " + _count.string() + " messages in " + _start.elapsedString(finish))
+    _started = false
+  end

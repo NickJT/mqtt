@@ -19,10 +19,12 @@ If the BasePacket.IsValid() method returns true then BasePacket guarantees
   var _fixedHeaderLength: USize = 0
   var _totalLength: USize = 0
   var _isValid : Bool = false
+  var _source : String val 
 
 
-  new create(data' : ArrayVal) =>
+  new create(data' : ArrayVal, source : String val = "") =>
     _data = data'
+    _source = source
     // If the control byte isn't accessible then we don't have a valid packet
     _controlByte = _getControlByte() 
     if (_controlByte is None) then
@@ -44,10 +46,9 @@ If the BasePacket.IsValid() method returns true then BasePacket guarantees
     if (_data.size() != TotalLength(_data)) then 
         Debug.err("Data packet is an unexpected size at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string() )
         Debug.err("TotalLength returned " + TotalLength(_data).string() + " Actual size: " + _data.size().string())
+        if (_source != "") then Debug.err("Source = " + _source ) end
         return
     end
-
-
 
     // If we get here we have a valid packet, maybe
     _isValid = true

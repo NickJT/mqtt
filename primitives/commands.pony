@@ -32,3 +32,9 @@ primitive Quit fun apply() : U8 =>            12 fun string() : String val => "Q
 
 type Command is (Connect | SubscribeTest | SubscribeStats | UnSubscribe | SoakTest 
 | LoadTest | Mute | Clear | Discon | Quit )  
+
+
+primitive TestPrefix fun apply() : String val => "stats/"
+primitive TestTopic fun apply() : String val => "soaktest"
+primitive TestLength fun apply() : U64 => 8000
+primitive TestInterval fun apply() : U64 => 10_000_000
