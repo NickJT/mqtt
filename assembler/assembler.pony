@@ -54,16 +54,28 @@ while (true) do
 end
 
 ////////////// Determine how often this happens - then remove /////
-//if (packets.size() == 0) then Debug.err("Partial packet") end
-//if (packets.size() > 1) then Debug ("Multiple packets")end
+if (packets.size() == 0) then Debug.err("Partial packet") end
+if (packets.size() > 1) then Debug.err("Multiple packets")end
 ///////////////////////////////////////////////////////////////////
 
 for packet in packets.values() do 
-  var basePacket : BasePacket val = recover val BasePacket(packet) end
-  _router.route(consume basePacket)
-end
+  var basePacket : BasePacket val = recover val BasePacket(packet,"Assembler") end
+  if (basePacket.isNotValid()) then 
+    dumpBuffer()
+    break
+  else  
+    _router.route(consume basePacket)
+  end
+ end
 packets.clear()
 
+fun ref dumpBuffer() =>
+  Debug.err("Assembler error")
+  for packet in packets.values() do 
+    Debug(packet where stream = DebugErr)
+    _router.onError(MalformedResponse)
+  end
+  
 
 /********************************************************************************/
 fun ref split(input: ArrayVal) : ArrayVal =>

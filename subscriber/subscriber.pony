@@ -297,7 +297,7 @@ fun releasePkt(pubPacket : PublishPacket val) =>
     var payloadString : String val = pubPacket.payloadAsString() as String
   _reg[Router](KeyRouter()).next[None]({ (r: Router)=>r.showMessage(topic, payloadString)},{()=>Debug.err("Mock Broker got " + payloadString)})
   else
-    Debug ("Packet error in " + __loc.method_name())
+    Debug.err("Packet error in " + __loc.method_name())
   end
 
 

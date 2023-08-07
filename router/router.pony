@@ -608,12 +608,20 @@ be onBrokerRefusal(reason : ConnAckReturnCode) =>
 
 
 /*********************************************************************************/
-be onErrorOrDisconnect(errorCode : ErrorCode) =>
+be onError(errorCode : ErrorCode) =>
   """
-  Called if we detect a protocol error, broker timeout or network disconnect
+  Called if we detect a protocol error or broker timeout 
   """
-  showStatus(errorCode.string() + "  at " + __loc.file() + ":" +__loc.method_name())
+  Debug.err(errorCode.string() + " at " + __loc.file() + ":" +__loc.method_name())
+  disconnectBroker()
+  cleanup()
 
+be onTCPDisconnect(errorCode : ErrorCode) =>
+  """
+    Called if the TCP connection is closed in client
+  """
+  Debug.err("TCP Disconnect: " + errorCode.string() + " at " + __loc.file() + ":" +__loc.method_name())
+  cleanup()
 
 /*********************************************************************************/
 be disconnectBroker() =>
@@ -623,24 +631,27 @@ be disconnectBroker() =>
   after sending DISCONNECT (so any clean-up from there on must be independent of the
   network)
   """
-  showStatus("Disconnecting Broker")
+  Debug.err("Disconnecting Broker at " + __loc.file() + ":" +__loc.method_name())
   cancelKeepAlive()
   send(DisconnectPacket.compose())
+  _reg[OsNetwork](KeyNetwork()).next[None]({(n:OsNetwork)=>n.disconnect()})
+  // client calls cleanup when it has disconnected so don't call it here
+
+/*********************************************************************************/
+fun ref cleanup() =>
 
   if (not _cleanSession) then
     showStatus("Saving session")
     saveState()
   end  
 
-  showStatus("Deleting references to subscribers")
   _subscriberByTopic.clear()
   _subscriberByBid.clear()
   _actorById.clear()
+  Debug.err("router exiting at " + __loc.file() + ":" +__loc.method_name())
 
-  showStatus("Disconnecting network")
-  _reg[OsNetwork](KeyNetwork()).next[None]({(n:OsNetwork)=>n.disconnect()})
 
-  be cancelKeepAlive() =>
+be cancelKeepAlive() =>
   """
   We make this a behaviour so that main can cancel it in the event of an error. Otherwise
   router can terminate but leave pinger pinging - which means the process won't terminate.

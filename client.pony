@@ -71,5 +71,5 @@ fun ref connect_failed(conn: TCPConnection ref) =>
   end
 
 fun ref closed(conn: TCPConnection ref) =>
-  _router.onErrorOrDisconnect(ConnectionClosed)
+  _router.onTCPDisconnect(ConnectionClosed)
 
