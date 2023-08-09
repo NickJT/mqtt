@@ -163,10 +163,6 @@ fun compose(args : PublishArgs val)  : ArrayVal =>
   Returns a publish packet ready to send to the broker. 
   """
 
-  if (args.cid == 0 ) then  
-    Debug ("Error - Publish with id = 0  at" + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string() )
-  end
-
   recover val
     var variable : Array[U8]  = Array[U8].create()
     var payload' : Array[U8]   = Array[U8].create()
@@ -176,6 +172,9 @@ fun compose(args : PublishArgs val)  : ArrayVal =>
     variable.append(MqString(args.topic))
     // id is only appended for QoS 1 and 2
     if (not (args.qos is Qos0) ) then
+      if (args.cid == 0 ) then  
+        Debug.err("Error - Publish with id = 0  at" + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string() )
+      end  
       (var msb : U8, var lsb:U8) = U16ToBytes(args.cid)
       variable.push_u8(msb) 
       variable.push_u8(lsb)

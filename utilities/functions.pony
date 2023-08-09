@@ -1,3 +1,4 @@
+use "collections"
 use "debug"
 use "../primitives"
 
@@ -105,6 +106,21 @@ primitive U8ToQos fun apply(value : U8) : (Qos | None) =>
     Debug.err("Got invalid QoS value ("+value.string() + ") at" + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
     None
   end 
+
+
+/********************************************************************************/
+primitive IsFixedHeader fun apply(data : ArrayVal) : Bool =>
+  // RL can be up to four bytes (bytes 1 to 4). If we get a clear contunue bit 
+  //anywhere in bytes 1 to 4 we're valid. If we get to byte 4 or we run out of bytes
+  // without getting a clear but then we're false
+  for index in Range[USize](1, 5) do     // half open range remember
+    try
+      if ((data(index)? and 0x80) == 0) then return true end
+    else
+      return false  // got to the end of the data
+    end
+  end 
+  false  // got to byte 4
 
 
 /********************************************************************************/

@@ -36,79 +36,70 @@ other than when router extracts the data in its send behaviour.
   var _pkt : ArrayVal = Array[U8]
   var _packets : Array[ArrayVal] = _packets.create()
   var _last : Array[ArrayVal] = _packets.create()
-
+  var _inError : Bool = false
+  var _minFixedHeader : ArrayVal = ArrayVal
   new create(router : Router tag) =>
     _router = router
 
 
 /********************************************************************************/
 be assemble(input: ArrayVal) =>
+// We need to handle the rare case where we receive only the first byte of the packet
+// where we don't have enough data to calculate the packet length. This fix works for 
+//  packets up 64 bytes of remaining length (68 bytes in total)
+// TODO - Also need to consider the general case of this issue where we have n bytes 
+// of a fixed header that is m bytes long and n < m. If we don't have all of the 
+// fixed header then we can't calculate the length of the packet so we don't know
+// whether we have it all. 
+// If byte n has bit 7 set then byte n+1 is also a remaining length byte so the minimum 
+// viable fixed header is control byte + bytes until we get to a byte with bit 7 == 0
+
 var buf : ArrayVal = input
+
 while (true) do
   _pkt = split(buf)
-  if (_pkt.size() > 0) then _packets.push(_pkt) end
-  var needed : USize = 0
-  needed = TotalLength(_remainder)   // This returns zero if _remainder is empty
-  if ((needed == 0) or (_remainder.size() < needed)) then break end
+  if (_pkt.size() > 0) then  // _pkt is a valid packet
+     _packets.push(_pkt)
+  end
+  // we have a remainder that might be one or more valid packets
+  // if we don't have a fixed packet break and get more input 
+  if (not IsFixedHeader(_remainder)) then break end
+
+  // We have a valid FH so how may bytes do we need?
+  if (_remainder.size() < TotalLength(_remainder)) then break end
+  // we may have another packet so go around again
   buf = _remainder
-  _remainder = recover val Array[U8].create() end
+  _remainder = recover val ArrayVal end
 end
 
-////////////// Determine how often this happens - then remove /////
-//if (packets.size() == 0) then Debug.err("Partial packet") end
-//if (packets.size() > 1) then Debug.err("Multiple packets")end
-///////////////////////////////////////////////////////////////////
-
 for packet in _packets.values() do 
-  var basePacket : BasePacket val = recover val BasePacket(packet,"Assembler") end
-  if (basePacket.isNotValid()) then 
-    dumpBuffer()
-    break
-  else  
-    //if basePacket.isA(ControlPublish) then Debug(basePacket.data() where stream = DebugErr) end
-    _router.route(consume basePacket)
-  end
+  var basePacket : BasePacket val = recover val BasePacket(packet) end
+  _router.route(basePacket)
  end
- _packets.copy_to(_last,0,0,_packets.size())
  _packets.clear()
-
-fun ref dumpBuffer() =>
-  for last in _last.values() do 
-    Debug(last where stream = DebugErr)
-    var stg : String val = String.from_array(last.trim(4))
-    Debug("[" + stg + "]" where stream = DebugErr)
-  end
-  Debug.err("Assembler error here")
-  for packet in _packets.values() do 
-    Debug(packet where stream = DebugErr)
-    var stg : String val = String.from_array(packet.trim(4))
-    Debug("[" + stg + "]" where stream = DebugErr)
-    _router.onError(MalformedResponse)
-  end
-  Debug.err("-----------------")
-  
 
 /********************************************************************************/
 fun ref split(input: ArrayVal) : ArrayVal =>
-
-  var splitAt : USize = 0
-  if (_remainder.size() > 0 ) then
-      splitAt = TotalLength(_remainder)
-  else
-    splitAt = TotalLength(input)
+  // TODO - Needs optimising 
+  // append the new input to the last remainder
+  var mudge : ArrayVal = recover val Array[U8].>append(_remainder).>append(input) end
+  // if we still haven't got a complete fixed header then the new value is all remainder
+  if (not IsFixedHeader(mudge)) then
+    _remainder = mudge
+    return recover val ArrayVal end
   end
-
-  var b : Array[U8] iso =  Array[U8]
-  b.>append(_remainder).append(input)
-
-  var length  = b.size()
-  (var h1 : ArrayVal, var h2: ArrayVal) = (consume b).chop(splitAt)
-        
-  if (length < splitAt ) then
-    _remainder = h1 
-    return h2
-  end
+  // If we get here then we have a complete Fixed Header so
+  // we know how many bytes we need to complete the packet
+  var len : USize = mudge.size()
+  var splitAt : USize = TotalLength(mudge)
   
-  _remainder = h2
-  h1
-
+  if (splitAt > len) then   // We don't have a complete packet so it's all remainder
+    _remainder = mudge
+    return recover val ArrayVal end
+  elseif (splitAt < len) then  // then we have a complete packet and a remainder
+    _remainder = mudge.trim(splitAt)  
+    return mudge.trim(0,splitAt)
+  else    // (splitAt == mudge.size()) and we have a complete packet and no remainder
+    _remainder = ArrayVal.create()
+    return mudge
+  end

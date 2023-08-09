@@ -71,9 +71,12 @@ be publish(args : PublishArgs val) =>
   """
   Public API call to publish a payload
   """
-  _reg[IdIssuer tag](KeyIssuer()).next[None]({(issuer) => issuer.checkOutPub(_idNotify, args)},
-    {()=> Debug.err("No issuer!")})
 
+  if args.qos is Qos0 then 
+    _reg[Router](KeyRouter()).next[None]({(router) => router.onPublishQos0(PublishPacket.compose(args))})
+  else
+    _reg[IdIssuer tag](KeyIssuer()).next[None]({(issuer) => issuer.checkOutPub(_idNotify, args)})
+  end
 
 /********************************************************************************/
 be apply(args : PublishArgs val) =>
@@ -85,14 +88,13 @@ be apply(args : PublishArgs val) =>
   2. pull a different set of args of the pending queue and send those instead,
   queuing our current set
   3. queue the current set and wait for a space to open in the in-flight window
-  In the case of QoS 0, we always just send the current args immediately 
+  In the case of QoS 0, we have already sent the packet via the publish behaviour
+  because there is no id 
   """ 
   if (args.qos is Qos2) then 
     nextQos2Args(args)
   elseif (args.qos is Qos1) then
     nextQos1Args(args)
-  else
-    sendToRouter(args)
   end
 
 /********************************************************************************/
@@ -178,7 +180,7 @@ fun sendToRouter(args: PublishArgs val) =>
   """
   Make a publish packet with the passed arguments and send it to router
   """
-    _reg[Router](KeyRouter()).next[None]({(router) => router.onPublish(_publisher, args.topic, args.cid, PublishPacket.compose(args))}) 
+    _reg[Router](KeyRouter()).next[None]({(router) => router.onPublish(_publisher, args.topic, args.cid, PublishPacket.compose(args))})
 
 
 /********************************************************************************/

@@ -1,0 +1,9 @@
+Disconnecting Broker at /home/nick/mqtt/router/router.pony:disconnectBroker
+TCP Disconnect: Connection Closed at /home/nick/mqtt/router/router.pony:onTCPDisconnect
+router exiting at /home/nick/mqtt/router/router.pony:cleanup
+Main cleanup underway
+Main cleanup completed
+Main.onExit code is 0
+InputNotify being disposed
+SystemTick cancelled
+Exiting terminal but can't cancel UI timer

@@ -49,6 +49,8 @@ Reissuing Returned Ids
   An array of ids that have been issued and returned and are available
   for re-issue
   """
+  var _checkedOut : U64 = 0
+  var _checkedIn : U64 = 0
 
 /********************************************************************************/
   fun ref _nextId() : U16 =>
@@ -56,6 +58,8 @@ Reissuing Returned Ids
   Returns the next available id from the array of returned Ids and if there are  
   no returned Ids in the list issues a new one
   """
+    _checkedOut = _checkedOut + 1
+
     try // to re-issue an id that has been returned
 
       var id = _ids.pop()?
@@ -64,6 +68,9 @@ Reissuing Returned Ids
     else  // there is nothing in the bucket, so issue a new id
       _id = _id + 1
       //Debug.err("Issuing id " + _id.string())
+      if _id == 0 then 
+      Debug.err("Run out of ids -> Out = " + _checkedOut.string() + " In = " + _checkedIn.string())
+      end
       return _id
     end
   
@@ -98,9 +105,11 @@ Reissuing Returned Ids
   Called when the transaction the id was used for has been completed and the 
   id can be re-used
   """
+    
     if (not _ids.contains(id, {(x,y) => x == y})) then  // put this in the returns bucket
       //Debug.err("Checking in id " + id.string() + " at " + __loc.file() + ":" +__loc.method_name() )
       _ids.push(id)
+      _checkedIn = _checkedIn + 1
     else  // this id was already in the returns bucket - which shouldn't have happened
       Debug.err("Error - checking in id " + id.string() + " which hasn't been checked out")
     end

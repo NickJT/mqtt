@@ -318,27 +318,26 @@ be onPublish(pub : Publisher tag, topic: String, id : IdType, packet : ArrayVal)
     _actorById.update(id,pub)
     //Debug.err("Publishing on topic : " + topic + " with id " + id.string() + " in " + __loc.file() + ":" +__loc.method_name())
     send(packet)
-    if (topic == "benchmark") then
-      (var s, var ns) = Time.now()
-      var sz = packet.size()
-      var payload : String val = String.from_array(packet.trim(sz-22,sz-1))
-      Debug(Elapsed(s,ns,payload) where stream = DebugErr) 
-    end
+
+/*********************************************************************************/
+be onPublishQos0(packet : ArrayVal) =>
+  """
+  Called by a publisher to publish a QoS 0 packet on topic. 
+  """
+  send(packet)
 
 
 /*********************************************************************************/
 be onPublishComplete(id: IdType) =>
   """
   Called by a publisher when an id has completed its processing. This tells router
-  to remove the link between the id and the publisher
+  to remove the link between the id and the publisher. Note that QoS0 packets never
+  get into the _actorById map so don't add any error checking to the try statement
+  TODO - This could be optimised by skipping the remove for QoS0
   """
+  _reg[IdIssuer](KeyIssuer()).next[None]({(i:IdIssuer)=>i.checkIn(id)},{()=>Debug.err("No issuer pc")})
   try
     _actorById.remove(id)?
-    _reg[IdIssuer](KeyIssuer()).next[None]({(i:IdIssuer)=>i.checkIn(id)})
-
-    //Debug.err("Completed processing publish id " + id.string() + " in " + __loc.file() + ":" +__loc.method_name())
-  else
-    Debug.err("Router can't remove id " + id.string() + "at " + __loc.file() + ":" +__loc.method_name() + " line " + __loc.line().string())
   end  
 
 /*********************************************************************************/
@@ -406,7 +405,8 @@ be onSubscribeComplete(sub : Subscriber tag, id : IdType, accepted : Bool) =>
     Debug.err("Router can't remove id " + id.string() + " from subscriber map at " + __loc.file() + ":" +__loc.method_name())
   end  
   // Whatever, we've finished with the id
-      _reg[IdIssuer](KeyIssuer()).next[None]({(i:IdIssuer)=>i.checkIn(id)})
+    _reg[IdIssuer](KeyIssuer()).next[None]({(i:IdIssuer)=>i.checkIn(id)},{()=>Debug.err("No issuer sc")})
+
 
 
 
@@ -447,7 +447,8 @@ be onUnsubscribeComplete(sub : Subscriber tag, id : IdType) =>
   end  
 
   // Whatever, we've finished with the id
-  _reg[IdIssuer](KeyIssuer()).next[None]({(i:IdIssuer)=>i.checkIn(id)})
+  _reg[IdIssuer](KeyIssuer()).next[None]({(i:IdIssuer)=>i.checkIn(id)},{()=>Debug.err("No issuer uc")})
+
 
   _removeSubscriber(sub)
    //Debug.err("Completed processing unsubscribe with id " + id.string())
@@ -610,9 +611,9 @@ be onError(errorCode : ErrorCode) =>
   """
   Called if we detect a protocol error or broker timeout 
   """
-  Debug.err(errorCode.string() + " at " + __loc.file() + ":" +__loc.method_name())
-  disconnectBroker()
-  cleanup()
+ //Debug.err(errorCode.string() + " at " + __loc.file() + ":" +__loc.method_name())
+ // disconnectBroker()
+ // cleanup()
 
 be onTCPDisconnect(errorCode : ErrorCode) =>
   """
