@@ -77,7 +77,8 @@ for packet in _packets.values() do
 
 /********************************************************************************/
 fun ref split(input: ArrayVal) : ArrayVal =>
-  // TODO - Needs optimising 
+  // TODO - Needs optimising. Note: initial benchmark suggests this version is quicker
+  // than doing a .split every time and then swapping  
   // append the new input to the last remainder
   var mudge : ArrayVal = recover val Array[U8].>append(_remainder).>append(input) end
   // if we still haven't got a complete fixed header then the new value is all remainder

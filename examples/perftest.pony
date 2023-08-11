@@ -1,5 +1,6 @@
 use "bureaucracy"
 use "collections"
+use "debug"
 
 use ".."
 use "../publisher"
@@ -11,17 +12,19 @@ actor MessageTest
   let _reg : Registrar
   let _testPub : Publisher
   let _testSub : Subscriber
-  let _testTopic : String val = "benchmark"
-  let _count : U64 = 1000
+  let _testTopic : String val = TestPrefix()+"perftest"
+  var _count : U64 = 0
 
   new create(reg : Registrar) =>
     _reg = reg
     _testPub = Publisher(_reg,_testTopic)
-    _testSub = Subscriber(_reg,_testTopic, "qos0")
+    _testSub = Subscriber(_reg,_testTopic, "qos1")
     _testSub.subscribe()
-    for i in Range[U64](0,_count) do 
-      _testPub.publish(PublishArgs(_testTopic, Timestamp().array(), Qos0))
-    end
     
+  be send() =>
+    _count = _count + 1
+    _testPub.publish(PublishArgs(_testTopic, MqTime.startTime().array(), Qos1))
+
   be mute() =>
-   None  
+   Debug.err("MessageTest muted")
+   _count = 0  

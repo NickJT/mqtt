@@ -20,7 +20,7 @@ class TsNotify is TimerNotify
 
   fun ref apply(timer: Timer,count: U64): Bool =>
     _count = _count + count
-    _pub.publish(PublishArgs(_topic, Timestamp().array(), Qos2))
+    _pub.publish(PublishArgs(_topic, MqTime.startTime().array(), Qos2))
     _count < 10
 
   fun ref cancel(timer: Timer) =>

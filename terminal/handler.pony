@@ -60,7 +60,7 @@ fun ref fn_key(i: U8 val, ctrl: Bool val, alt: Bool val, shift: Bool val) =>
   | SubscribeStats()  => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.brokerSubs(Sub)})
   | UnSubscribe() => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.unSubAll()})
   | SoakTest()    => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.soakTest()})
-  | LoadTest()    => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.loadTest()})
+  | LoadTest()    => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.perfTest()})
   | Mute()        => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.mute()})
   | Discon()      => _reg[Router](KeyRouter()).next[None]({ (r: Router)=>r.disconnectBroker()})
   | Clear()       => _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.clear()})

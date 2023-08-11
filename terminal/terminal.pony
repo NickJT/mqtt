@@ -265,6 +265,7 @@ fun ref _stats(topic: String val, content : String val) =>
   """
     match topic.trim(6)
     | TestTopic() => _soaktest(topic,content)
+    | "perftest" => _perftest(topic,content)
     else
       status("unmatched test topic: " + topic.trim(6))
     end
@@ -279,3 +280,6 @@ fun ref _soaktest(topic: String val, content : String val) =>
   else
     status(topic + " - " + content)  
   end
+
+fun ref _perftest(topic: String val, content : String val) =>
+  status(Elapsed(content))

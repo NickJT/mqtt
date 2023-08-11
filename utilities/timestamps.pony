@@ -10,28 +10,23 @@ class MqTime
   new create() =>
     (_s,_ns) = Time.now()
 
-  fun ref update() =>
-    (_s,_ns) = Time.now()
+  new create_at(s : I64, ns : I64) =>
+    _s = s
+    _ns = ns
 
+  fun elapsed() : String val =>
+    (var s, var ns) = Time.now()
+    (var es , var ens) = _elapsed(s,ns)
+    "[" + es.string() + "," + ens.string() + "]"
 
-  fun elapsed(finish : MqTime) =>
-    """
-      time from set time to finish
-    """
-    _elapsed(finish._s,finish._ns)
-
-  fun elapsedString(finish : MqTime) : String val =>
-    (var s , var ns) = _elapsed(finish._s,finish._ns)
-    s.string() + ":" + ns.string()
-
-  fun timestamp() : String val =>
+  fun startTime() : String val =>
     try
       PosixDate.create(_s,_ns).format("%Y:%m:%d %H:%M:%S")? + " [" + _s.string() + "," + _ns.string() + "]" 
     else
       "%Y:%m:%d %H:%M:%S [0 : 0]"
     end  
 
-  fun _elapsed(s : I64 val, ns : I64 val) : (I64,I64) =>
+  fun _elapsed(s : I64, ns : I64) : (I64,I64) =>
     var sWithCarry = s
     var nsWithCarry = ns
     if (_ns > ns) then 
@@ -41,39 +36,22 @@ class MqTime
     ((sWithCarry - _s) , (nsWithCarry- _ns))
 
 
-primitive Datestamp fun apply() : String val =>
-  try
-    (var sec, var nano) = Time.now()
-    return PosixDate.create(sec,nano).format("%Y:%m:%d %H:%M:%S")?
-  else  
-    return "err"
-  end
-
-
-primitive Timestamp fun apply() : String val =>
-  try
-    (var sec, var nano) = Time.now()
-    return PosixDate.create(sec,nano).format("%Y:%m:%d %H:%M:%S")? + " [" + sec.string() + "," + nano.string() + "]"
-  else  
-    return "err"
-  end
-
-primitive Elapsed fun apply(s: I64, ns: I64, content : String val) : String val =>
+primitive ElapsedSince fun apply(sFinish: I64, nsFinish: I64, start : String val) : String val =>
   """
   Content in the form of String val = 2023:08:05 10:57:00 [123456789:123456789]
   s is seconds
   ns is nanoseconds
 
-  return String val = elpased seconds:elpased nanoseconds
+  returns String val = elpased seconds:elpased nanoseconds
   """
   try 
-    var temp : String val = content.substring((content.find("[")?+1),content.size().isize()-1) 
+    var temp : String val = start.substring((start.find("[")?+1),start.size().isize()-1) 
     var pos : USize = temp.find(",")?.usize() 
     var sStart = temp.trim(0,pos).i64()?
     var nsStart = temp.trim(pos+1).i64()?
-    var sWithCarry = s
-    var nsWithCarry = ns
-    if (nsStart > ns) then 
+    var sWithCarry = sFinish
+    var nsWithCarry = nsFinish
+    if (nsStart > nsFinish) then 
       nsWithCarry = nsWithCarry + 1_000_000_000
       sWithCarry = sWithCarry - 1
     end
@@ -81,3 +59,7 @@ primitive Elapsed fun apply(s: I64, ns: I64, content : String val) : String val 
   else 
     "" 
   end
+  
+  primitive Elapsed fun apply(start : String val) : String val =>
+    (var s, var ns) = Time.now()
+    ElapsedSince(s, ns, start)
