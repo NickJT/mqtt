@@ -103,29 +103,15 @@ actor Terminal
     let _paintAreas : Areas = Areas
     var _commands : String val = Commands()
 
-    let _timers : Timers
-    var _uiTimer : (Timer tag | None) = None
+    let _uim : UIManager // Timer for message highlighting
+
   /* Stats *********************************************************/
     var _sequence : U64 = 0
     var _count : U64 = 0
     var _finish : U64 = TestLength() - 1
 new create(env: Env) =>
   _out = env.out
-  _timers = Timers  
-  let t = recover
-    object is TimerNotify
-      let term: Terminal = this
-      fun ref apply(timer: Timer, count: U64): Bool =>
-        (var s , var ns) = Time.now()
-        term.onTick(s)
-        true
-      fun ref cancel(timer: Timer) =>
-        None
-    end
-  end  
-  let timer = Timer(consume t, 1_000_000_000, 1_000_000_000)
-//_uiTimer = timer    // TODO - causes a segfault if compiled for debug
-  _timers(consume timer) 
+  _uim = UIManager(this)
 
   for i in Range[U32](0,_statusHeight) do 
     _statusBuf.push(StatusLine("-"))
@@ -175,9 +161,7 @@ be onTick(seconds : I64) =>
 
 be exitAndReset() =>
   clearScreen()
-  try _timers.cancel(_uiTimer as Timer tag) else 
-    Debug.err("Exiting terminal but can't cancel UI timer")
-  end
+  _uim.mute()
 
 fun ref paint() =>
   _out.write(composite())
@@ -290,7 +274,7 @@ fun ref _soaktest(topic: String val, content : String val) =>
     var index : U64 = content.u64()?
     _count = _count + 1
     if ((index % 1000) == 0 ) then 
-     status("Received " + _count.string() + " of " + TestLength().string() + " messages")
+     status("Received " + _count.string() + " messages")
     end
   else
     status(topic + " - " + content)  

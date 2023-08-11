@@ -332,8 +332,7 @@ be onPublishComplete(id: IdType) =>
   """
   Called by a publisher when an id has completed its processing. This tells router
   to remove the link between the id and the publisher. Note that QoS0 packets never
-  get into the _actorById map so don't add any error checking to the try statement
-  TODO - This could be optimised by skipping the remove for QoS0
+  get into the _actorById map and do not result in a call to onPublishComplete
   """
   _reg[IdIssuer](KeyIssuer()).next[None]({(i:IdIssuer)=>i.checkIn(id)},{()=>Debug.err("No issuer pc")})
   try

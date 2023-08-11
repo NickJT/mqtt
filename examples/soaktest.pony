@@ -24,7 +24,7 @@ class SoakPublisher is TimerNotify
 
   fun ref apply(timer : Timer, count : U64) : Bool =>
     //if (count != 1) then Debug.err("Soaktest counter = " + count.string()) end
-    _publisher.publish(PublishArgs(_testTopic, _index.string().array(), Qos0))
+    _publisher.publish(PublishArgs(_testTopic, _index.string().array(), Qos1))
     _index = _index + 1
     _reps > _index 
 
@@ -43,3 +43,6 @@ actor SoakTester
     var timer = Timer(recover iso SoakPublisher(_reg) end, 0, TestInterval())
     _timer = timer
     _timers(consume timer)
+
+  be mute() =>
+    _timers.cancel(_timer)

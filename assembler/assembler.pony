@@ -33,14 +33,11 @@ other than when router extracts the data in its send behaviour.
 """
   let _router : Router tag
   var _remainder : ArrayVal = Array[U8]
+  var _empty : ArrayVal = Array[U8]
   var _pkt : ArrayVal = Array[U8]
   var _packets : Array[ArrayVal] = _packets.create()
-  var _last : Array[ArrayVal] = _packets.create()
-  var _inError : Bool = false
-  var _minFixedHeader : ArrayVal = ArrayVal
   new create(router : Router tag) =>
     _router = router
-
 
 /********************************************************************************/
 be assemble(input: ArrayVal) =>
@@ -86,7 +83,7 @@ fun ref split(input: ArrayVal) : ArrayVal =>
   // if we still haven't got a complete fixed header then the new value is all remainder
   if (not IsFixedHeader(mudge)) then
     _remainder = mudge
-    return recover val ArrayVal end
+    return _empty
   end
   // If we get here then we have a complete Fixed Header so
   // we know how many bytes we need to complete the packet
@@ -95,11 +92,11 @@ fun ref split(input: ArrayVal) : ArrayVal =>
   
   if (splitAt > len) then   // We don't have a complete packet so it's all remainder
     _remainder = mudge
-    return recover val ArrayVal end
+    return _empty
   elseif (splitAt < len) then  // then we have a complete packet and a remainder
     _remainder = mudge.trim(splitAt)  
     return mudge.trim(0,splitAt)
   else    // (splitAt == mudge.size()) and we have a complete packet and no remainder
-    _remainder = ArrayVal.create()
+    _remainder = _empty
     return mudge
   end

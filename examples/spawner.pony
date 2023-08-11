@@ -15,7 +15,8 @@ actor Spawner
   var _subscribers : Map[String val, Subscriber tag] = Map[String val, Subscriber tag]  
   var _publishers : Map[String val, Timestamper tag] = Map[String val, Timestamper tag]  
   let _testSubs : Map[String val, String val] val  
-  
+  var _soakTester : (SoakTester tag | None) = None
+
   new create(reg: Registrar, subs : Map[String val, String val] val) =>
     _reg = reg
     _subs = subs
@@ -46,7 +47,7 @@ actor Spawner
  
 
   be soakTest() =>
-    SoakTester(_reg)
+    _soakTester = SoakTester(_reg)
     //Debug.err("Starting perfTest at " + t._1.string() + ":" + t._2.string())
  
 
@@ -54,6 +55,8 @@ actor Spawner
     _publishers.insert("timestamp",Timestamper(_reg))
 
   be mute() =>
+    try (_soakTester as SoakTester).mute() end
+    _soakTester = None
     for publisher in _publishers.values() do
       publisher.mute()
     end

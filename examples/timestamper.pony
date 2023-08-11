@@ -44,4 +44,4 @@ actor Timestamper
     _timers(consume timer)
 
   be mute() =>
-   _timers.cancel(_timerTag)  
+    _timers.cancel(_timerTag)  
