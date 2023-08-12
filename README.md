@@ -46,8 +46,10 @@ This is probably not the most effective approach for performance so expect to se
 being consolidated later. The main purpose of each of the packages (in order of typical programe flow) is as follows.
 
 
-## An Approximation of the R0.2 Architecture
-![R2 Architecture](assets/Release 0.2.jpg "Architecture")
+</br>
+
+## Approximate R.2 Architecture
+![Alt](assets/Release 0.2.jpg "Architecture")
 
 ### Main ###
 
