@@ -46,10 +46,8 @@ This is probably not the most effective approach for performance so expect to se
 being consolidated later. The main purpose of each of the packages (in order of typical programe flow) is as follows.
 
 
-</br>
-
-## Approximate R.2 Architecture
-![Alt](../assets/Release 0.2.jpg?raw=true "Architecture")
+## Approximate R.2 Architecture ## 
+![Alt](mqtt/assets/Release 0.2.jpg?raw=true "Architecture")
 
 ### Main ###
 
