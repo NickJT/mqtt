@@ -1,6 +1,6 @@
 # Pony MQTT Client #
 
-A MQTT 3.1.1 client - currently part-way through release 0.1, supporting QoS 0/1/2 but
+A MQTT 3.1.1 client - just starting release 0.2 below, supporting QoS 0/1/2 but
  not yet implementing session restoration.
 
 If you haven't used Pony, this is the best starting point -> [Pony Tutorial](https://tutorial.ponylang.io/index.html)
@@ -44,6 +44,12 @@ The architecture of the R.1 is highly decomposed:
 
 This is probably not the most effective approach for performance so expect to see components
 being consolidated later. The main purpose of each of the packages (in order of typical programe flow) is as follows.
+
+
+</br>
+
+## Approximate R.2 Architecture
+![Alt](assets/Release 0.2.jpg "Architecture")
 
 ### Main ###
 
