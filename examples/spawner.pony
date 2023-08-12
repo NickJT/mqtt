@@ -89,3 +89,6 @@ actor Spawner
     end
 
 
+  be dispose() =>
+    unSubAll()
+    mute()

@@ -121,10 +121,6 @@ new create(env: Env) =>
   paint()
 
 be message(topic: String val, content : String val) =>
-  if (topic.contains(TestPrefix(),0)) then 
-    _stats(topic,content)
-    return
-  end
   if _boxMap.contains(topic) then
     try _boxMap(topic)?.update(content) end
   else
@@ -257,29 +253,3 @@ fun ref timeout(seconds : I64) =>
     _paintAreas.set(MSG)
     paint()
   end
-fun ref _stats(topic: String val, content : String val) =>
-  """
-    Messages are diverted here if we want to use them for testing purposes and
-    not necessarily display every message
-    All messages getting here have a topic starting with /stats 
-  """
-    match topic.trim(6)
-    | TestTopic() => _soaktest(topic,content)
-    | "perftest" => _perftest(topic,content)
-    else
-      status("unmatched test topic: " + topic.trim(6))
-    end
-
-fun ref _soaktest(topic: String val, content : String val) =>
-  try 
-    var index : U64 = content.u64()?
-    _count = _count + 1
-    if ((index % 1000) == 0 ) then 
-     status("Received " + _count.string() + " messages")
-    end
-  else
-    status(topic + " - " + content)  
-  end
-
-fun ref _perftest(topic: String val, content : String val) =>
-  status(Elapsed(content))

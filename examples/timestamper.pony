@@ -45,3 +45,7 @@ actor Timestamper
 
   be mute() =>
     _timers.cancel(_timerTag)  
+
+  be dispose() =>
+      mute()
+      

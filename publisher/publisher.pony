@@ -121,7 +121,9 @@ fun ref nextQos1Args(argsOrNone : (PublishArgs val | None)) =>
   if (inFlightLimitReached()) then  // We can't send any more packets from the queue so return
     try  //TODO - Only for debugging. Remove converson and fail silently later. 
       var args = argsOrNone as PublishArgs val
-      Debug.err("Queued QoS 1 id " + args.cid.string() + " In-flight: " + _qos1Map.size().string() + " Queued: " + _pending.size().string())
+      if (_qos1Map.size() > 10) then 
+        Debug.err("Queued QoS 1 id " + args.cid.string() + " In-flight: " + _qos1Map.size().string() + " Queued: " + _pending.size().string())
+      end
     end  
     return  
   end

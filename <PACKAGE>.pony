@@ -8,25 +8,30 @@ If you haven't used Pony, this is the best starting point -> [Pony Tutorial](htt
 
 
 ### Release Objectives ###
-#### Release .1 ####
-1. 100% coverage of the protocol for happy path with expected i/o.
-2. Wide use of guards, debug checks and error tracing
-3. Separate classes for each packet type so we don't miss any variations 
-4. Consistent api to avoid programming errors while things stabiliise 
-5. No hard split between library and application
-6. Simple ui for start/stop
 
-#### Release .2 ####
+#### Release .1 ####
+1. 100% coverage of the protocol for happy path with expected i/o
+2. QoS 0, 1 & 2 cleansession only - no message re-transmission after disconnect
+3. Wide use of guards, debug checks and error tracing
+4. Separate classes for each packet type so we don't miss any variations
+5. Consistent api to avoid programming errors while things stabiliise
+6. No hard split between library and application
+7. Simple ui for start/stop (Note - The ANSI terminal codes don't work on Windows)
+
+### Release .2 ###
+
 1. Consider edge cases and errors
 2. Split code into library and application
-3. Consolidate similar classes into factory classes
-4. Optimise the api (public: simple, private: efficient)  
-5. Remove unnecessary intermediate variable, guards and debug checks
-6. Simple text terminal for testing
+3. Add session restoration 
+4. Consolidate similar classes into factory classes
+5. Optimise the api (public: simple, private: efficient)  
+6. Remove unnecessary intermediate variable, guards and debug checks
+7. Simple text terminal for testing
 
-#### Release .3 ####
-1. Performance 
-2. Load and memory usage
+### Release .3 ###
+
+1. Performance  
+2. Load and memory usage  
 3. Optimise
 4. Build as library
 5. Add a simple demo app

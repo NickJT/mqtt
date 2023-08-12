@@ -1,3 +1,4 @@
+MessageTest muted
 Disconnecting Broker at /home/nick/mqtt/router/router.pony:disconnectBroker
 TCP Disconnect: Connection Closed at /home/nick/mqtt/router/router.pony:onTCPDisconnect
 router exiting at /home/nick/mqtt/router/router.pony:cleanup

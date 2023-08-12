@@ -8,6 +8,7 @@
 
   use "../assembler"
   use "../connector"
+  use "../examples"
   use "../idIssuer"
   use "../primitives"
   use "../pinger"
@@ -173,7 +174,7 @@ fun ref _findSubscriberByTopic(basePacket : BasePacket val) =>
   end  
 
   try
-    var topic : String val = pubPacket.topic() as String val         // A valid Publish will always have a topic
+    var topic : String val = pubPacket.topic() as String val         // A valid Publish will always have a topic   
     var subscriber = _subscriberByTopic(topic)?                      // If we can't find a subscriber then we've been assigned a topic
     if (pubPacket.qos() is Qos0 ) then                               // QoS 0 has no id so there is no map entry, just fire and forget 
       subscriber.onData(basePacket)
@@ -530,7 +531,7 @@ be onBrokerConnect() =>
   When this is called we should have a valid Broker connection with our local 
   state reflecting the (potentially saved) state in Broker.
   """
-  showStatus("Router - onBrokerConnect")
+  showStatus("Broker connected")
   _reg[Ticker](KeyTicker()).next[None]({(t : Ticker) => t.start()})
 
   _pinger = Pinger(_reg, 5/* seconds delay*/)
@@ -614,6 +615,7 @@ be onError(errorCode : ErrorCode) =>
  // disconnectBroker()
  // cleanup()
 
+/*********************************************************************************/
 be onTCPDisconnect(errorCode : ErrorCode) =>
   """
     Called if the TCP connection is closed in client
@@ -637,6 +639,7 @@ be disconnectBroker() =>
 
 /*********************************************************************************/
 fun ref cleanup() =>
+  _tcpMaybe = None
 
   if (not _cleanSession) then
     showStatus("Saving session")
@@ -648,7 +651,7 @@ fun ref cleanup() =>
   _actorById.clear()
   Debug.err("router exiting at " + __loc.file() + ":" +__loc.method_name())
 
-
+/*********************************************************************************/
 be cancelKeepAlive() =>
   """
   We make this a behaviour so that main can cancel it in the event of an error. Otherwise
