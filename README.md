@@ -47,7 +47,7 @@ being consolidated later. The main purpose of each of the packages (in order of 
 
 
 ## An Approximation of the R0.2 Architecture
-![Alt](assets/Release 0.2.png "Architecture")
+![R2 Architecture](assets/Release 0.2.jpg "Architecture")
 
 ### Main ###
 
