@@ -7,7 +7,7 @@ use pinger = "../pinger"
 use publisher = "../publisher"
 use subscriber = "../subscriber"
 
-actor Main is TestList
+actor \nodoc\ Main is TestList
   let _env : Env
   new create(env: Env) =>
     _env = env

@@ -1,11 +1,10 @@
-
 use "pony_test"
 use "collections"
 use "../primitives"
 use "debug"
 //type Map[String val, String val] val is Map[String val, String val] val 
 
-primitive FullConfig fun apply() : Map[String val, String val] val =>
+primitive \nodoc\  FullConfig fun apply() : Map[String val, String val] val =>
   recover val
     let config : Map[String val, String val] = Map[String val, String val]
     config.insert(IniAddress(), "192.168.86.98")
@@ -22,19 +21,19 @@ primitive FullConfig fun apply() : Map[String val, String val] val =>
     consume config
   end
 
-primitive FullConfigFile fun apply(): String val =>
+primitive \nodoc\  FullConfigFile fun apply(): String val =>
 """
 The name of the full configuration ini file in this directory
 """
 "/home/nick/mqtt/configurator/fullConfig.ini"
 
-primitive MinConfigFile fun apply(): String val =>
+primitive \nodoc\  MinConfigFile fun apply(): String val =>
 """
 The name of the minimum configuration ini file in this directory
 """
 "/home/nick/mqtt/configurator/minConfig.ini"
 
-primitive MinConfig fun apply() : Map[String val, String val] val =>
+primitive \nodoc\  MinConfig fun apply() : Map[String val, String val] val =>
   recover val
     let config : Map[String val, String val] = Map[String val, String val]
     config.insert(IniAddress(), "192.168.86.98")
@@ -45,7 +44,7 @@ primitive MinConfig fun apply() : Map[String val, String val] val =>
     consume config
   end
 
-primitive FullSubs fun apply(): Map[String val, String val] val =>
+primitive \nodoc\  FullSubs fun apply(): Map[String val, String val] val =>
   recover val
     let subs : Map[String, String] =  Map[String, String]
     subs.insert("$SYS/broker/subscriptions/count", "Qos1")
@@ -67,7 +66,7 @@ primitive FullSubs fun apply(): Map[String val, String val] val =>
   end
 
 
-primitive MiniSubs fun apply(): Map[String val, String val] val =>
+primitive \nodoc\  MiniSubs fun apply(): Map[String val, String val] val =>
   recover val
     let subs : Map[String, String] =  Map[String, String]
     subs.insert("$SYS/broker/bytes/received", "QOS0")
@@ -75,7 +74,7 @@ primitive MiniSubs fun apply(): Map[String val, String val] val =>
   end
 
 
-actor Main is TestList
+actor \nodoc\ Main is TestList
 
     new create(env : Env) =>
       PonyTest(env, this)
@@ -95,14 +94,14 @@ actor Main is TestList
         test(_SubsFull)
 
 
-class iso _BadFile is UnitTest
+class \nodoc\  iso _BadFile is UnitTest
     fun name() : String => "Missing File"
     fun apply(h: TestHelper) =>
       var conf : MqttConfig = MqttConfig(h.env, "noFile.ini", FullConfigParams())
       h.assert_eq[Bool](false, conf.isValid()) 
 
 
-class iso _OKMini is UnitTest
+class \nodoc\  iso _OKMini is UnitTest
     fun name() : String => "OK - Mini"
     fun apply(h: TestHelper) =>
       var conf : MqttConfig = MqttConfig(h.env, MinConfigFile(), MinConfigParams())
@@ -117,7 +116,7 @@ class iso _OKMini is UnitTest
       h.assert_eq[Bool](true, conf.isValid()) 
 
 
-class iso _ArgsMini is UnitTest
+class \nodoc\  iso _ArgsMini is UnitTest
     fun name() : String => "Args - Mini"
     fun apply(h: TestHelper) =>
       var conf : MqttConfig = MqttConfig(h.env, MinConfigFile(), MinConfigParams())
@@ -131,7 +130,7 @@ class iso _ArgsMini is UnitTest
         end  
       end      
 
-class iso _SubsMini is UnitTest
+class \nodoc\  iso _SubsMini is UnitTest
     fun name() : String => "Subs - Mini"
     fun apply(h: TestHelper) =>
       var conf : MqttConfig = MqttConfig(h.env, MinConfigFile(), MinConfigParams())
@@ -139,7 +138,7 @@ class iso _SubsMini is UnitTest
       // Subscriptions map is empty for miniconfig.ini 
       h.assert_eq[Bool](true, map.size() == 0)
 
-class iso _OKFull is UnitTest
+class \nodoc\  iso _OKFull is UnitTest
     fun name() : String => "OK - Full"
     fun apply(h: TestHelper) =>
       var conf : MqttConfig = MqttConfig(h.env, FullConfigFile(), FullConfigParams())
@@ -151,7 +150,7 @@ class iso _OKFull is UnitTest
 
 
 
-class iso _ArgsFull is UnitTest
+class \nodoc\  iso _ArgsFull is UnitTest
     fun name() : String => "Args - Full"
     fun apply(h: TestHelper) =>
       var conf : MqttConfig = MqttConfig(h.env, FullConfigFile(), FullConfigParams())
@@ -168,7 +167,7 @@ class iso _ArgsFull is UnitTest
 
 
 
-class iso _SubsFull is UnitTest
+class \nodoc\  iso _SubsFull is UnitTest
     fun name() : String => "Subs - Full"
     fun apply(h: TestHelper) =>
       var conf : MqttConfig = MqttConfig(h.env, FullConfigFile(), FullConfigParams())

@@ -5,7 +5,7 @@ use "../primitives"
 use "../utilities"
 
 
-actor Main is TestList
+actor \nodoc\ Main is TestList
     new create(env : Env) =>
         PonyTest(env, this)
 
@@ -33,7 +33,7 @@ actor Main is TestList
 
 
 
-class iso _Publish1 is UnitTest
+class \nodoc\  iso _Publish1 is UnitTest
   fun name() : String => "Publish - id=1"
   fun apply(h: TestHelper) =>
   //Publish id =1 Topic= a/b QoS 0  - 10 bytes
@@ -42,7 +42,7 @@ class iso _Publish1 is UnitTest
     var expected : Array[U8]  = [48;8;0;3;97;47;98;97;98;99]
     h.assert_array_eq[U8](expected , result)
 
-class iso _Publish2 is UnitTest 
+class \nodoc\  iso _Publish2 is UnitTest 
   fun name() : String => "Publish - id=65281"    //Publish id =65281 Topic= a/b QoS 0  - 10 bytes
   fun apply(h: TestHelper) =>
     var args : PublishArgs val = PublishArgs(where cid' =65281, topic' = "a/b", payload' = ['a';'b';'c'])  
@@ -50,7 +50,7 @@ class iso _Publish2 is UnitTest
     var expected  : Array[U8] = [48;8;0;3;97;47;98;97;98;99]
     h.assert_array_eq[U8](expected , result)
 
-class iso _Publish3 is UnitTest
+class \nodoc\  iso _Publish3 is UnitTest
   fun name() : String => "Publish - QoS1"  
     fun apply(h: TestHelper) => //Publish id = 2  Topic= a/b QoS 1  - 12 bytes
     var args : PublishArgs val = PublishArgs(where cid' =2, topic' = "a/b", payload' = ['a';'b';'c'], qos' = Qos1)  
@@ -58,7 +58,7 @@ class iso _Publish3 is UnitTest
     var expected  : Array[U8] = [50;10;0;3;97;47;98;0;2;97;98;99]
     h.assert_array_eq[U8](expected , result)
 
-class iso _Publish4 is UnitTest
+class \nodoc\  iso _Publish4 is UnitTest
   fun name() : String => "Publish - QoS2"     //Publish id = 65281  Topic= a/b QoS 2  - 12 bytes
     fun apply(h: TestHelper) =>
       var args : PublishArgs val = PublishArgs(where cid' =65281, topic' = "a/b", payload' = ['a';'b';'c'], qos' = Qos2)  
@@ -66,7 +66,7 @@ class iso _Publish4 is UnitTest
     var expected  : Array[U8] = [52;10;0;3;97;47;98;0xff;0x01;97;98;99]
     h.assert_array_eq[U8](expected , result)
 
-class iso _Publish5 is UnitTest
+class \nodoc\  iso _Publish5 is UnitTest
   fun name() : String => "Publish - DUP"     // Publish id = 1  Topic= a/b Dup  - 10 bytes
     fun apply(h: TestHelper) =>
        var args : PublishArgs val = PublishArgs(where cid' =1, topic' = "a/b", payload' = ['a';'b';'c'], d' = true)  
@@ -74,7 +74,7 @@ class iso _Publish5 is UnitTest
     var expected  : Array[U8] = [56;8;0;3;97;47;98;97;98;99]
     h.assert_array_eq[U8](expected , result)
 
-class iso _Publish6 is UnitTest
+class \nodoc\  iso _Publish6 is UnitTest
   fun name() : String => "Publish - Retain"    //Publish id = 65281  Topic= aa/bb retain  - 10 bytes
     fun apply(h: TestHelper) =>
        var args : PublishArgs val = PublishArgs(where cid' =65281, topic' = "aa/bb", payload' = ['a';'b';'c'] , r' = true)  
@@ -82,7 +82,7 @@ class iso _Publish6 is UnitTest
     var expected  : Array[U8] = [49;10;0;5;97;97;47;98;98;97;98;99]
     h.assert_array_eq[U8](expected , result)
 
-class iso _Publish7 is UnitTest
+class \nodoc\  iso _Publish7 is UnitTest
   fun name() : String => "Publish - Long Topic"
   fun apply(h: TestHelper) =>
   //Publish id 1: $SYS/broker/subscriptions/count = 0 , qos = 1 retain = true
@@ -91,7 +91,7 @@ class iso _Publish7 is UnitTest
     var expected : Array[U8] val = [51; 36; 0; 31; 36; 83; 89; 83; 47; 98; 114; 111; 107; 101; 114; 47; 115; 117; 98; 115; 99; 114; 105; 112; 116; 105; 111; 110; 115; 47; 99; 111; 117; 110; 116; 0; 1; 48]
     h.assert_array_eq[U8](expected , result)
 
-class iso _Publish8 is UnitTest
+class \nodoc\  iso _Publish8 is UnitTest
   fun name() : String => "Publish - Empty Payload"
   fun apply(h: TestHelper) =>
   //Publish id 1: $SYS/broker/subscriptions/count = 0 , qos = 1 retain = true
@@ -101,7 +101,7 @@ class iso _Publish8 is UnitTest
     var expected : Array[U8] val = [51; 35; 0; 31; 36; 83; 89; 83; 47; 98; 114; 111; 107; 101; 114; 47; 115; 117; 98; 115; 99; 114; 105; 112; 116; 105; 111; 110; 115; 47; 99; 111; 117; 110; 116; 0; 1]
     h.assert_array_eq[U8](expected , result)
 
-class iso _Publish9 is UnitTest
+class \nodoc\  iso _Publish9 is UnitTest
   fun name() : String => "Publish - Minimum Publish"
   fun apply(h: TestHelper) =>
   //Publish one character topic, qos 0 (no id)
@@ -112,7 +112,7 @@ class iso _Publish9 is UnitTest
     h.assert_array_eq[U8](expected , result)
 
 
-class iso _Publish10 is UnitTest
+class \nodoc\  iso _Publish10 is UnitTest
   fun name() : String => "Publish In - Long Topic"
   fun apply(h: TestHelper) =>
   //Publish id 1: $SYS/broker/subscriptions/count = 0 , qos = 1 retain = true
@@ -137,7 +137,7 @@ class iso _Publish10 is UnitTest
       h.assert_eq[Bool](true, false)
     end
 
-class iso _PubAck is UnitTest
+class \nodoc\  iso _PubAck is UnitTest
   fun name() : String => "Publish - PubAck Packet"
   fun apply(h: TestHelper) =>
     var result : ArrayVal = PubAckPacket.compose(1)   
@@ -149,7 +149,7 @@ class iso _PubAck is UnitTest
     h.assert_array_eq[U8](expected , result)
 
 
-class iso _PubRec is UnitTest
+class \nodoc\  iso _PubRec is UnitTest
   fun name() : String => "Publish - PubRec Packet"
   fun apply(h: TestHelper) =>
     var result : Array[U8] val = PubRecPacket.compose(1)   
@@ -161,7 +161,7 @@ class iso _PubRec is UnitTest
     h.assert_array_eq[U8](expected , result)
 
 
-class iso _PubRelCompose is UnitTest
+class \nodoc\  iso _PubRelCompose is UnitTest
   fun name() : String => "Publish - PubRel Packet compose"
   fun apply(h: TestHelper) =>
     var result : Array[U8] val = PubRelPacket.create().compose(1)   
@@ -173,7 +173,7 @@ class iso _PubRelCompose is UnitTest
     h.assert_array_eq[U8](expected , result)
 
 
-class iso _PubRelFromData is UnitTest
+class \nodoc\  iso _PubRelFromData is UnitTest
   fun name() : String => "Publish - PubRel Packet From Data"
   fun apply(h: TestHelper) =>
     var data : Array[U8] val = [98;2;0;1]
@@ -183,7 +183,7 @@ class iso _PubRelFromData is UnitTest
         h.assert_eq[U16](65281, PubRelPacket.createFromPacket(BasePacket(data)).id())
   
 
-class iso _PubComp is UnitTest
+class \nodoc\  iso _PubComp is UnitTest
   fun name() : String => "Publish - PubComp Packet"
   fun apply(h: TestHelper) =>
     var result : Array[U8] val = PubCompPacket.compose(1)   

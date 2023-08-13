@@ -3,7 +3,7 @@ use "pony_test"
 use "collections"
 use "../utilities"
 
-actor Main is TestList
+actor \nodoc\ Main is TestList
     new create(env : Env) =>
         PonyTest(env, this)
 
@@ -16,7 +16,7 @@ actor Main is TestList
         test(_ToQosBits)
         test(_U8ToQos)
 
-class iso _ToQos is UnitTest
+class \nodoc\  iso _ToQos is UnitTest
     fun name() : String => "ToQos"
     fun apply(h: TestHelper) =>
         var q : Qos = ToQos("qos0")
@@ -40,7 +40,7 @@ class iso _ToQos is UnitTest
         h.assert_eq[Bool](true, q is Qos0) 
         
 
-  class iso _ToQosBits is UnitTest
+  class \nodoc\  iso _ToQosBits is UnitTest
     fun name() : String => "ToQosBits"
     fun apply(h: TestHelper) =>
         var q : U8 = ToQosBits("qos0")
@@ -65,7 +65,7 @@ class iso _ToQos is UnitTest
 
 
         
-  class iso _U8ToQos is UnitTest
+  class \nodoc\  iso _U8ToQos is UnitTest
     fun name() : String => "U8 To Qos"
     fun apply(h: TestHelper) =>
       try

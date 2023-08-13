@@ -1,7 +1,7 @@
 
 use "pony_test"
 
-actor Main is TestList
+actor \nodoc\ Main is TestList
 
     new create(env : Env) =>
         PonyTest(env, this)
@@ -12,7 +12,7 @@ actor Main is TestList
     fun tag tests(test: PonyTest) =>
         test(_IdIssue)
 
-class iso _IdIssue is UnitTest
+class \nodoc\  iso _IdIssue is UnitTest
   fun name() : String => "Id Issue"
   fun apply(h: TestHelper) =>
   h.assert_eq[Bool](true , true)

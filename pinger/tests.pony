@@ -5,7 +5,7 @@ use "../primitives"
 use "../utilities"
 
 
-actor Main is TestList
+actor \nodoc\ Main is TestList
     new create(env : Env) =>
         PonyTest(env, this)
 
@@ -16,7 +16,7 @@ actor Main is TestList
         test(_PingReq)
         
 
-class iso _PingReq is UnitTest
+class \nodoc\  iso _PingReq is UnitTest
   fun name() : String => "Ping request"
   fun apply(h: TestHelper) =>
   var result : Array[U8] val = PingReqPacket.compose()    

@@ -5,7 +5,7 @@ use "../primitives"
 use "../utilities"
 
 
-actor Main is TestList
+actor \nodoc\ Main is TestList
 
     new create(env : Env) =>
         PonyTest(env, this)
@@ -17,7 +17,7 @@ actor Main is TestList
         test(_Subscribe)
         test(_Unsubscribe)
 
-class iso _Subscribe is UnitTest
+class \nodoc\  iso _Subscribe is UnitTest
   fun name() : String => "Subscribe"
   fun apply(h: TestHelper) =>
     //Subscribe id = 1 Topic= a/b QoS 0 - 10 bytes
@@ -46,7 +46,7 @@ class iso _Subscribe is UnitTest
     expected = [130;8;0;1;0;3;97;47;99;2]
 
 
-class iso _Unsubscribe is UnitTest
+class \nodoc\  iso _Unsubscribe is UnitTest
   fun name() : String => "Unsubscribe"
   fun apply(h: TestHelper) =>
     //Subscribe id = 1 Topic= a/b QoS 0 - 10 bytes

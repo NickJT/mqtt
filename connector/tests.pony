@@ -5,7 +5,7 @@ use "../primitives"
 use "../utilities"
 
 
-class TestConfig
+class \nodoc\  TestConfig
   fun fullConfig() : Map[String, String] val =>
     recover val
         let config : Map[String, String] = Map[String, String]
@@ -47,7 +47,7 @@ class TestConfig
       end
 
 
-actor Main is TestList
+actor \nodoc\ Main is TestList
     var _out : OutStream
 
     new create(env : Env) =>
@@ -64,7 +64,7 @@ actor Main is TestList
         test(_Disconnect)
 
 
-class iso _ConnectPacketMin is UnitTest
+class \nodoc\  iso _ConnectPacketMin is UnitTest
     fun name() : String => "Control: Connect Packet - Min Params"
     fun apply(h: TestHelper) =>
       var cp : ConnectPacket = ConnectPacket(TestConfig.minConfig())
@@ -72,7 +72,7 @@ class iso _ConnectPacketMin is UnitTest
       var expected : Array[U8] val = [16;16;0;4;77;81;84;84;4;238;0;60;0;4;80;111;110;121]
       h.assert_array_eq[U8](expected, result)
 
-class iso _ConnectPacketAll is UnitTest
+class \nodoc\  iso _ConnectPacketAll is UnitTest
   fun name() : String => "Control: Connect Packet - All Params "
   fun apply(h: TestHelper) =>
     var cp : ConnectPacket = ConnectPacket(TestConfig.fullConfig())
@@ -81,7 +81,7 @@ class iso _ConnectPacketAll is UnitTest
     h.assert_array_eq[U8](expected , result)
 
 
-class iso _Disconnect is UnitTest
+class \nodoc\  iso _Disconnect is UnitTest
   fun name() : String => "Disconnect"
   fun apply(h: TestHelper) =>
   var result : Array[U8] val = DisconnectPacket.compose()    
