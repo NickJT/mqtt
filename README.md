@@ -45,12 +45,6 @@ The architecture of the R.1 is highly decomposed:
 This is probably not the most effective approach for performance so expect to see components
 being consolidated later. The main purpose of each of the packages (in order of typical programe flow) is as follows.
 
-
-</br>
-
-## Approximate R.2 Architecture
-!(Release 0.2.jpg "Architecture")
-
 ### Main ###
 
 Uses a configurator actor to reads the configuration from config.ini. Passes the config to
