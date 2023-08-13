@@ -9,10 +9,10 @@ theme:
     accent: amber
   features:
     - navigation.top
-exclude_docs: |
-  tests.pony 
 extra_css:
   - assets/ponylang.css
+exclude_docs: |
+  tests.pony 
 markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
