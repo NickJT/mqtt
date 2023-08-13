@@ -49,7 +49,7 @@ being consolidated later. The main purpose of each of the packages (in order of 
 </br>
 
 ## Approximate R.2 Architecture
-![Alt](Release 0.2.jpg "Architecture")
+!(Release 0.2.jpg "Architecture")
 
 ### Main ###
 
