@@ -19,23 +19,12 @@ interface IdNotifyPub
 
 actor IdIssuer
 """
-SUBSCRIBE, UNSUBSCRIBE, and PUBLISH (in cases where QoS > 0) Control Packets contain a  
-non-zero 16-bit Packet Identifier in big endian format  
-If a Client re-sends a particular Control Packet, then it MUST use the same Packet Identifier  
-in subsequent re-sends of that packet.  
-The Packet Identifier becomes available for reuse after the Client has processed the corresponding  
-acknowledgement packet.  
-In the case of a QoS 1 PUBLISH this is the corresponding PUBACK  
-In the case of QoS 2 it is PUBCOMP.  
-For SUBSCRIBE or UNSUBSCRIBE it is the corresponding SUBACK or UNSUBACK.  
-
-Reissuing Returned Ids  
-- create an array of returned numbers (empty on creation)  
+Our approach for reissuing returned ids:    
+- create an array of returned numbers (empty on creation)   
 - when a request is received try to pop a number out of the array  
 - if the list is empty issue a new number  
 - when a number is returned push it back into the list  
 - check that the list doesn't contain the returned number to prevent any duplicates  
-- no error checking on 16 bit overflow other than logging  
 """
 
   var _id : U16 = 0

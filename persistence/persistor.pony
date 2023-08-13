@@ -2,7 +2,7 @@ use "debug"
 use "package:../primitives"
 use "package:../utilities"
 
-Actor Persistor
+actor Persistor
 
   new create() =>
     Debug.err("Created persistor")
