@@ -11,8 +11,6 @@ theme:
     - navigation.top
 extra_css:
   - assets/ponylang.css
-exclude_docs: |
-  tests.pony 
 markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
@@ -267,22 +265,7 @@ nav:
 - package mqtt/assembler:
   - Package: "mqtt-assembler--index.md"
   - actor Assembler: "mqtt-assembler-Assembler.md"
-  - primitive Double: "mqtt-assembler-Double.md"
-  - primitive Fraction: "mqtt-assembler-Fraction.md"
-  - primitive Last: "mqtt-assembler-Last.md"
-  - actor Main: "mqtt-assembler-Main.md"
-  - primitive Overlen: "mqtt-assembler-Overlen.md"
-  - primitive P1: "mqtt-assembler-P1.md"
-  - primitive P2: "mqtt-assembler-P2.md"
-  - primitive P3: "mqtt-assembler-P3.md"
-  - primitive P4: "mqtt-assembler-P4.md"
-  - primitive P5: "mqtt-assembler-P5.md"
-  - primitive P6: "mqtt-assembler-P6.md"
-  - primitive Partial: "mqtt-assembler-Partial.md"
-  - primitive Single: "mqtt-assembler-Single.md"
-  - class _Single: "mqtt-assembler-_Single.md"
   - type Stream: "mqtt-assembler-Stream.md"
-  - primitive Tail: "mqtt-assembler-Tail.md"
 - package mqtt/configurator:
   - Package: "mqtt-configurator--index.md"
   - class _ArgsFull: "mqtt-configurator-_ArgsFull.md"
