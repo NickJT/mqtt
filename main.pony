@@ -87,11 +87,11 @@
     Only called when we are exiting the program and all of the actors need to
     be cleanly terminated
     """  
-    cleanup()
+    _cleanup()
     Debug.err("Main.onExit code is " + code.string())
     
 
-  fun ref cleanup() =>
+  fun ref _cleanup() =>
     Debug.err("Main cleanup underway")
     _ansiTerm.dispose()
     _env.input.dispose()
