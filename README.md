@@ -42,7 +42,7 @@ The architecture of the R.1 is highly decomposed:
 1. to help understanding how the protocol works
 2. to facilitate perf testing each component later
 
-![alt](Release 0.2.jpg)
+![Architecture](assets/Release02.jpg)
 
 This is probably not the most effective approach for performance so expect to see components
 being consolidated later. The main purpose of each of the packages (in order of typical programe flow) is as follows.
