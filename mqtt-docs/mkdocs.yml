@@ -9,13 +9,10 @@ theme:
     accent: amber
   features:
     - navigation.top
+exclude_docs: |
+  tests.pony 
 extra_css:
   - assets/ponylang.css
-exclude_docs: |
-  tests.pony    # A file with this name anywhere.
-  drafts/            # A "drafts" directory anywhere.
-  /requirements.txt  # Top-level "docs/requirements.txt".
-  *.py               # Any file with this extension anywhere.
 markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
