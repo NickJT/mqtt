@@ -16,7 +16,6 @@
   use "../subscriber"
   use "../terminal"
   use "../network"
-  use "../ticker"
   use "../utilities"
 
 /********************************************************************************/
@@ -229,7 +228,7 @@ fun ref _doAssignedSubscription(basePacket : BasePacket val) =>
   the packet to let nature take its course. We don't use router.subscribe() because
   we don't want subscriber to send a another subscription request to the Broker. 
   TODO - We need to remove this local only subscriber from the maps at some
-  point in the cleanup process
+  point in the _cleanup process
 
   Case 2. We don't remove Subscription from router tables until we get a sub-ack so
   we should be covered for 2 unless the broker continues to send pubRel after an
@@ -507,8 +506,8 @@ fun ref _onPingResp() =>
   """
   When the broker responds to a ping response we credit the token count. This value 
   is debited by doPing() each time we ask for a ping and we quit when it reaches zero.
-  TODO - The test isn't really needed unless we need to protect against missing 
-  an incomming Ping
+  TODO - Add a _pingTokenCount increment on mesage activity otherwise we could reach
+  zero if ping messages get queued 
   """
   if (_pingTokenCount < 3) then _pingTokenCount = _pingTokenCount + 1 end
 
@@ -532,10 +531,7 @@ be onBrokerConnect() =>
   state reflecting the (potentially saved) state in Broker.
   """
   showStatus("Broker connected")
-  _reg[Ticker](KeyTicker()).next[None]({(t : Ticker) => t.start()})
-
-  _pinger = Pinger(_reg, 5/* seconds delay*/)
-  try _reg.update(KeyPinger(), _pinger as Pinger) end 
+  _pinger = Pinger(this, 3/* seconds delay*/)
 
 /*********************************************************************************/
 be onBrokerRestore() =>
@@ -607,21 +603,12 @@ be onBrokerRefusal(reason : ConnAckReturnCode) =>
 
 
 /*********************************************************************************/
-be onError(errorCode : ErrorCode) =>
-  """
-  Called if we detect a protocol error or broker timeout 
-  """
- //Debug.err(errorCode.string() + " at " + __loc.file() + ":" +__loc.method_name())
- // disconnectBroker()
- // cleanup()
-
-/*********************************************************************************/
 be onTCPDisconnect(errorCode : ErrorCode) =>
   """
     Called if the TCP connection is closed in client
   """
   Debug.err("TCP Disconnect: " + errorCode.string() + " at " + __loc.file() + ":" +__loc.method_name())
-  cleanup()
+  _cleanup()
 
 /*********************************************************************************/
 be disconnectBroker() =>
@@ -635,10 +622,10 @@ be disconnectBroker() =>
   cancelKeepAlive()
   send(DisconnectPacket.compose())
   _reg[OsNetwork](KeyNetwork()).next[None]({(n:OsNetwork)=>n.disconnect()})
-  // client calls cleanup when it has disconnected so don't call it here
+  // client calls _cleanup when it has disconnected so don't call it here
 
 /*********************************************************************************/
-fun ref cleanup() =>
+fun ref _cleanup() =>
   _tcpMaybe = None
 
   if (not _cleanSession) then
@@ -700,10 +687,20 @@ be send(data : ArrayVal) =>
 
 /*********************************************************************************/
 be showMessage(s1 : String val, s2 : String val) =>
+  """
+  The final message release behaviour that send the broker message to the client 
+  application.
+  TODO - Modify this so we return bytes rather than a string
+  TODO - Take a callback rather than hard coding a call to terminal
+  """
   _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.message(s1,s2)})
 
 /*********************************************************************************/
 be showStatus(status : String val) =>
+  """
+  Provides an out of band channel for the library functions to notify the app of 
+  staus or anything else that is not a broker message
+  """
   _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.status(status)})
 
 

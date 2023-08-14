@@ -15,7 +15,6 @@
   use "router"
   use "subscriber"
   use "terminal"
-  use "ticker"
 
 
 /************************************************************************/
@@ -25,7 +24,6 @@
   let _issuer : IdIssuer 
   let _router : Router
   let _spawner : Spawner
-  let _ticker : Ticker
   let _terminal : Terminal
   let _ansiTerm : ANSITerm
 
@@ -59,9 +57,6 @@
 
     _terminal = Terminal(_env)
     _reg.update(KeyTerminal(),_terminal)
-
-    _ticker = Ticker(_router)
-    _reg.update(KeyTicker(),_ticker)
 
     _network = OsNetwork(_env, _router, _config)
     _reg.update(KeyNetwork(), _network)
@@ -102,8 +97,6 @@
     _reg[OsNetwork](KeyNetwork()).next[None]({(n:OsNetwork)=>n.disconnect()})
     _reg.remove(KeyNetwork(),_network)
     _reg.remove(KeyRouter(),_router)
-    _ticker.cancel()
-    _reg.remove(KeyTicker(),_ticker)
     _reg.remove(KeyTerminal(),_terminal)
     _env.out.write(ANSI.reset() + ANSI.clear() + ANSI.white())
     _env.out.flush()

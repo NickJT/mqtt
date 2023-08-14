@@ -3,7 +3,7 @@ use "pony_test"
 use "collections"
 use "../primitives"
 
-actor Main is TestList
+actor \nodoc\ Main is TestList
   new create(env : Env) =>
   PonyTest(env, this)
 
@@ -50,7 +50,7 @@ fun tag tests(test: PonyTest) =>
 /********************************************************************************/
 
 /********************************************************************************/
-class iso _Split is UnitTest
+class \nodoc\ iso _Split is UnitTest
     fun name() : String => "Split"
     fun apply(h: TestHelper) =>
     var value : U16 = 0
@@ -75,7 +75,7 @@ class iso _Split is UnitTest
 
 
 /********************************************************************************/
-class iso _BytesToU16 is UnitTest
+class \nodoc\ iso _BytesToU16 is UnitTest
     fun name() : String => "U16ToBytes"
     fun apply(h: TestHelper) =>
     var b1 : Array[U8] val = [0;0]
@@ -99,7 +99,7 @@ class iso _BytesToU16 is UnitTest
 
 
 /********************************************************************************/
-class iso _U16ToBytes is UnitTest
+class \nodoc\ iso _U16ToBytes is UnitTest
     fun name() : String => "U16ToBytes"
     fun apply(h: TestHelper) =>
         (var b1: U8, var b0: U8) = U16ToBytes(0)
@@ -120,7 +120,7 @@ class iso _U16ToBytes is UnitTest
 
 
 /********************************************************************************/
-class iso _MqStringEmpty is UnitTest
+class \nodoc\ iso _MqStringEmpty is UnitTest
     fun name() : String => "MqString - Empty"
     fun apply(h: TestHelper) =>
 
@@ -129,7 +129,7 @@ class iso _MqStringEmpty is UnitTest
     h.assert_array_eq[U8](emptyA, MqString(empty))
 
 /********************************************************************************/
-class iso _MqStringShort is UnitTest
+class \nodoc\ iso _MqStringShort is UnitTest
     fun name() : String => "MqString - Short"
     fun apply(h: TestHelper) =>
 
@@ -143,7 +143,7 @@ class iso _MqStringShort is UnitTest
 
 
 /********************************************************************************/
-class iso _MqStringLong is UnitTest
+class \nodoc\ iso _MqStringLong is UnitTest
     fun name() : String => "MqString - Long"
     fun apply(h: TestHelper) =>
 
@@ -161,7 +161,7 @@ class iso _MqStringLong is UnitTest
 
 
 /********************************************************************************/
-class iso _MqStringOver is UnitTest
+class \nodoc\ iso _MqStringOver is UnitTest
     fun name() : String => "MqString - Over Length"
     fun apply(h: TestHelper) =>
 
@@ -173,7 +173,7 @@ class iso _MqStringOver is UnitTest
 
 
 /********************************************************************************/
-class iso _BytesToValueLim is UnitTest
+class \nodoc\ iso _BytesToValueLim is UnitTest
     fun name() : String => "BytesToValue - Limits"
     //fun  ValueToRLBytes(length : USize val) : Array[U8] val=>
     fun apply(h: TestHelper) =>
@@ -218,7 +218,7 @@ class iso _BytesToValueLim is UnitTest
 
 
 /********************************************************************************/
-class iso _BytesToValueEx is UnitTest
+class \nodoc\ iso _BytesToValueEx is UnitTest
   let b :  Array[U8] val = [0 ; 193 ; 2]
   let v :  U32 =   321
   fun name(): String => "Bytes To Value - Example"
@@ -228,7 +228,7 @@ class iso _BytesToValueEx is UnitTest
 
 
 /********************************************************************************/
-class iso _RlByteCount is UnitTest
+class \nodoc\ iso _RlByteCount is UnitTest
     fun name() : String => "Remaining Length - RlByteCount"
     fun apply(h: TestHelper) =>
     //  fun  RlByteCount(data : Array[U8] val) : U32 => 
@@ -274,7 +274,7 @@ class iso _RlByteCount is UnitTest
 
 
 /********************************************************************************/
-class iso _ValueToRLBytesLim is UnitTest
+class \nodoc\ iso _ValueToRLBytesLim is UnitTest
     fun name() : String => "ValueToRLBytes - Limits"
     fun apply(h: TestHelper) =>
     var value : USize val = 0
@@ -319,7 +319,7 @@ class iso _ValueToRLBytesLim is UnitTest
 
 
 /********************************************************************************/
-class iso _ValueToRLBytesEx is UnitTest
+class \nodoc\ iso _ValueToRLBytesEx is UnitTest
   let b :  Array[U8] val = [193;2]
   let v :  USize =   321
   fun name(): String => "ValueToRLBytes - Example"
@@ -328,7 +328,7 @@ class iso _ValueToRLBytesEx is UnitTest
     h.assert_array_eq[U8](b, ValueToRLBytes(v))
 
 /********************************************************************************/
-class iso _FPubHeader is UnitTest
+class \nodoc\ iso _FPubHeader is UnitTest
   fun name() : String => "Fixed Header - Publish"
   fun apply(h: TestHelper) =>
     var result = FixedHeader.makePubHeader(where len = 321 , dup = false , q = Qos0, retain = false)
@@ -352,7 +352,7 @@ class iso _FPubHeader is UnitTest
     h.assert_array_eq[U8](expected , result)
 
 /********************************************************************************/
-class iso _Fheader is UnitTest
+class \nodoc\ iso _Fheader is UnitTest
   fun name() : String => "Fixed Header - Others"
   fun apply(h: TestHelper) =>
     var result = FixedHeader.makeHeader(ControlConnect, 321)
@@ -407,7 +407,7 @@ class iso _Fheader is UnitTest
     expected  = [224;0]
     h.assert_array_eq[U8](expected , result)
 /********************************************************************************/
-class iso _GoodPkt1 is UnitTest
+class \nodoc\ iso _GoodPkt1 is UnitTest
 """
 Publish id 1: $SYS/broker/subscriptions/count = 0 
 """
@@ -431,7 +431,7 @@ Publish id 1: $SYS/broker/subscriptions/count = 0
   h.assert_array_eq[U8](data, pkt.data())
 
 /********************************************************************************/
-class iso _GoodPkt2 is UnitTest
+class \nodoc\ iso _GoodPkt2 is UnitTest
 """
 Packet 2 QoS: Requested QoS 1 Approved QoS 1
 """
@@ -453,7 +453,7 @@ Packet 2 QoS: Requested QoS 1 Approved QoS 1
   h.assert_eq[USize](data.size(), pkt.fixedHeaderLength() + pkt.remainingLength())
   h.assert_array_eq[U8](data, pkt.data())
 /********************************************************************************/
-class iso _GoodPkt3 is UnitTest
+class \nodoc\ iso _GoodPkt3 is UnitTest
 """
 Publish id 2: $SYS/broker/load/publish/sent/1min = 12.63
 """
@@ -476,7 +476,7 @@ Publish id 2: $SYS/broker/load/publish/sent/1min = 12.63
   h.assert_array_eq[U8](data, pkt.data())
 
 /********************************************************************************/
-class iso _GoodPkt4 is UnitTest
+class \nodoc\ iso _GoodPkt4 is UnitTest
 """
 Packet 3 QoS: Requested QoS 1 Approved QoS 1
 """
@@ -499,7 +499,7 @@ Packet 3 QoS: Requested QoS 1 Approved QoS 1
   h.assert_array_eq[U8](data, pkt.data())
 
 /********************************************************************************/
-class iso _GoodPkt5 is UnitTest
+class \nodoc\ iso _GoodPkt5 is UnitTest
 """
 Publish id 2: $SYS/broker/load/publish/sent/1min = 12.63
 """
@@ -522,7 +522,7 @@ Publish id 2: $SYS/broker/load/publish/sent/1min = 12.63
   h.assert_array_eq[U8](data, pkt.data())
 
 /********************************************************************************/
-class iso _GoodPkt6 is UnitTest
+class \nodoc\ iso _GoodPkt6 is UnitTest
 """
 Publish id 2: $SYS/broker/load/publish/sent/1min = 12.63
 """
@@ -545,7 +545,7 @@ Publish id 2: $SYS/broker/load/publish/sent/1min = 12.63
   h.assert_array_eq[U8](data, pkt.data())
 
 /********************************************************************************/
-class iso _BadPkt1 is UnitTest
+class \nodoc\ iso _BadPkt1 is UnitTest
 """
 Publish id 1: $SYS/broker/subscriptions/count = 0 
 error - incorrect length (-1 byte)
@@ -570,7 +570,7 @@ error - incorrect length (-1 byte)
   h.assert_array_eq[U8](data, pkt.data())
 
 /********************************************************************************/
-class iso _BadPkt2 is UnitTest
+class \nodoc\ iso _BadPkt2 is UnitTest
 """
 Packet 2 QoS: Requested QoS 1 Approved QoS 1
 error - incorrect length (+1 byte)
@@ -594,7 +594,7 @@ error - incorrect length (+1 byte)
   h.assert_eq[USize](data.size(), ((pkt.fixedHeaderLength() + pkt.remainingLength()) + 1))
   h.assert_array_eq[U8](data, pkt.data())
 /********************************************************************************/
-class iso _BadPkt3 is UnitTest
+class \nodoc\ iso _BadPkt3 is UnitTest
 """
 Publish id 2: $SYS/broker/load/publish/sent/1min = 12.63
 error - invalid control byte (0x00)
@@ -617,7 +617,7 @@ error - invalid control byte (0x00)
   h.assert_eq[Bool](false, data.size() == (pkt.fixedHeaderLength() + pkt.remainingLength())  )
   h.assert_array_eq[U8](data, pkt.data())
 /********************************************************************************/
-class iso _BadPkt4 is UnitTest
+class \nodoc\ iso _BadPkt4 is UnitTest
 """
 Publish id 2: $SYS/broker/load/publish/sent/1min = 12.63
 error - invalid control byte (0xF0)
@@ -640,7 +640,7 @@ error - invalid control byte (0xF0)
   h.assert_eq[Bool](false, data.size() == (pkt.fixedHeaderLength() + pkt.remainingLength())  )
   h.assert_array_eq[U8](data, pkt.data())
 /********************************************************************************/
-class iso _BadPkt5 is UnitTest
+class \nodoc\ iso _BadPkt5 is UnitTest
 """
 Publish id 1: $SYS/broker/subscriptions/count = 0 
 error - incorrect length (-1 byte)
@@ -663,7 +663,7 @@ error - incorrect length (-1 byte)
   h.assert_eq[Bool](false,    data.size() == (pkt.fixedHeaderLength() + pkt.remainingLength())  )
   h.assert_array_eq[U8](data, pkt.data())
   /********************************************************************************/
-class iso _BadPkt6 is UnitTest
+class \nodoc\ iso _BadPkt6 is UnitTest
 """
 Packet 3 QoS: Requested QoS 1 Approved QoS 1
 error - To many remaining length bytes
