@@ -35,6 +35,7 @@
   new create(env : Env) =>
     _env = env
   
+  
     let configReader = MqttConfig(env, ConfigFile(), FullConfigParams())
     if (configReader.isValid()) then
       _config = configReader.getConfig()
