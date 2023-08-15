@@ -30,7 +30,7 @@ class KbdInput is InputNotify
     Debug.err("InputNotify being disposed")
 
 
-class Handler is ANSINotify
+class Terminal is ANSINotify
   """
   ANSINotify is the inner wrapper notifier. Apply is called by the ANSITerm when input
   is available. Closed is called when the window is closed.
@@ -48,17 +48,7 @@ fun ref apply(term: ANSITerm ref, input: U8 val) =>
   Debug.err("[" + input.string() + "]")
 
 fun ref fn_key(i: U8 val, ctrl: Bool val, alt: Bool val, shift: Bool val) =>
-  match i
-/*  | Connect()     => _reg[OsNetwork](KeyNetwork()).next[None]({(nw:OsNetwork)=>nw.connect()})
-| SubscribeTest()   => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.testSubs(Sub)}, {()=>Debug.err("No spawner")})
-  | SubscribeStats()  => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.brokerSubs(Sub)})
-  | UnSubscribe() => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.unSubAll()})
-  | SoakTest()    => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.soakTest()})
-  | LoadTest()    => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.perfTest()})
-  | Mute()        => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.mute()})
-| Discon()      => _reg[Router](KeyRouter()).next[None]({ (r: Router)=>r.disconnectBroker()})
-  | Clear()       => _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.clear()})
-*/ 
+  match i 
   | Quit()        =>  _exitCall(0)
   else
     Debug.err("f"+ i.string() + " not used yet")
@@ -67,7 +57,7 @@ fun ref fn_key(i: U8 val, ctrl: Bool val, alt: Bool val, shift: Bool val) =>
 fun ref size(rows: U16 val, cols: U16 val) =>
   None 
   //Debug.err("Rows: " + rows.string() + " Cols: " + cols.string())
-  //_reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.size(rows,cols)})
+  //_reg[Display](KeyDisplay()).next[None]({(t:Display)=>t.size(rows,cols)})
 
 fun ref close() =>
   Debug.err("Window closed")

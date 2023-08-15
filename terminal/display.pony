@@ -17,7 +17,7 @@
 class StatusLine
   var _content : String val
   var _paint : Bool
-  var _colour : String val =  TerminalColour.status()
+  var _colour : String val =  DisplayColour.status()
   new create(content' : String val) =>
     _content = content'
     _paint = true 
@@ -35,8 +35,8 @@ class BoxLine
   var _topic : String val
   var _content : String val
   var _lastContent : String val = String
-  var _topicColour : String val =  TerminalColour.boxDormant()
-  var _contentColour : String val =  TerminalColour.boxDormant()
+  var _topicColour : String val =  DisplayColour.boxDormant()
+  var _contentColour : String val =  DisplayColour.boxDormant()
   var _paint : Bool
   var _timeStamp : I64
   new create(topic : String val, content' : String val) =>
@@ -47,14 +47,14 @@ class BoxLine
   
   fun paint() : Bool => _paint
   fun ref deadline(seconds : I64) =>
-    if ((_contentColour == TerminalColour.boxChange()) and (_timeStamp < seconds)) then 
-      _contentColour = TerminalColour.boxNormal()
+    if ((_contentColour == DisplayColour.boxChange()) and (_timeStamp < seconds)) then 
+      _contentColour = DisplayColour.boxNormal()
       _paint = true
     end
   
   fun ref update(content' : String val) =>
-    if (_topicColour == TerminalColour.boxDormant()) then  
-      _topicColour = TerminalColour.boxNormal()
+    if (_topicColour == DisplayColour.boxDormant()) then  
+      _topicColour = DisplayColour.boxNormal()
       _paint = true
     end
     
@@ -63,7 +63,7 @@ class BoxLine
     if (content' != _content) then 
       _timeStamp = Time.seconds()
       _lastContent = _content = content'
-      _contentColour = TerminalColour.boxChange()
+      _contentColour = DisplayColour.boxChange()
       _paint = true
     end
    
@@ -77,7 +77,7 @@ class BoxLine
     + _contentColour
     + _content
 
-actor Terminal
+actor Display
   /* Dimensions ********************************************************/
     let _out : OutStream
     let _width : U32 = 128
@@ -116,7 +116,7 @@ new create(env: Env, exitCall : {(U8)} iso) =>
   _exitCall = consume exitCall
   // Start by creating the keyboard handler using an ansiNotifier.
   // We pass it a reference to the onExit behaviour of main so we can call it when we're done
-  var ansiNotify : Handler iso = Handler(_env, recover iso this~onExit() end)
+  var ansiNotify : Terminal iso = Terminal(_env, recover iso this~onExit() end)
   // Now create the ANSITerm object
   _ansiTerm = ANSITerm(consume ansiNotify, env.input)
   // Next create the inputNotifier and pass in the ANSITerm. Data received by 
@@ -174,7 +174,7 @@ be onTick(seconds : I64) =>
 be onExit(code : U8) =>
   _uim.mute()
   clearScreen()
-  Debug.err("Terminal onExit with " + code.string())
+  Debug.err("Display onExit with " + code.string())
   _env.input.dispose()
   _exitCall(0)
 
@@ -207,14 +207,14 @@ fun ref composite() : String val =>
   end
 
   _paintAreas.clear()
-  paintString = paintString + ANSI.cursor(_width,_cmdY) + TerminalColour.cmd() 
+  paintString = paintString + ANSI.cursor(_width,_cmdY) + DisplayColour.cmd() 
   paintString 
 
 fun windowSize(w : U32, h: U32) : String val =>
   "\e[8;" + h.string() + ";" + w.string() + "t" 
 
 fun cmdString() : String val =>
-  ANSI.cursor(_left,_cmdY) + TerminalColour.cmd() + "Commands - " + _commands
+  ANSI.cursor(_left,_cmdY) + DisplayColour.cmd() + "Commands - " + _commands
 fun ref boxString() : String val =>
   var result : String val = String
   let unsorted : Array[String val] = Array[String val].create(_boxMap.size()) 
@@ -238,7 +238,7 @@ fun ref statusString() : String val =>
   result
 
 fun separatorLine(y : U32, width : U32) : String val =>
-  ANSI.cursor(0,y) + TerminalColour.separator() + separator(width)
+  ANSI.cursor(0,y) + DisplayColour.separator() + separator(width)
 
 fun separator(width : U32) : String val =>
   var arrayVal : Array[U8] val = recover val
@@ -254,7 +254,7 @@ fun separator(width : U32) : String val =>
 fun border(x : U32) : String val =>
   recover val 
     var stg : String ref  = String
-    stg.append(TerminalColour.border())
+    stg.append(DisplayColour.border())
     for y in Range[U32](1,_height) do 
       stg.append(ANSI.cursor(x,y) + "|")
     end

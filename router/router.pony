@@ -694,7 +694,7 @@ be showMessage(s1 : String val, s2 : String val) =>
   TODO - Modify this so we return bytes rather than a string
   TODO - Take a callback rather than hard coding a call to terminal
   """
-  _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.message(s1,s2)})
+  _reg[Display](KeyDisplay()).next[None]({(t:Display)=>t.message(s1,s2)})
 
 /*********************************************************************************/
 be showStatus(status : String val) =>
@@ -702,7 +702,7 @@ be showStatus(status : String val) =>
   Provides an out of band channel for the library functions to notify the app of 
   staus or anything else that is not a broker message
   """
-  _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.status(status)})
+  _reg[Display](KeyDisplay()).next[None]({(t:Display)=>t.status(status)})
 
 
 /*********************************************************************************/

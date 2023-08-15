@@ -7,12 +7,12 @@
 /************************************************************************/
   actor Main
   let _env : Env
-  //let _terminal : Terminal
+  //let _display : Display
   let _mqtt : MqttClient
 
   new create(env : Env) =>
     _env = env
-    //_terminal = Terminal(_env, recover iso this~onExit() end)
+    //_display = Display(_env, recover iso this~onExit() end)
     _mqtt = MqttClient(env)
     _mqtt.connect(recover iso this~onConnect() end)
 

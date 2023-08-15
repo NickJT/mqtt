@@ -1,6 +1,6 @@
 use "term"
 
-primitive TerminalColour
+primitive DisplayColour
   fun border(): String val => ANSI.grey()
   fun separator(): String val => ANSI.grey()
   fun cmd(): String val => ANSI.bright_blue()
