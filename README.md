@@ -45,56 +45,6 @@ The architecture of the R.1 is highly decomposed:
 This is probably not the most effective approach for performance so expect to see components
 being consolidated later. The main purpose of each of the packages (in order of typical programe flow) is as follows.
 
-![Architecture](assets/Release01.jpg)
-
-## Architecture ## 
-# Pony MQTT Client #
-
-A MQTT 3.1.1 client - just starting release 0.2 below, supporting QoS 0/1/2 but
- not yet implementing session restoration.
-
-If you haven't used Pony, this is the best starting point -> [Pony Tutorial](https://tutorial.ponylang.io/index.html)
-
-## Release Objectives ##
-
-### Release .1 - Done ###
-
-1. 100% coverage of the protocol for happy path with expected i/o
-2. QoS 0, 1 & 2 cleansession only - no message re-transmission after disconnect
-3. Wide use of guards, debug checks and error tracing
-4. Separate classes for each packet type so we don't miss any variations
-5. Consistent api to avoid programming errors while things stabiliise
-6. No hard split between library and application
-7. Simple ui for start/stop (Note - The ANSI terminal codes don't work on Windows)
-
-### Release .2 ###
-
-1. Consider edge cases and errors
-2. Split code into library and application
-3. Add session restoration 
-4. Consolidate similar classes into factory classes
-5. Optimise the api (public: simple, private: efficient)  
-6. Remove unnecessary intermediate variable, guards and debug checks
-7. Simple text terminal for testing
-
-### Release .3 ###
-
-1. Performance  
-2. Load and memory usage  
-3. Optimise
-4. Build as library
-5. Add a simple demo app
-
-## Architecture ##
-
-The architecture of the R.1 is highly decomposed:
-
-1. to help understanding how the protocol works
-2. to facilitate perf testing each component later
-
-This is probably not the most effective approach for performance so expect to see components
-being consolidated later. The main purpose of each of the packages (in order of typical programe flow) is as follows.
-
 ![Architecture](assets/Release02.png)
 
 
