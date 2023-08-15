@@ -95,37 +95,8 @@ The architecture of the R.1 is highly decomposed:
 This is probably not the most effective approach for performance so expect to see components
 being consolidated later. The main purpose of each of the packages (in order of typical programe flow) is as follows.
 
-![Architecture](assets/Release01.jpg)
+![Architecture](assets/Release02.png)
 
-## Architecture ## 
-
-### Main ###
-
-Uses a configurator actor to reads the configuration from config.ini. Passes the config to
-the other actors it creates and then starts the terminal handler. Actors are stored in a
-Registrar so then can be disposed later - when main's onExit behaviour is called.
-
-### Network ###
-
-Connects to the server in the config.ini file (or localhost:1883 a default). Creates a Client as a callback for events.
-
-### Client ###
-
-The TCP class that tells Router when the network is connected (not the MQTT broker yet, just the TCP connection). The Client received method is called when data is available and send this
-data to Assembler.
-
-### Assembler ###
-
-TCP knows nothing of MQTT messages so we may receive multiple MQTT messages in a TCP packet,
-or fractions of a message, or any combination thereof. Assembler is responsible for assembling
-valid MQTT messages from these TCP packets. If you were expecting sections of the code to be
-written in assembler, I am sorry to disappoint...
-
-### Router ###
-
-The hub of the library - carries out minimal interpretation of the incomming message and send
-it to the appropriate handlers. Keeps track of the incomming and outgoing message ids as acks
-are only tied to messages by id.
 
 ### Main ###
 
@@ -154,3 +125,7 @@ written in assembler, I am sorry to disappoint...
 The hub of the library - carries out minimal interpretation of the incomming message and send
 it to the appropriate handlers. Keeps track of the incomming and outgoing message ids as acks
 are only tied to messages by id.
+
+## Operation ##
+
+![Operation](assets/Interface.png)
