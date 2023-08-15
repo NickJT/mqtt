@@ -11,7 +11,7 @@
   use "package:../primitives"
   use "package:../router"
 
-class Aclass is InputNotify
+class KbdInput is InputNotify
   """
   InputNotify is the outer wrapper notifier. Apply is called by env.input when data is 
   available from the input stream. Apply then calls the ANSI terminal so that the data 
@@ -37,37 +37,31 @@ class Handler is ANSINotify
   """
   let _env : Env
   var _term : (ANSITerm | None) = None
-  let _reg : Registrar
 
   let _exitCall : {(U8)}
-  new create(env : Env, reg : Registrar, exitCall : {(U8)} iso) =>
+  new create(env : Env, exitCall : {(U8)} iso) =>
      _env = env
-     _reg = reg
     _exitCall = consume exitCall
   
 fun ref apply(term: ANSITerm ref, input: U8 val) =>
   _term = term
   Debug.err("[" + input.string() + "]")
-  // ctrl q [17] to quit
-  if input == 17 then 
-    _exitCall(0)
-  end 
 
 fun ref fn_key(i: U8 val, ctrl: Bool val, alt: Bool val, shift: Bool val) =>
   match i
-  | Connect()     => _reg[OsNetwork](KeyNetwork()).next[None]({(nw:OsNetwork)=>nw.connect()})
-/*| SubscribeTest()   => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.testSubs(Sub)}, {()=>Debug.err("No spawner")})
+/*  | Connect()     => _reg[OsNetwork](KeyNetwork()).next[None]({(nw:OsNetwork)=>nw.connect()})
+| SubscribeTest()   => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.testSubs(Sub)}, {()=>Debug.err("No spawner")})
   | SubscribeStats()  => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.brokerSubs(Sub)})
   | UnSubscribe() => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.unSubAll()})
   | SoakTest()    => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.soakTest()})
   | LoadTest()    => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.perfTest()})
   | Mute()        => _reg[Spawner](KeySpawner()).next[None]({ (s: Spawner)=>s.mute()})
-*/| Discon()      => _reg[Router](KeyRouter()).next[None]({ (r: Router)=>r.disconnectBroker()})
+| Discon()      => _reg[Router](KeyRouter()).next[None]({ (r: Router)=>r.disconnectBroker()})
   | Clear()       => _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.clear()})
-  | Quit()        => _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.exitAndReset()})
-                     _exitCall(0)
+*/ 
+  | Quit()        =>  _exitCall(0)
   else
-    _reg[Terminal](KeyTerminal()).next[None]({(t:Terminal)=>t.status("f"+ i.string() + " not used yet")})
+    Debug.err("f"+ i.string() + " not used yet")
   end
 
 fun ref size(rows: U16 val, cols: U16 val) =>
@@ -77,10 +71,7 @@ fun ref size(rows: U16 val, cols: U16 val) =>
 
 fun ref close() =>
   Debug.err("Window closed")
-  _exitCall(0)
-
-fun ref dispose() =>
-  Debug.err("ANSINotify being disposed")
+  //_exitCall(0)
 
 /* Unused key handlers*********************************************************/
   fun ref prompt(term: ANSITerm ref, value: String val) =>

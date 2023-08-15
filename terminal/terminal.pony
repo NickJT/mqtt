@@ -102,14 +102,30 @@ actor Terminal
     let _boxMap : Map[String val, BoxLine] = Map[String val, BoxLine](_boxHeight.usize())
     let _paintAreas : Areas = Areas
     var _commands : String val = Commands()
-
+    let _env : Env
+    let _ansiTerm : ANSITerm
     let _uim : UIManager // Timer for message highlighting
+    let _exitCall : {(U8)}
 
   /* Stats *********************************************************/
     var _sequence : U64 = 0
     var _count : U64 = 0
     var _finish : U64 = TestLength() - 1
-new create(env: Env) =>
+new create(env: Env, exitCall : {(U8)} iso) =>
+  _env = env
+  _exitCall = consume exitCall
+  // Start by creating the keyboard handler using an ansiNotifier.
+  // We pass it a reference to the onExit behaviour of main so we can call it when we're done
+  var ansiNotify : Handler iso = Handler(_env, recover iso this~onExit() end)
+  // Now create the ANSITerm object
+  _ansiTerm = ANSITerm(consume ansiNotify, env.input)
+  // Next create the inputNotifier and pass in the ANSITerm. Data received by 
+  // _env.input will be passed to inputNotify and forwarded to ansiNotify's
+  // apply method 
+  var inputNotify : KbdInput iso =  KbdInput(_env, _ansiTerm)
+  // Finally, pass inputNotify to _env.input so it has access to stdin
+  _env.input(consume inputNotify, 512)
+
   _out = env.out
   _uim = UIManager(this)
 
@@ -155,9 +171,12 @@ be onTick(seconds : I64) =>
   timeout(seconds)
   // Anything else?
 
-be exitAndReset() =>
-  clearScreen()
+be onExit(code : U8) =>
   _uim.mute()
+  clearScreen()
+  Debug.err("Terminal onExit with " + code.string())
+  _env.input.dispose()
+  _exitCall(0)
 
 fun ref paint() =>
   _out.write(composite())

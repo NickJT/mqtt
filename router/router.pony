@@ -613,10 +613,11 @@ be onTCPDisconnect(errorCode : ErrorCode) =>
 /*********************************************************************************/
 be disconnectBroker() =>
   """
-  This is called to disconnect cleanly from the Broker. DISCONNECT must be the last
+  This is called to disconnect cleanly from the Broker.  
+
+  > DISCONNECT must be the last
   message sent by the client to the server. The client must close the TCP connection
-  after sending DISCONNECT (so any clean-up from there on must be independent of the
-  network)
+  after sending DISCONNECT.
   """
   Debug.err("Disconnecting Broker at " + __loc.file() + ":" +__loc.method_name())
   cancelKeepAlive()
