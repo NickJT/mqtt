@@ -18,38 +18,43 @@ class KbdInput is InputNotify
   can be interpreted 
   """
   let _env : Env
-  let _term : ANSITerm
-  new create(env : Env, term : ANSITerm) =>
+  let _ansiTerm : ANSITerm
+  new create(env : Env, ansiTerm : ANSITerm) =>
     _env = env
-    _term = term
+    _ansiTerm = ansiTerm
   
   fun ref apply(data : Array[U8 val] iso) =>
-    _term(consume data)
+    _ansiTerm(consume data)
 
   fun ref dispose() =>
     Debug.err("InputNotify being disposed")
 
 
-class Terminal is ANSINotify
+class Handler is ANSINotify
   """
   ANSINotify is the inner wrapper notifier. Apply is called by the ANSITerm when input
   is available. Closed is called when the window is closed.
   """
   let _env : Env
-  var _term : (ANSITerm | None) = None
+  let _terminal : Terminal
+  var _ansiTerm : (ANSITerm | None) = None
 
-  let _exitCall : {(U8)}
-  new create(env : Env, exitCall : {(U8)} iso) =>
-     _env = env
-    _exitCall = consume exitCall
+  new create(env : Env, terminal : Terminal) =>
+    _env = env
+    _terminal = terminal
   
-fun ref apply(term: ANSITerm ref, input: U8 val) =>
-  _term = term
+fun ref apply(ansiTerm: ANSITerm ref, input: U8 val) =>
+  _ansiTerm = ansiTerm
   Debug.err("[" + input.string() + "]")
 
 fun ref fn_key(i: U8 val, ctrl: Bool val, alt: Bool val, shift: Bool val) =>
   match i 
-  | Quit()        =>  _exitCall(0)
+  | Connect() => _terminal.connect()
+  | Discon() => _terminal.disconnect()
+  | Service() => _terminal.startService(i)
+  | Mute() => _terminal.stopService(i)
+  | Clear() => _terminal.clear()
+  | Quit()   =>  _terminal.onExit(0)
   else
     Debug.err("f"+ i.string() + " not used yet")
   end
@@ -64,7 +69,7 @@ fun ref close() =>
   //_exitCall(0)
 
 /* Unused key handlers*********************************************************/
-  fun ref prompt(term: ANSITerm ref, value: String val) =>
+  fun ref prompt(ansiTerm: ANSITerm ref, value: String val) =>
     Debug.err("[prompt = " + value + "]")
 
   fun ref home(ctrl: Bool val, alt: Bool val, shift: Bool val) =>

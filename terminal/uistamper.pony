@@ -28,5 +28,5 @@ actor UIManager
     _timerTag = timer
     _timers(consume timer) 
 
-  be mute() =>
+  be cancel() =>
     _timers.cancel(_timerTag)  
