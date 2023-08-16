@@ -1,4 +1,4 @@
-use "../primitives"
+use "package:../primitives"
 
 primitive FlagsToQos fun apply(value : U8 val) : Qos =>
 """

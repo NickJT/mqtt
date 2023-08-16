@@ -1,8 +1,8 @@
 use "time"
 use "bureaucracy"
 use "debug"
-use "../primitives"
-use "../router"
+use "package:../primitives"
+use "package:../router"
 use ".."
 
 class Ping is TimerNotify

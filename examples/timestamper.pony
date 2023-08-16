@@ -2,10 +2,10 @@ use "bureaucracy"
 use "time"
 use "debug"
 use ".."
-use "../publisher"
-use "../primitives"
-use "../router"
-use "../utilities"
+use "package:../publisher"
+use "package:../primitives"
+use "package:../router"
+use "package:../utilities"
 
 class TsNotify is TimerNotify
   var _count: U64 = 0

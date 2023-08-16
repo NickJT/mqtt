@@ -4,7 +4,7 @@
   use "debug"
   use "net"
   use "collections"
-  use "../primitives"
+  use "package:../primitives"
  
 class MqttConfig
   """

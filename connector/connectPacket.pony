@@ -1,8 +1,8 @@
 use "collections"
 use "debug"
-use "../primitives"
-use "../utilities"
-use "../configurator"
+use "package:../primitives"
+use "package:../utilities"
+use "package:../configurator"
 
 class ConnectPacket
 """

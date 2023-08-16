@@ -3,8 +3,8 @@
   use "collections"
   use "term"
   use "debug"
-  use "../primitives"
-  use "../utilities"
+  use "package:../primitives"
+  use "package:../utilities"
 
 /* Primitives ********************************************************************/
   primitive HighlightPeriod  fun apply() : U64 => 3

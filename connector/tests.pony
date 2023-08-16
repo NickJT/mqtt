@@ -1,8 +1,8 @@
 
 use "pony_test"
 use "collections"
-use "../primitives"
-use "../utilities"
+use "package:../primitives"
+use "package:../utilities"
 
 
 class \nodoc\  TestConfig

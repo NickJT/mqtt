@@ -1,7 +1,7 @@
 
 use "pony_test"
 use "collections"
-use "../primitives"
+use "package:../primitives"
 
 actor \nodoc\ Main is TestList
   new create(env : Env) =>

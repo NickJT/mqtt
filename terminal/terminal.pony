@@ -3,14 +3,17 @@
   use "collections"
   use "term"
   use "debug"
-  use "../primitives"
-  use "../utilities"
+  use "package:../primitives"
+  use "package:../utilities"
+  use "package:../mqttClient"
 
-actor Terminal
+actor Terminal is MqttClient
   let _env : Env
   let _ansiTerm : ANSITerm
   let _display : Display
   let _exitMain : {(U8)}
+
+  let _mqtt : Mqtt
 
 new create(env: Env, exitMain : {(U8)} iso) =>
   _env = env
@@ -29,28 +32,36 @@ new create(env: Env, exitMain : {(U8)} iso) =>
   // Finally, pass inputNotify to _env.input so it has access to stdin
   _env.input(consume inputNotify, 512)
 
+  _mqtt = Mqtt(_env, this)
 
 be connect() =>
-  Debug.err("connect")
+  _mqtt.connect(true)
 
 be disconnect() =>
-  Debug.err("connect")
+  _mqtt.connect(false)
 
 be startService(code : U8) =>
-  Debug.err("start service")
+  _display.status("start service " + code.string())
 
 be stopService(code : U8) =>
-  Debug.err("stop service")
+  _display.status("stop service " + code.string())
 
 be clear() =>
-  Debug.err("clear")
+  _display.clear()
 
-be onConnection() =>
-  Debug.err("onConnection")
+be onConnect(connected : Bool) =>
+  _display.status("onConnect = " + connected.string())
 
-be onSubscribed() =>
-  Debug.err("onSubscribed")
+be onSubscribed(topic: String val, qos: String val) =>
+  _display.message(topic, qos)
   
+be onMessage(topic: String val, content: String val) =>
+  if (topic.contains("status")) then 
+    _display.status(content)
+  else
+    _display.message(topic,content)
+  end
+
 be onExit(code : U8) =>
   _ansiTerm.dispose()
   _display.onExit(0)

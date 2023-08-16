@@ -1,11 +1,11 @@
 use "pony_test"
-use primitives = "../primitives"
-use utilities = "../utilities"
-use configurator = "../configurator"
-use idIssuer = "../idIssuer"
-use pinger = "../pinger"
-use publisher = "../publisher"
-use subscriber = "../subscriber"
+use primitives = "package:../primitives"
+use utilities = "package:../utilities"
+use configurator = "package:../configurator"
+use idIssuer = "package:../idIssuer"
+use pinger = "package:../pinger"
+use publisher = "package:../publisher"
+use subscriber = "package:../subscriber"
 
 actor \nodoc\ Main is TestList
   let _env : Env

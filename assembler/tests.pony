@@ -1,8 +1,8 @@
 use "debug"
 use "collections"
 use "pony_test"
-use "../primitives"
-use "../utilities"
+use "package:../primitives"
+use "package:../utilities"
 
 type Stream is Array[ArrayVal] 
 

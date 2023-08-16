@@ -1,8 +1,8 @@
 use "debug"
 use "collections"
 
-use "../primitives"
-use "../utilities"
+use "package:../primitives"
+use "package:../utilities"
 use ".."
 
 class SubAckPacket

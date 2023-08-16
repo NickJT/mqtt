@@ -4,10 +4,10 @@
   use "collections"
 
   use ".."
-  use "../idIssuer"
-  use "../primitives"
-  use "../router"
-  use "../utilities"
+  use "package:../idIssuer"
+  use "package:../primitives"
+  use "package:../router"
+  use "package:../utilities"
 
 actor Publisher is (IdNotifyPub & MqActor)
   """

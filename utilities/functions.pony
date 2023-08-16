@@ -1,6 +1,6 @@
 use "collections"
 use "debug"
-use "../primitives"
+use "package:../primitives"
 
 /********************************************************************************/
 primitive Split

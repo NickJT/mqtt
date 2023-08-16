@@ -1,5 +1,5 @@
 use "collections"
-use "../utilities"
+use "package:../utilities"
 
 /********************************************************************************/
 type ArrayVal is Array[U8 val] val

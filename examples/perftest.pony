@@ -3,10 +3,10 @@ use "collections"
 use "debug"
 
 use ".."
-use "../publisher"
-use "../subscriber"
-use "../primitives"
-use "../utilities"
+use "package:../publisher"
+use "package:../subscriber"
+use "package:../primitives"
+use "package:../utilities"
 
 actor MessageTest
   let _reg : Registrar

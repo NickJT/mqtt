@@ -1,7 +1,7 @@
 
 use "debug"
-use "../primitives"
-use "../utilities"
+use "package:../primitives"
+use "package:../utilities"
 use ".."
 
 class ConnAckPacket

@@ -1,9 +1,9 @@
 use "debug"
 use "collections"
 
-use "../primitives"
-use "../router"
-use "../utilities"
+use "package:../primitives"
+use "package:../router"
+use "package:../utilities"
 use ".."
 
 actor Connector

@@ -1,6 +1,6 @@
 use "debug"
 use "collections"
-use "../primitives"
+use "package:../primitives"
 
 class BasePacket is Packet
 """

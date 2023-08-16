@@ -1,6 +1,6 @@
 use "format"
 use "time"
-use "../primitives"
+use "package:../primitives"
 use "debug"
 
 class MqTime

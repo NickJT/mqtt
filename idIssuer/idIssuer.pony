@@ -1,5 +1,5 @@
 use "debug"
-use "../primitives"
+use "package:../primitives"
 
 /********************************************************************************/
 interface IdNotifySub

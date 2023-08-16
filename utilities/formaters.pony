@@ -1,6 +1,6 @@
 use "format"
 use "time"
-use "../primitives"
+use "package:../primitives"
 use "debug"
 
 // Put any formating primitives here so we are consistent throughout

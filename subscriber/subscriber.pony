@@ -4,11 +4,11 @@
   use "debug"
 
   use ".."
-  use "../idIssuer"
-  use "../primitives"
-  use "../publisher"
-  use "../router"
-  use "../utilities"
+  use "package:../idIssuer"
+  use "package:../primitives"
+  use "package:../publisher"
+  use "package:../router"
+  use "package:../utilities"
 
 actor Subscriber is (IdNotifySub & MqActor)
   """

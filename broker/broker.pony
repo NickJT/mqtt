@@ -4,8 +4,8 @@ use "debug"
 use "net"
 
 use ".."
-use "../assembler"
-use "../primitives"
+use "package:../assembler"
+use "package:../primitives"
 
 class Broker is TCPConnectionNotify 
   let _env: Env

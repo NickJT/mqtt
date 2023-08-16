@@ -1,4 +1,4 @@
-use "../primitives"
+use "package:../primitives"
 
 
 class FixedHeader

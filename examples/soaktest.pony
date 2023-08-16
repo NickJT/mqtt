@@ -4,10 +4,10 @@ use "debug"
 use "time"
 
 use ".."
-use "../publisher"
-use "../subscriber"
-use "../primitives"
-use "../utilities"
+use "package:../publisher"
+use "package:../subscriber"
+use "package:../primitives"
+use "package:../utilities"
 
 class SoakPublisher is TimerNotify
   var _reps : U64 

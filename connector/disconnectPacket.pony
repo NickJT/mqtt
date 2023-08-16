@@ -1,5 +1,5 @@
 
-use "../primitives"
+use "package:../primitives"
 
 class DisconnectPacket
 """

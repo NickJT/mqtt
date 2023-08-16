@@ -6,17 +6,19 @@
   use "net"
   use "time"
 
-  use "../assembler"
-  use "../connector"
-  use "../examples"
-  use "../idIssuer"
-  use "../primitives"
-  use "../pinger"
-  use "../publisher"
-  use "../subscriber"
-  use "../terminal"
-  use "../network"
-  use "../utilities"
+  use ".."
+  use "package:../assembler"
+  use "package:../connector"
+  use "package:../examples"
+  use "package:../idIssuer"
+  use "package:../mqttClient"
+  use "package:../primitives"
+  use "package:../pinger"
+  use "package:../publisher"
+  use "package:../subscriber"
+  use "package:../terminal"
+  use "package:../network"
+  use "package:../utilities"
 
 /********************************************************************************/
 actor Router
@@ -531,6 +533,8 @@ be onBrokerConnect() =>
   state reflecting the (potentially saved) state in Broker.
   """
   showStatus("Broker connected")
+  _reg[MqttClient tag](KeyClient()).next[None]({(c:MqttClient tag)=>c.onConnect(true)})
+
   _pinger = Pinger(this, 3/* seconds delay*/)
 
 /*********************************************************************************/
@@ -600,6 +604,7 @@ be onBrokerRefusal(reason : ConnAckReturnCode) =>
   Called by Connector if the Broker has refused the connection
   """
   showStatus(ConnectionRefused.string() + " " + reason.string())
+  _reg[MqttClient tag](KeyClient()).next[None]({(c:MqttClient tag)=>c.onConnect(false)})
 
 
 /*********************************************************************************/
@@ -694,7 +699,7 @@ be showMessage(s1 : String val, s2 : String val) =>
   TODO - Modify this so we return bytes rather than a string
   TODO - Take a callback rather than hard coding a call to terminal
   """
-  _reg[Display](KeyDisplay()).next[None]({(t:Display)=>t.message(s1,s2)})
+  _reg[MqttClient tag](KeyClient()).next[None]({(c:MqttClient tag)=>c.onMessage(s1,s2)})
 
 /*********************************************************************************/
 be showStatus(status : String val) =>
@@ -702,8 +707,7 @@ be showStatus(status : String val) =>
   Provides an out of band channel for the library functions to notify the app of 
   staus or anything else that is not a broker message
   """
-  _reg[Display](KeyDisplay()).next[None]({(t:Display)=>t.status(status)})
-
+  _reg[MqttClient tag](KeyClient()).next[None]({(c:MqttClient tag)=>c.onMessage("status", status)})
 
 /*********************************************************************************/
 /*********************************************************************************/

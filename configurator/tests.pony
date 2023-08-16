@@ -1,6 +1,6 @@
 use "pony_test"
 use "collections"
-use "../primitives"
+use "package:../primitives"
 use "debug"
 //type Map[String val, String val] val is Map[String val, String val] val 
 
