@@ -9,12 +9,12 @@
   use ".."
   use "package:../assembler"
   use "package:../connector"
-  use "package:../examples"
   use "package:../idIssuer"
-  use "package:../mqttClient"
+  use "package:../mqtt"
   use "package:../primitives"
   use "package:../pinger"
   use "package:../publisher"
+  use "package:../services"
   use "package:../subscriber"
   use "package:../terminal"
   use "package:../network"
@@ -533,7 +533,7 @@ be onBrokerConnect() =>
   state reflecting the (potentially saved) state in Broker.
   """
   showStatus("Broker connected")
-  _reg[MqttClient tag](KeyClient()).next[None]({(c:MqttClient tag)=>c.onConnect(true)})
+  _reg[MqttClient tag](KeyClient()).next[None]({(c:MqttClient tag)=>c.onConnection(true)})
 
   _pinger = Pinger(this, 3/* seconds delay*/)
 
@@ -604,7 +604,7 @@ be onBrokerRefusal(reason : ConnAckReturnCode) =>
   Called by Connector if the Broker has refused the connection
   """
   showStatus(ConnectionRefused.string() + " " + reason.string())
-  _reg[MqttClient tag](KeyClient()).next[None]({(c:MqttClient tag)=>c.onConnect(false)})
+  _reg[MqttClient tag](KeyClient()).next[None]({(c:MqttClient tag)=>c.onConnection(false)})
 
 
 /*********************************************************************************/

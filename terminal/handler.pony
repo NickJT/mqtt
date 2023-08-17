@@ -6,10 +6,10 @@
   use "bureaucracy"
   use "package:.."
   use "package:../configurator"
-  use "package:../examples"
   use "package:../network"
   use "package:../primitives"
   use "package:../router"
+  use "package:../services"
 
 class KbdInput is InputNotify
   """

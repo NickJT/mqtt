@@ -14,9 +14,14 @@
   use "package:../subscriber"
 
 trait MqttClient
-  be onConnect(connected : Bool)
-  be onSubscribed(topic: String val, qos: String val)
+  be onConnection(connected : Bool)
+  be onSubscribed(topic: String val, qos: (String val | None))
   be onMessage(topic: String val, content: String val)
+  be onStatus(content: String val)
+
+trait MqttService
+  be onResponse(topic: String val, payload : Array[U8] val)
+  be onExit()  
 
 actor Mqtt 
   """
@@ -81,10 +86,11 @@ be publish(topic : String val, qos : String val, payload : Array[U8] val) =>
   Debug("Publishing")
   _client.onMessage(topic, String.from_array(payload))
 
-be subscribe(topic : String val, qos : String val) =>
+be subscribe(topic : String val, qos : (String val | None)) =>
   """
-  Subscribe to the passed topic, requesting messages be returned with the passed qos. Takes a callback
+  Subscribe or unsubscribe to the passed topic, requesting messages be returned with the passed qos. Takes a callback
   that is called with topic and payload when a message is received.
+  If qos is None then the topic is unsubscribed
   """
   Debug("Subscribing")
   _client.onSubscribed(topic, qos)

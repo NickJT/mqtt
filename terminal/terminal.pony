@@ -5,7 +5,7 @@
   use "debug"
   use "package:../primitives"
   use "package:../utilities"
-  use "package:../mqttClient"
+  use "package:../mqtt"
 
 actor Terminal is MqttClient
   let _env : Env
@@ -49,18 +49,24 @@ be stopService(code : U8) =>
 be clear() =>
   _display.clear()
 
-be onConnect(connected : Bool) =>
+be onConnection(connected : Bool) =>
   _display.status("onConnect = " + connected.string())
 
-be onSubscribed(topic: String val, qos: String val) =>
-  _display.message(topic, qos)
-  
+be onSubscribed(topic: String val, qos: (String val | None)) =>
+  try 
+    _display.message(topic, qos as String val)
+  else
+    _display.message(topic, "Unsubscribed")
+  end
 be onMessage(topic: String val, content: String val) =>
   if (topic.contains("status")) then 
     _display.status(content)
   else
     _display.message(topic,content)
   end
+
+be onStatus(content: String val)=>
+  _display.status(content)
 
 be onExit(code : U8) =>
   _ansiTerm.dispose()
