@@ -1,5 +1,5 @@
-**/mqtt-docs
-**/docs
+#**/mqtt-docs
+#**/docs
 **/bin
 **/vscode
 **/*.o

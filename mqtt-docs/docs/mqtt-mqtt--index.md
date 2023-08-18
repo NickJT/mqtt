@@ -1,11 +1,4 @@
-"""
 # Pony MQTT Client #
-
-A MQTT 3.1.1 client - currently part-way through release 0.1, supporting QoS 0/1/2 but
- not yet implementing session restoration. 
-
-If you haven't used Pony, this is the best starting point -> [Pony Tutorial](https://tutorial.ponylang.io/index.html)
-
 
 ### Release Objectives ###
 
@@ -68,4 +61,10 @@ it to the appropriate handlers. Keeps track of the incomming and outgoing messag
 are only tied to messages by id.
 
 
-"""
+
+
+## Public Types
+
+* [actor Mqtt](mqtt-mqtt-Mqtt.md)
+* [trait MqttClient](mqtt-mqtt-MqttClient.md)
+* [trait MqttService](mqtt-mqtt-MqttService.md)

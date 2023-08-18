@@ -58,7 +58,7 @@
             "options": {
                 "cwd": "${workspaceFolder}"
             },
-            "command": "ponyc --docs ${workspaceFolder} && rm ${workspaceFolder}${pathSeparator}${workspaceFolderBasename}",
+            "command": "ponyc --docs ${workspaceFolder} && rm ${workspaceFolder}${pathSeparator}${workspaceFolderBasename}1",
             "problemMatcher": "$ponyc-matcher"
         },
         {
