@@ -22,7 +22,7 @@ Simple timerNotify class to provide a keepalive ping
     true
 
   fun ref cancel(timer: Timer) =>
-    _router.showStatus("KeepAlive cancelled")
+    _router.onStatus("KeepAlive cancelled")
 
 
 actor Pinger 

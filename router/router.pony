@@ -56,7 +56,7 @@ actor Router
   packets.
 
   """
-  let _reg : Registrar
+  let _mqtt : Mqtt
   let _idIssuer : IdIssuer = IdIssuer
   var _pinger : (Pinger | None) = None
   var _connector : Connector
@@ -87,8 +87,8 @@ actor Router
   var _tcpMaybe : (TCPConnection | None) = None
   var _cleanSession : Bool = true
 
-  new create(reg : Registrar, config :  Map[String val, String val] val) =>
-    _reg = reg
+  new create(mqtt : Mqtt, config :  Map[String val, String val] val) =>
+    _mqtt = mqtt
     _config = config
     _connector = Connector(this)
     
@@ -507,7 +507,7 @@ be doPing() =>
   send(PingReqPacket.compose())
   _pingTokenCount = _pingTokenCount - 1
   if (_pingTokenCount == 0) then // The Broker has missed three pings - time to quit
-    showStatus("Broker has missed three pings - quitting")
+    onStatus("Broker has missed three pings - quitting")
     disconnectBroker()
   end  
 
@@ -540,8 +540,8 @@ be onBrokerConnect() =>
   When this is called we should have a valid Broker connection with our local 
   state reflecting the (potentially saved) state in Broker.
   """
-  showStatus("Broker connected")
-  _reg[MqttApplication tag](KeyApp()).next[None]({(c:MqttApplication tag)=>c.onConnection(true)})
+  onStatus("Broker connected")
+  _mqtt.onConnection(true)
 
   _pinger = Pinger(this, 3/* seconds delay*/)
 
@@ -578,7 +578,7 @@ be onBrokerRestore() =>
   Yikes
   """
   _cleanSession = false
-  showStatus("Got a Session is present flag")
+  onStatus("Got a Session is present flag")
   // 1.
   // resend unacknowledged PUBLISH Packets (where QoS > 0) 
   // we will get back PubAck messages for which we have no publisher yet
@@ -600,7 +600,7 @@ be onBrokerStateNotFound() =>
   we must inform the app and await further instructions.   
   TODO - Add main method for handling session not found?
   """
-  showStatus("Session restoration requested but Broker has no saved session at " + __loc.file() + ":" +__loc.method_name())
+  onStatus("Session restoration requested but Broker has no saved session at " + __loc.file() + ":" +__loc.method_name())
   // TODO - Drop saved state here
 
   _cleanSession = true
@@ -611,8 +611,8 @@ be onBrokerRefusal(reason : ConnAckReturnCode) =>
   """
   Called by Connector if the Broker has refused the connection
   """
-  showStatus(ConnectionRefused.string() + " " + reason.string())
-  _reg[MqttApplication tag](KeyApp()).next[None]({(c:MqttApplication tag)=>c.onConnection(false)})
+  onStatus(ConnectionRefused.string() + " " + reason.string())
+  _mqtt.onConnection(false)
 
 
 /*********************************************************************************/
@@ -626,16 +626,12 @@ be onTCPDisconnect(errorCode : ErrorCode) =>
 /*********************************************************************************/
 be disconnectBroker() =>
   """
-  This is called to disconnect cleanly from the Broker.  
-
-  > DISCONNECT must be the last
-  message sent by the client to the server. The client must close the TCP connection
-  after sending DISCONNECT.
+  Most of the disconnect work is done by the Mqtt actor now. We'll keep this in just
+  in case there is more to do later (e.g. saving state).
+  Note that the tcp client calls _cleanup when it has disconnected so don't call it here
   """
-  Debug.err("Disconnecting Broker at " + __loc.file() + ":" +__loc.method_name())
-  cancelKeepAlive()
   send(DisconnectPacket.compose())
-  _reg[OsNetwork](KeyNetwork()).next[None]({(n:OsNetwork)=>n.disconnect()})
+  cancelKeepAlive()
   // client calls _cleanup when it has disconnected so don't call it here
 
 /*********************************************************************************/
@@ -643,7 +639,7 @@ fun ref _cleanup() =>
   _tcpMaybe = None
 
   if (not _cleanSession) then
-    showStatus("Saving session")
+    onStatus("Saving session")
     saveState()
   end  
 
@@ -652,7 +648,7 @@ fun ref _cleanup() =>
   _publisherByTopic.clear()
   _actorById.clear()
   Debug.err("router exiting at " + __loc.file() + ":" +__loc.method_name())
-
+  _mqtt.onConnection(false)
 /*********************************************************************************/
 be cancelKeepAlive() =>
   """
@@ -670,7 +666,7 @@ fun saveState() =>
   """
 
   for (topic, subscriber) in _subscriberByTopic.pairs() do 
-    showStatus("Saving subscription" + topic)
+    onStatus("Saving subscription" + topic)
     subscriber.onDuckAndCover()
   end
 
@@ -684,7 +680,6 @@ fun saveState() =>
 
   end
 
-
 /*********************************************************************************/
 /**********************   Sending to other Actors    *****************************/
 /*********************************************************************************/
@@ -697,26 +692,26 @@ be send(data : ArrayVal) =>
     tcp = _tcpMaybe as TCPConnection
     tcp.write(data)
   else
-    showStatus("Writing to invalid socket at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string())  
+    onStatus("Writing to invalid socket at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string())  
   end      
 
 /*********************************************************************************/
-be showMessage(s1 : String val, s2 : String val) =>
+be onMessage(s1 : String val, s2 : String val) =>
   """
   The final message release behaviour that send the broker message to the client 
   application.
   TODO - Modify this so we return bytes rather than a string
   TODO - Take a callback rather than hard coding a call to terminal
   """
-  _reg[MqttApplication tag](KeyApp()).next[None]({(c:MqttApplication tag)=>c.onMessage(s1,s2)})
+  _mqtt.onMessage(s1,s2)
 
 /*********************************************************************************/
-be showStatus(status : String val) =>
+be onStatus(status : String val) =>
   """
   Provides an out of band channel for the library functions to notify the app of 
   staus or anything else that is not a broker message
   """
-  _reg[MqttApplication tag](KeyApp()).next[None]({(c:MqttApplication tag)=>c.onMessage("status", status)})
+  _mqtt.onStatus(status)
 
 /*********************************************************************************/
 /*********************************************************************************/

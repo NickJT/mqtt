@@ -51,7 +51,7 @@ of going through the registrar.
     end
     _cleanSessionRequested = (cp.isSet(ConnectClean))
     _router.send(cp.getPacket())
-    _router.showStatus("Sent connect packet with CleanSession = " + _cleanSessionRequested.string())
+    _router.onStatus("Sent connect packet with CleanSession = " + _cleanSessionRequested.string())
 
   be onAck(basePacket: BasePacket val) =>
     // TODO - Optimse out the intermediates once we have the logic correct

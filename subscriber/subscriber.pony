@@ -159,7 +159,7 @@ fun onSubAck(basePacket : BasePacket val)  =>
     consume resultString
   end
   _router.onSubscribeComplete(_this, subAckPacket.id(), accepted)
-  _router.showMessage(_topic, subAckResult)
+  _router.onMessage(_topic, subAckResult)
 
 
 /********************************************************************************/
@@ -177,7 +177,7 @@ fun ref onUnsubAck(basePacket : BasePacket val)  =>
   var cid = BytesToU16(basePacket.data().trim(2,4)) 
   if cid > 0 then 
     _router.onUnsubscribeComplete(_this, cid)
-    _router.showMessage(_topic, "Unsubscribed")
+    _router.onMessage(_topic, "Unsubscribed")
   else
     Debug.err("Zero id in UnsubAck packet at " + __loc.file() + ":" +__loc.method_name())
   end
@@ -290,7 +290,7 @@ fun releasePkt(pubPacket : PublishPacket val) =>
   try
     var topic : String val = pubPacket.topic() as String
     var payloadString : String val = pubPacket.payloadAsString() as String
-    _router.showMessage(topic, payloadString)
+    _router.onMessage(topic, payloadString)
   else
     Debug.err("Packet error in " + __loc.method_name())
   end
