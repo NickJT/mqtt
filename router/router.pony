@@ -55,11 +55,9 @@ actor Router
   the client does set CleanSession = 0 then it must be prepared for resent Publish and PubRel
   packets.
 
-  Registrar usage  
-  - Router adds IdIssuer actor that issues ids to other actors
-  - Router adds the pinger actor that sends pingreq messages 
   """
   let _reg : Registrar
+  let _idIssuer : IdIssuer = IdIssuer
   var _pinger : (Pinger | None) = None
   var _connector : Connector
   var _pingTokens : USize = 3
@@ -71,6 +69,12 @@ actor Router
   """
   _subscriberByBid tracks the incomming publish messages by the Broker Id (bid) 
   and their incomming and outgoing acks
+  """
+
+  let _publisherByTopic : Map[String val, Publisher tag] = Map[String val, Publisher tag]
+  """
+  We're using this during the R0.2 refactoring to ensure we don't create multiple publishers 
+  on the same topic
   """
 
   let _actorById : Map[IdType, MqActor tag] = Map[IdType, MqActor tag] 
@@ -277,7 +281,7 @@ fun ref _doAssignedSubscription(basePacket : BasePacket val) =>
   try 
     topic = publishPacket.topic() as String val
     //Debug.err("Assigned subscription to " + topic)
-    var subscriber : Subscriber = Subscriber(_reg, topic, publishPacket.qos().string())
+    var subscriber : Subscriber = Subscriber(this, topic, publishPacket.qos())
     _subscriberByTopic.update(topic, subscriber)
     // now we route it again (synchronously), safe in the knowledge that there is a subscriber waiting
     //to provide the acks and that the base packet still contains the original Broker id
@@ -306,27 +310,39 @@ be onPayloadComplete(bid: IdType) =>
 /*********************************************************************************/
 /*****************   Functions for outgoing Publish messages   *******************/
 /*********************************************************************************/
-be onPublish(pub : Publisher tag, topic: String, id : IdType, packet : ArrayVal) =>
+be onPublish(topic : String val, payload : Array[U8] val, qos : Qos) =>
   """
-  Called by a publisher to publish packet on topic. Comes through the router so we
-  have a central register of all publishers. Called with a Client allocated id (Cid).
-  So _actorById is indexed by Cid. 
-  TODO - During dev we have a duplicate check but this can be removed later
+  Called by the MQTT actor to publish payload on topic. Requires a Client allocated
+  id (Cid). So _actorById is indexed by Cid. 
+  TODO - During dev we have a QoS0 check but this can be removed later
   """
-    if (_actorById.contains(id)) then 
-      Debug.err("Duplicate id " + id.string() + " found in  " + __loc.file() + ":" +__loc.method_name())
-    end
-    
-    _actorById.update(id,pub)
-    //Debug.err("Publishing on topic : " + topic + " with id " + id.string() + " in " + __loc.file() + ":" +__loc.method_name())
-    send(packet)
+  if (qos is Qos0) then 
+    Debug.err("Error sending QoS 0 publication found in  " + __loc.file() + ":" +__loc.method_name())
+  end
+  
+  var pub : Publisher
+  try
+    pub = _publisherByTopic(topic)? 
+  else
+    pub = Publisher(this, topic)
+    _publisherByTopic.insert(topic, pub)
+  end
+
+  // link the id and publisher so we can trace the acks
+  var cid : IdType = _idIssuer.checkOut()
+  _actorById.update(cid,pub)
+ 
+  // create the publish args
+  var args: PublishArgs val = PublishArgs(where topic' = topic, payload' = payload, cid' = cid)
+  pub.publish(args)
 
 /*********************************************************************************/
-be onPublishQos0(packet : ArrayVal) =>
+be onPublishQos0(topic : String val, payload : Array[U8] val) =>
   """
-  Called by a publisher to publish a QoS 0 packet on topic. 
+  Called by a publisher to publish a QoS 0 packet on topic. Because there is no id and 
+  ack processing we don't create a publisher actor for Qos0
   """
-  send(packet)
+  send(PublishPacket.compose(PublishArgs(topic,payload)))
 
 
 /*********************************************************************************/
@@ -336,7 +352,7 @@ be onPublishComplete(id: IdType) =>
   to remove the link between the id and the publisher. Note that QoS0 packets never
   get into the _actorById map and do not result in a call to onPublishComplete
   """
-  _reg[IdIssuer](KeyIssuer()).next[None]({(i:IdIssuer)=>i.checkIn(id)},{()=>Debug.err("No issuer pc")})
+  _idIssuer.checkIn(id)
   try
     _actorById.remove(id)?
   end  
@@ -344,7 +360,7 @@ be onPublishComplete(id: IdType) =>
 /*********************************************************************************/
 /*******************   Functions for Subscribe/Unsubscribe    ********************/
 /*********************************************************************************/
-be onSubscribe(sub : Subscriber tag, topic: String, id : U16, packet : ArrayVal) =>
+be onSubscribe(topic: String, qos: Qos) =>
   """
   Called by a subscriber to subscribe to a new topic. Comes through router so we have
   a central register of who is subscribed to what. Only called by a subscriber so
@@ -367,22 +383,16 @@ be onSubscribe(sub : Subscriber tag, topic: String, id : U16, packet : ArrayVal)
   application request or it could be because we have restored a session, got a message on one of the
   stored subscriptions and completed our assigned message behaviour.
   """
-    
-    if (_subscriberByTopic.contains(topic)) then 
-      Debug.err("Already subscribed to " + topic + " at " + __loc.file() + ":" +__loc.method_name())
-      return
-    end
-    
-    if (_actorById.contains(id)) then 
-      Debug.err("Found duplicate id " + id.string() +" in _actorById at " + __loc.file() + ":" +__loc.method_name())
-      return
-    end
 
-    _actorById.update(id,sub)
-    //Debug.err("Inserted id " + id.string() +" in _actorById at" + __loc.file() + ":" +__loc.method_name())
+  if (_subscriberByTopic.contains(topic)) then return end
+  
+  var sub : Subscriber = Subscriber(this, topic, qos)
+  _subscriberByTopic.update(topic, sub)
+
+  var cid : IdType = _idIssuer.checkOut()
+  _actorById.update(cid,sub)
     
-    _subscriberByTopic.update(topic, sub)
-    send(packet)
+  sub.subscribe(cid)
 
 /*********************************************************************************/
 be onSubscribeComplete(sub : Subscriber tag, id : IdType, accepted : Bool) =>
@@ -406,28 +416,25 @@ be onSubscribeComplete(sub : Subscriber tag, id : IdType, accepted : Bool) =>
     Debug.err("Router can't remove id " + id.string() + " from subscriber map at " + __loc.file() + ":" +__loc.method_name())
   end  
   // Whatever, we've finished with the id
-    _reg[IdIssuer](KeyIssuer()).next[None]({(i:IdIssuer)=>i.checkIn(id)},{()=>Debug.err("No issuer sc")})
-
-
+    _idIssuer.checkIn(id)
 
 
 /*********************************************************************************/
-be onUnsubscribe(sub : Subscriber tag, id : IdType, packet : ArrayVal) =>
+be onUnsubscribe(topic : String val) =>
   """
-  Called by a subscriber to unsubscribe to a topic. Subscribers can subscribe and
+  Called by the mqtt actor to unsubscribe to a topic. Subscribers can subscribe and
   unsubscribe repeatedly throughout their lifetime. An unsubscribed subscriber is
   still alive but does not appear in the router's subscriber map  
   Note - The spec states that clients must continue to acknowledge messages until
   an unsub request has been acknowledged - therefore we don't remove the subscriber
   here, only in the onUnsubAck behaviour
-  TODO - During dev we have a duplicate check but this can be removed later
   """
-    if (_actorById.contains(id)) then 
-      Debug.err("Duplicate id " + id.string() + " found in  " + __loc.file() + ":" +__loc.method_name())
-    end
-    _actorById.update(id,sub)
-    Debug.err("Router sending unsubscribe at " + __loc.file() + ":" +__loc.method_name())
-    send(packet)
+  try 
+    var sub = _subscriberByTopic(topic)?
+    var cid = _idIssuer.checkOut()
+    _actorById.update(cid,sub)
+    sub.unsubscribe(cid)
+  end
 
 /*********************************************************************************/
 be onUnsubscribeComplete(sub : Subscriber tag, id : IdType) =>
@@ -448,7 +455,7 @@ be onUnsubscribeComplete(sub : Subscriber tag, id : IdType) =>
   end  
 
   // Whatever, we've finished with the id
-  _reg[IdIssuer](KeyIssuer()).next[None]({(i:IdIssuer)=>i.checkIn(id)},{()=>Debug.err("No issuer uc")})
+  _idIssuer.checkIn(id)
 
 
   _removeSubscriber(sub)
@@ -471,6 +478,7 @@ fun ref _removeSubscriber(sub : Subscriber tag) =>
       return
     end
   end
+
 
 /*********************************************************************************/
 /*******************   KeepAlive and Tick functions    ***************************/
@@ -533,7 +541,7 @@ be onBrokerConnect() =>
   state reflecting the (potentially saved) state in Broker.
   """
   showStatus("Broker connected")
-  _reg[MqttClient tag](KeyClient()).next[None]({(c:MqttClient tag)=>c.onConnection(true)})
+  _reg[MqttApplication tag](KeyApp()).next[None]({(c:MqttApplication tag)=>c.onConnection(true)})
 
   _pinger = Pinger(this, 3/* seconds delay*/)
 
@@ -604,7 +612,7 @@ be onBrokerRefusal(reason : ConnAckReturnCode) =>
   Called by Connector if the Broker has refused the connection
   """
   showStatus(ConnectionRefused.string() + " " + reason.string())
-  _reg[MqttClient tag](KeyClient()).next[None]({(c:MqttClient tag)=>c.onConnection(false)})
+  _reg[MqttApplication tag](KeyApp()).next[None]({(c:MqttApplication tag)=>c.onConnection(false)})
 
 
 /*********************************************************************************/
@@ -641,6 +649,7 @@ fun ref _cleanup() =>
 
   _subscriberByTopic.clear()
   _subscriberByBid.clear()
+  _publisherByTopic.clear()
   _actorById.clear()
   Debug.err("router exiting at " + __loc.file() + ":" +__loc.method_name())
 
@@ -699,7 +708,7 @@ be showMessage(s1 : String val, s2 : String val) =>
   TODO - Modify this so we return bytes rather than a string
   TODO - Take a callback rather than hard coding a call to terminal
   """
-  _reg[MqttClient tag](KeyClient()).next[None]({(c:MqttClient tag)=>c.onMessage(s1,s2)})
+  _reg[MqttApplication tag](KeyApp()).next[None]({(c:MqttApplication tag)=>c.onMessage(s1,s2)})
 
 /*********************************************************************************/
 be showStatus(status : String val) =>
@@ -707,7 +716,7 @@ be showStatus(status : String val) =>
   Provides an out of band channel for the library functions to notify the app of 
   staus or anything else that is not a broker message
   """
-  _reg[MqttClient tag](KeyClient()).next[None]({(c:MqttClient tag)=>c.onMessage("status", status)})
+  _reg[MqttApplication tag](KeyApp()).next[None]({(c:MqttApplication tag)=>c.onMessage("status", status)})
 
 /*********************************************************************************/
 /*********************************************************************************/

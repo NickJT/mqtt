@@ -6,14 +6,14 @@
   use "term"
 
   use "package:../configurator"
-  use "package:../idIssuer"
   use "package:../network"
   use "package:../primitives"
   use "package:../publisher"
   use "package:../router"
   use "package:../subscriber"
+  use "package:../utilities"
 
-trait MqttClient
+trait MqttApplication
   be onConnection(connected : Bool)
   be onSubscribed(topic: String val, qos: (String val | None))
   be onMessage(topic: String val, content: String val)
@@ -29,18 +29,17 @@ actor Mqtt
   found, to localhost:1883.
   """
   var _env : Env
-  let _client : MqttClient tag
+  let _app : MqttApplication tag
 
   var _reg : Registrar 
-  let _issuer : IdIssuer 
   let _router : Router
   let _network : OsNetwork
   var _config : Map[String val, String val] val = Map[String val, String val]  
   var _subs : Map[String val, String val] val   = Map[String val, String val] 
 
-new create(env : Env, mqttClient : MqttClient tag) =>
+new create(env : Env, mqttApplication : MqttApplication tag) =>
   _env = env
-  _client = mqttClient
+  _app = mqttApplication
   let configReader = MqttConfig(_env, ConfigFile(), FullConfigParams())
   if (configReader.isValid()) then
     _config = configReader.getConfig()
@@ -50,10 +49,7 @@ new create(env : Env, mqttClient : MqttClient tag) =>
   end 
 
   _reg = Registrar
-  _reg.update(KeyClient(), _client)
-
-  _issuer = IdIssuer
-  _reg.update(KeyIssuer(),_issuer)
+  _reg.update(KeyApp(), _app)
 
   _router = Router(_reg, _config)
   _reg.update(KeyRouter(),_router)
@@ -79,19 +75,26 @@ be connect(cmd : Bool) =>
     _router.disconnectBroker()
   end
 
-be publish(topic : String val, qos : String val, payload : Array[U8] val) =>
+be publish(topic : String val, payload : Array[U8] val, qos : String val = "qos0") =>
   """
-  Publish the payload on the passed topic with the passed QoS. 
+  This is just a passthrough to the router.
   """
-  Debug("Publishing")
-  _client.onMessage(topic, String.from_array(payload))
+  var q : Qos = ToQos(qos)
+  if (q is Qos0) then 
+    _router.onPublishQos0(topic, payload)
+  else
+    _router.onPublish(topic, payload, q)
+  end
 
 be subscribe(topic : String val, qos : (String val | None)) =>
   """
-  Subscribe or unsubscribe to the passed topic, requesting messages be returned with the passed qos. Takes a callback
-  that is called with topic and payload when a message is received.
-  If qos is None then the topic is unsubscribed
+  Subscribe or unsubscribe to the passed topic, requesting messages be returned with the passed qos. 
+  This is just a passthrough to the router.
   """
-  Debug("Subscribing")
-  _client.onSubscribed(topic, qos)
+  try 
+    _router.onSubscribe(topic, ToQos((qos as String val)))
+  else
+    _router.onUnsubscribe(topic)
+  end
+
 

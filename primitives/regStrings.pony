@@ -3,7 +3,7 @@
 // so we don't have string literals in the code
 
 primitive KeyIssuer fun apply() : String val => "issuer"
-primitive KeyClient fun apply() : String val => "main"
+primitive KeyApp fun apply() : String val => "main"
 primitive KeyNetwork fun apply() : String val => "network"
 primitive KeyPersistor fun apply() : String val => "persistor"
 primitive KeyPinger fun apply() : String val => "pinger"

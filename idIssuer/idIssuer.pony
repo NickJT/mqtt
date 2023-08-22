@@ -1,23 +1,6 @@
 use "debug"
-use "package:../primitives"
 
-/********************************************************************************/
-interface IdNotifySub
-  """
-  Notifications for issuance of a packet Id.
-  """
-  be apply(id: U16, sub : SubControl)
-
-
-/********************************************************************************/
-interface IdNotifyPub
-  """
-  Notifications for issuance of a packet Id.
-  """
-  be apply(args: PublishArgs val )
-
-
-actor IdIssuer
+class IdIssuer
 """
 Our approach for reissuing returned ids:    
 - create an array of returned numbers (empty on creation)   
@@ -63,38 +46,19 @@ Our approach for reissuing returned ids:
       return _id
     end
   
+  fun ref checkOut() : U16 =>
+    """
+    Returns the next available Id. Because ids are returned and reassigned subsequent
+     calls to checkOutSub may not return consecutive values
+    """
+    _nextId()
 
 /********************************************************************************/
-  be checkOutSub(notifySub :IdNotifySub tag) =>
-  """
-  A request for an id to be returned in the provided callback. Because ids are returned  
-  and reassigned subsequent calls to checkOutSub may not return consecutive values
-  """
-  notifySub(_nextId(), Sub)
-
-/********************************************************************************/
-  be checkOutUnsub(notifySub :IdNotifySub tag) =>
-  """
-  A request for an id to be returned in the provided callback. Because ids are returned  
-  and reassigned subsequent calls to checkOutSub may not return consecutive values
-  """
-  notifySub(_nextId(), UnSub)
-
-/********************************************************************************/
-  be checkOutPub(notifyArgs : IdNotifyPub tag, args : PublishArgs val) =>
-  """
-  A request for an id to be returned with arguments in the provided callback. Because ids are returned  
-  and reassigned subsequent calls to checkOutSub may not return consecutive values
-  """
-  notifyArgs(PublishArgs.createWithId(args,_nextId())) 
-
-/********************************************************************************/
- be checkIn(id : U16) =>
+ fun ref checkIn(id : U16) =>
   """
   Called when the transaction the id was used for has been completed and the 
   id can be re-used
   """
-    
     if (not _ids.contains(id, {(x,y) => x == y})) then  // put this in the returns bucket
       //Debug.err("Checking in id " + id.string() + " at " + __loc.file() + ":" +__loc.method_name() )
       _ids.push(id)

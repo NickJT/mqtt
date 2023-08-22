@@ -43,26 +43,12 @@ class \nodoc\  iso _ToQos is UnitTest
   class \nodoc\  iso _ToQosBits is UnitTest
     fun name() : String => "ToQosBits"
     fun apply(h: TestHelper) =>
-        var q : U8 = ToQosBits("qos0")
+        var q : U8 = ToQosBits(Qos0)
         h.assert_eq[U8](0, q) 
-        q = ToQosBits("qos1")
+        q = ToQosBits(Qos1)
         h.assert_eq[U8](q, q) 
-        q = ToQosBits("qos2")
+        q = ToQosBits(Qos2)
         h.assert_eq[U8](2, q) 
-
-        q = ToQosBits("Qos0")
-        h.assert_eq[U8](0,q) 
-        q = ToQosBits("Qos1")
-        h.assert_eq[U8](1,q) 
-        q = ToQosBits("Qos2")
-        h.assert_eq[U8](2,q) 
-
-        q = ToQosBits("Any")
-        h.assert_eq[U8](0, q) 
-        
-        q = ToQosBits("")
-        h.assert_eq[U8](0,q) 
-
 
         
   class \nodoc\  iso _U8ToQos is UnitTest

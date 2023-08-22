@@ -78,18 +78,14 @@ primitive ToQos fun apply(stg : String) : Qos =>
 
 
 /********************************************************************************/
-primitive ToQosBits fun apply(stg : String) : U8 =>
+primitive ToQosBits fun apply(q : Qos) : U8 =>
   """
-  Takes a string and matches it against the qos patterns. Anything that
-  doesn't match returns QOS0 ( = 0)
+  Returns the bit pattern for the passed Qos
   """
-  var lcStg = stg.lower()
-  match lcStg
-    | "qos0" => Qos0()
-    | "qos1" => Qos1()
-    | "qos2" => Qos2()
-  else
-    Qos0()
+  match q
+    | Qos0 => Qos0()
+    | Qos1 => Qos1()
+    | Qos2 => Qos2()
   end  
 
 /********************************************************************************/
