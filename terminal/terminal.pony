@@ -6,14 +6,15 @@
   use "package:../primitives"
   use "package:../utilities"
   use "package:../mqtt"
+  use "package:../services"
 
 actor Terminal is MqttApplication
   let _env : Env
   let _ansiTerm : ANSITerm
   let _display : Display
   let _exitMain : {(U8)}
-
   let _mqtt : Mqtt
+  var _service : (MqttService tag | None) = None
 
 new create(env: Env, exitMain : {(U8)} iso) =>
   _env = env
@@ -43,15 +44,17 @@ be connect() =>
 be disconnect() =>
   """
   Tells the MQTT actor to send a disconnect message to the Broker and then release
-  the netowrk connection
+  the network connection
   """
   _mqtt.connect(false)
 
 be startService(code : U8) =>
-  _display.status("start service " + code.string())
+  _display.status("starting service " + code.string())
+  _service = Rtt("rtt", _mqtt, this)
 
 be stopService(code : U8) =>
   _display.status("stop service " + code.string())
+  try (_service as MqttService tag).onExit() end
 
 be clear() =>
   """
@@ -84,20 +87,19 @@ be onSubscribed(topic: String val, qos: (String val | None)) =>
   """
   try 
     _display.message(topic, qos as String val)
+    var stg : String val = "Subscribed"
+    (_service as MqttService tag).onResponse(topic, stg.array())
   else
     _display.message(topic, "Unsubscribed")
   end
 
-be onMessage(topic: String val, content: String val) =>
+be onMessage(topic: String val, content: Array[U8] val) =>
   """
   Called by the MQTT actor when it has recieved a message on a subscribed channel or 
   an allocated channel
   """
-  if (topic.contains("status")) then 
-    _display.status(content)
-  else
-    _display.message(topic,content)
-  end
+  try (_service as MqttService tag).onResponse(topic, content) end
+  
 
 be onStatus(content: String val)=>
   """

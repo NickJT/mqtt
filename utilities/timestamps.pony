@@ -22,7 +22,7 @@ class MqTime
     (_toNs(s,ns) - _ans).i64()
 
   fun ref _toNs(s : I64, ns : I64) : U128 =>
-    _ans = (s.u128() * 1_000_000_000) + ns.u128()
+    (s.u128() * 1_000_000_000) + ns.u128()
 
   primitive DateString fun apply() : String val =>
     (var s, var ns) = Time.now()

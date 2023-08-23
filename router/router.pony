@@ -696,12 +696,10 @@ be send(data : ArrayVal) =>
   end      
 
 /*********************************************************************************/
-be onMessage(s1 : String val, s2 : String val) =>
+be onMessage(s1 : String val, s2 : Array[U8] val) =>
   """
   The final message release behaviour that send the broker message to the client 
   application.
-  TODO - Modify this so we return bytes rather than a string
-  TODO - Take a callback rather than hard coding a call to terminal
   """
   _mqtt.onMessage(s1,s2)
 

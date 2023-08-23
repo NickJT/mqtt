@@ -16,7 +16,7 @@
 trait MqttApplication
   be onConnection(connected : Bool)
   be onSubscribed(topic: String val, qos: (String val | None))
-  be onMessage(topic: String val, content: String val)
+  be onMessage(topic: String val, content: Array[U8] val)
   be onStatus(content: String val)
 
 trait MqttService
@@ -84,6 +84,8 @@ be publish(topic : String val, payload : Array[U8] val, qos : String val = "qos0
   """
   This is just a passthrough to the router.
   """
+  if (not _connected) then return end
+
   var q : Qos = ToQos(qos)
   if (q is Qos0) then 
     _router.onPublishQos0(topic, payload)
@@ -96,6 +98,8 @@ be subscribe(topic : String val, qos : (String val | None)) =>
   Subscribe or unsubscribe to the passed topic, requesting messages be returned with the passed qos. 
   This is just a passthrough to the router.
   """
+  if (not _connected) then return end
+
   try 
     _router.onSubscribe(topic, ToQos((qos as String val)))
   else
@@ -109,7 +113,7 @@ be onConnection(connected : Bool) =>
 be onSubscribed(topic: String val, qos: (String val | None)) =>
   _app.onSubscribed(topic, qos)
 
-be onMessage(topic: String val, content: String val) =>
+be onMessage(topic: String val, content: Array[U8] val) =>
   _app.onMessage(topic,content)
 
 be onStatus(content: String val) =>
