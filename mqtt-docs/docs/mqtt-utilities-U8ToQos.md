@@ -1,5 +1,5 @@
 # U8ToQos
-<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-96)</span>
+<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-92)</span>
 ```pony
 primitive val U8ToQos
 ```
@@ -7,7 +7,7 @@ primitive val U8ToQos
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-96)</span>
+<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-92)</span>
 
 
 ```pony
@@ -24,7 +24,7 @@ new val create()
 ## Public Functions
 
 ### apply
-<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-96)</span>
+<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-92)</span>
 
 
 Take a U8 and returns a Qos type from QoS0 to QoS2. Returns None for
@@ -49,7 +49,7 @@ fun box apply(
 ---
 
 ### eq
-<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-96)</span>
+<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-92)</span>
 
 
 ```pony
@@ -68,7 +68,7 @@ fun box eq(
 ---
 
 ### ne
-<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-96)</span>
+<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-92)</span>
 
 
 ```pony

@@ -1,7 +1,7 @@
-# MqttClient
+# MqttApplication
 <span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-16)</span>
 ```pony
-trait ref MqttClient
+trait ref MqttApplication
 ```
 
 ## Public Behaviours
@@ -43,12 +43,12 @@ be onSubscribed(
 ```pony
 be onMessage(
   topic: String val,
-  content: String val)
+  content: Array[U8 val] val)
 ```
 #### Parameters
 
 *   topic: [String](builtin-String.md) val
-*   content: [String](builtin-String.md) val
+*   content: [Array](builtin-Array.md)\[[U8](builtin-U8.md) val\] val
 
 ---
 

@@ -67,7 +67,7 @@ fun id() : (IdType val | None) =>
 
 
 /*********************************************************************************/
-  fun ref compose(id' : U16, topic : String, qosString : String) : ArrayVal =>
+  fun ref compose(id' : U16, topic : String, qos: Qos) : ArrayVal =>
     """
   Return a subscribe packet ready to send to the broker
   """
@@ -85,7 +85,7 @@ fun id() : (IdType val | None) =>
       variable.push_u8(msb)
       variable.push_u8(lsb)
       payload.append(MqString(topic))
-      payload.push_u8(ToQosBits(qosString))
+      payload.push_u8(ToQosBits(qos))
 
       var fixed :  Array[U8] val = FixedHeader.makeHeader(ControlSubscribe, (variable.size() + payload.size()))
     

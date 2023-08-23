@@ -1,5 +1,5 @@
 # IsFixedHeader
-<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-112)</span>
+<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-108)</span>
 ```pony
 primitive val IsFixedHeader
 ```
@@ -7,7 +7,7 @@ primitive val IsFixedHeader
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-112)</span>
+<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-108)</span>
 
 
 ```pony
@@ -24,7 +24,7 @@ new val create()
 ## Public Functions
 
 ### apply
-<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-112)</span>
+<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-108)</span>
 
 
 ```pony
@@ -43,7 +43,7 @@ fun box apply(
 ---
 
 ### eq
-<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-112)</span>
+<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-108)</span>
 
 
 ```pony
@@ -62,7 +62,7 @@ fun box eq(
 ---
 
 ### ne
-<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-112)</span>
+<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-108)</span>
 
 
 ```pony

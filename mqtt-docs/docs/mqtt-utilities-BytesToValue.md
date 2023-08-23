@@ -1,5 +1,5 @@
 # BytesToValue
-<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-147)</span>
+<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-143)</span>
 ```pony
 primitive val BytesToValue
 ```
@@ -7,7 +7,7 @@ primitive val BytesToValue
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-147)</span>
+<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-143)</span>
 
 
 ```pony
@@ -24,7 +24,7 @@ new val create()
 ## Public Functions
 
 ### apply
-<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-147)</span>
+<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-143)</span>
 
 
 Takes the leading bytes of an MQTT packet and returns the remaining length encoded
@@ -50,7 +50,7 @@ fun box apply(
 ---
 
 ### eq
-<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-147)</span>
+<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-143)</span>
 
 
 ```pony
@@ -69,7 +69,7 @@ fun box eq(
 ---
 
 ### ne
-<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-147)</span>
+<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-143)</span>
 
 
 ```pony

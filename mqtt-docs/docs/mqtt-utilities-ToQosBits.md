@@ -27,18 +27,17 @@ new val create()
 <span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-81)</span>
 
 
-Takes a string and matches it against the qos patterns. Anything that
-doesn't match returns QOS0 ( = 0)
+Returns the bit pattern for the passed Qos
 
 
 ```pony
 fun box apply(
-  stg: String val)
+  q: (Qos0 val | Qos1 val | Qos2 val))
 : U8 val
 ```
 #### Parameters
 
-*   stg: [String](builtin-String.md) val
+*   q: ([Qos0](mqtt-primitives-Qos0.md) val | [Qos1](mqtt-primitives-Qos1.md) val | [Qos2](mqtt-primitives-Qos2.md) val)
 
 #### Returns
 

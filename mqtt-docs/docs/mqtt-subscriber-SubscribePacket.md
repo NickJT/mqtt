@@ -114,14 +114,14 @@ Return a subscribe packet ready to send to the broker
 fun ref compose(
   id': U16 val,
   topic: String val,
-  qosString: String val)
+  qos: (Qos0 val | Qos1 val | Qos2 val))
 : Array[U8 val] val
 ```
 #### Parameters
 
 *   id': [U16](builtin-U16.md) val
 *   topic: [String](builtin-String.md) val
-*   qosString: [String](builtin-String.md) val
+*   qos: ([Qos0](mqtt-primitives-Qos0.md) val | [Qos1](mqtt-primitives-Qos1.md) val | [Qos2](mqtt-primitives-Qos2.md) val)
 
 #### Returns
 

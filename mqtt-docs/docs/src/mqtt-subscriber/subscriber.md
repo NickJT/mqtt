@@ -11,13 +11,12 @@ search:
   use "debug"
 
   use ".."
-  use "package:../idIssuer"
   use "package:../primitives"
   use "package:../publisher"
   use "package:../router"
   use "package:../utilities"
 
-actor Subscriber is (IdNotifySub & MqActor)
+actor Subscriber is MqActor
   """
   Represents an application level subscription to one topic. 
   Note - We're not implementing the multi-subscribe capability in the specification
@@ -36,14 +35,14 @@ actor Subscriber is (IdNotifySub & MqActor)
   the relevant methods. Sub/unsub ids are issued by IdIssuer. Publish ids are issued
   by the Broker.
   """
-  var _reg : Registrar
+  var _router : Router
   var _pktMap : Map[IdType, PublishPacket val] 
   var _topic : String
-  var _qos : String
+  var _qos : Qos
   var _this : Subscriber 
 
-new create(reg : Registrar, topic: String val, qos : String val) =>
-  _reg = reg
+new create(router : Router, topic: String val, qos : Qos) =>
+  _router = router
   _pktMap = Map[IdType, PublishPacket val]
   """
   A map that stores QoS 2 packets indexed by Bid
@@ -53,21 +52,20 @@ new create(reg : Registrar, topic: String val, qos : String val) =>
   _qos = qos
 
 /********************************************************************************/
-be apply(id : U16, sub : SubControl) =>
+be subscribe(cid : IdType) =>
   """
   The packet id is the last piece of the jigsaw. Once we have this we can build our 
-  subscribe or unsubscribe packet and send it to the broker
+  subscribe packet and send it to the broker
   """
-  var subscriber : Subscriber tag = this
-  if (sub is Sub) then 
-    var arrayVal = SubscribePacket.compose(id, _topic, _qos)
-    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onSubscribe(subscriber, _topic ,id, arrayVal)})
-  else
-    Debug.err("Unsubscribing from " + _topic  + " at " + __loc.file() + ":" +__loc.method_name())
-    var arrayVal = UnsubscribePacket.compose(id, _topic)
-    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onUnsubscribe(subscriber, id, arrayVal)})
-  end
+    _router.send(SubscribePacket.compose(cid, _topic, _qos))
 
+/********************************************************************************/
+be unsubscribe(cid : IdType) =>
+  """
+  The packet id is the last piece of the jigsaw. Once we have this we can build our 
+  unsubscribe packet and send it to the broker
+  """
+  _router.send(UnsubscribePacket.compose(cid, _topic))
 
 /********************************************************************************/
 be onTick(sec : I64) =>
@@ -102,7 +100,7 @@ be onDisconnect() =>
   Debug.err("Disconnecting " + _topic)
   if (_pktMap.size() != 0) then Debug.err("Sending " + _pktMap.size().string() + " unreleased packets for storage") end
 
-  // TODO - We need to send them in the original order and this might not do it...
+  // TODO - We need to send them in the original order and this won't do it...
   for (k,v) in _pktMap.pairs() do 
     Debug.err("Sending []" + k.string() + v.topic().string() + "]")
   end
@@ -154,22 +152,20 @@ fun onSubAck(basePacket : BasePacket val)  =>
   """
   Our subscription has been acknowledged so we need to notify the app of the
   result.
-  TODO - Why don't we respond directly to main instead of going via router?
   """
-  var accepted : Bool = true
   var subAckPacket : SubAckPacket val = SubAckPacket(basePacket)
-  var approvedQos : (Qos | None) =  subAckPacket.approvedQos() 
-  var subAckResult : String val = recover val
-    var resultString : String iso = "Requested " + ToQos(_qos).string() 
-    match approvedQos
-    | let q : Qos =>  resultString.append(" Approved " + q.string())
-    | None => resultString.append(" Rejected"); accepted = false
-    end
-    consume resultString
-  end
-  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onSubscribeComplete(_this, subAckPacket.id(), accepted)})
-  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.showMessage(_topic, subAckResult)})
+  var approved : (String val | None) = None
+  var message : String trn = "Requested " + _qos.string()
 
+  try
+    var q : Qos = (subAckPacket.approvedQos() as Qos)
+    approved = q.string()
+    message.append(" Approved " + q.string())
+  else
+    message.append(" Rejected")
+  end  
+
+  _router.onSubscribeComplete(_this, _topic, subAckPacket.id(), consume message, approved)
 
 /********************************************************************************/
 fun ref onUnsubAck(basePacket : BasePacket val)  =>
@@ -185,8 +181,9 @@ fun ref onUnsubAck(basePacket : BasePacket val)  =>
   // id is in bytes 2 and 3
   var cid = BytesToU16(basePacket.data().trim(2,4)) 
   if cid > 0 then 
-    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onUnsubscribeComplete(_this, cid)})
-    _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.showMessage(_topic, "Unsubscribed")})
+    _router.onUnsubscribeComplete(_this, cid)
+    var msg : String val =  "Unsubscribed"
+    _router.onMessage(_topic, msg.array())
   else
     Debug.err("Zero id in UnsubAck packet at " + __loc.file() + ":" +__loc.method_name())
   end
@@ -234,7 +231,7 @@ fun doPubAck(id : IdType) =>
       return
   end
   //Debug.err("Pub ack at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string() )
-  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.send(PubAckPacket.compose(id))}, {()=>Debug.err("No router at " + __loc.file() + ":" +__loc.method_name())})
+  _router.send(PubAckPacket.compose(id))
  
 
 /********************************************************************************/
@@ -249,7 +246,7 @@ fun ref doPubRec(id : IdType) =>
       return
   end
 
-  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.send(PubRecPacket.compose(id))})
+  _router.send(PubRecPacket.compose(id))
  
 
 /********************************************************************************/
@@ -285,7 +282,7 @@ fun doPubComp(id : IdType) =>
   message. We only have the id at this stage so there is little else to do. No
   lookups on id so we don't care whether it is a Bid or a Cid.
   """
-  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.send(PubCompPacket.compose(id))})
+  _router.send(PubCompPacket.compose(id))
 
 /********************************************************************************/
 fun releasePkt(pubPacket : PublishPacket val) =>
@@ -295,33 +292,13 @@ fun releasePkt(pubPacket : PublishPacket val) =>
   1. After receiving a ControlPublish with QoS 0
   2. After receiving a ControlPublish with QoS 1
   2. After receiving a ControlPubRel with QoS 2
-  TODO - The second argument in the _reg call is a temporary kludge to get Mock Broker
-  to print payloads. Mock Broker has no router so the call _reg will fail the promise
-  and we print the payload as a Debug message. Nasty.
   """
   try
     var topic : String val = pubPacket.topic() as String
-    var payloadString : String val = pubPacket.payloadAsString() as String
-  _reg[Router](KeyRouter()).next[None]({ (r: Router)=>r.showMessage(topic, payloadString)},{()=>Debug.err("Mock Broker got " + payloadString)})
+    _router.onMessage(topic, (pubPacket.payload() as ArrayVal))
   else
     Debug.err("Packet error in " + __loc.method_name())
   end
-
-
-/********************************************************************************/
-be subscribe() =>
-  // pass ourselves to the IdIssuer so IdIssuer can allocate an id and call our apply
-  // behaviour that will make a subscribe packet with the id and pass it to 
-  // router to send to the broker
-  _reg[IdIssuer tag](KeyIssuer()).next[None]({(issuer) =>issuer.checkOutSub(_this)},{()=>Debug.err("No issuer found")})
-
-/********************************************************************************/
-be unsubscribe() =>
-  // pass ourselves to the IdIssuer so IdIssuer can allocate an id and call our apply
-  // behaviour that will make an usubscribe packet with the id and pass it to 
-  // router to send to the broker
-  _reg[IdIssuer tag](KeyIssuer()).next[None]({(issuer) =>issuer.checkOutUnsub(_this)},{()=>Debug.err("No issuer found")})
-
 
 /********************************************************************************/
 fun ref payloadComplete(bid : IdType) =>
@@ -332,6 +309,6 @@ fun ref payloadComplete(bid : IdType) =>
       Debug.err("Zero Broker Id found in " + __loc.file() + ":" +__loc.method_name())
       return
   end
-  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onPayloadComplete(bid)})
+  _router.onPayloadComplete(bid)
 
 ```````

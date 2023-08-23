@@ -1,5 +1,5 @@
 # TotalLength
-<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-127)</span>
+<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-123)</span>
 ```pony
 primitive val TotalLength
 ```
@@ -7,7 +7,7 @@ primitive val TotalLength
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-127)</span>
+<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-123)</span>
 
 
 ```pony
@@ -24,7 +24,7 @@ new val create()
 ## Public Functions
 
 ### apply
-<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-127)</span>
+<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-123)</span>
 
 
 Convenience function that calculates the total length of a packet by summing:
@@ -49,7 +49,7 @@ fun box apply(
 ---
 
 ### eq
-<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-127)</span>
+<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-123)</span>
 
 
 ```pony
@@ -68,7 +68,7 @@ fun box eq(
 ---
 
 ### ne
-<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-127)</span>
+<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-123)</span>
 
 
 ```pony

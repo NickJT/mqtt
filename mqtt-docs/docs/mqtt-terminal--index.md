@@ -8,6 +8,10 @@ The keyboard handler actor - takes ownership of stdin and routes messages to the
 An ANSI character-based display that enables messages and status to be displayed. Note that the ANSI
 codes don't work on windows terminals.
 
+## Usage ##
+
+![Operation](assets/Interface.png)
+
 
 
 ## Public Types
@@ -22,6 +26,7 @@ codes don't work on windows terminals.
 * [primitive HighlightPeriod](mqtt-terminal-HighlightPeriod.md)
 * [class KbdInput](mqtt-terminal-KbdInput.md)
 * [primitive MSG](mqtt-terminal-MSG.md)
+* [actor Main](mqtt-terminal-Main.md)
 * [primitive STS](mqtt-terminal-STS.md)
 * [class StatusLine](mqtt-terminal-StatusLine.md)
 * [actor Terminal](mqtt-terminal-Terminal.md)

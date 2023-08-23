@@ -11,19 +11,16 @@ search:
   use "collections"
 
   use ".."
-  use "package:../idIssuer"
   use "package:../primitives"
   use "package:../router"
   use "package:../utilities"
 
-actor Publisher is (IdNotifyPub & MqActor)
+actor Publisher is MqActor
   """
   Represents an application level publication topic. Provides a public Publish topic
   that:
   1. takes the payload and qos
-  1. passes these arguments to IdIssuer to get the next unique id
-  2. provides an apply behaviour so IdNotifyPub can call us back and trigger sending
-   the completed publish packet to router
+  1. passes these arguments to router
 
   Publisher is responsible for managing its in-flight window. For 3.1.1 we will keep this
   to one packet for now but with a view to parameterizing this for MQTT 5 compliance.
@@ -35,9 +32,8 @@ actor Publisher is (IdNotifyPub & MqActor)
   replaced by a factory class once we have all the functions coded
 
   """
-  let _reg : Registrar
+  let _router : Router
   let _topic : String val
-  let _idNotify : IdNotifyPub tag = this 
   let _publisher : Publisher tag = this 
   let _inFlightWindow : USize = 1  
 
@@ -65,32 +61,19 @@ actor Publisher is (IdNotifyPub & MqActor)
   A map for the in-flight QoS 2 messages 
   """
 
-  new create(reg : Registrar, topic': String val) =>
+  new create(router : Router, topic': String val) =>
     _qos1Map = Map[IdType, PublishArgs val]
     _pending = Array[PublishArgs val]  
     _qos2Map = Map[IdType, PublishArgs val]
     _pubRelMap = Map[IdType, ArrayVal]
-    _reg = reg
+    _router = router
     _topic = topic'
 
 /********************************************************************************/
 be publish(args : PublishArgs val) =>
   """
-  Public API call to publish a payload
-  """
-
-  if args.qos is Qos0 then 
-    _reg[Router](KeyRouter()).next[None]({(router) => router.onPublishQos0(PublishPacket.compose(args))})
-  else
-    _reg[IdIssuer tag](KeyIssuer()).next[None]({(issuer) => issuer.checkOutPub(_idNotify, args)})
-  end
-
-/********************************************************************************/
-be apply(args : PublishArgs val) =>
-  """
-  Called by IdIssuer once an id has been allocated and we have a complete
-  set of arguments to send and/or save to the queue. NextQosnArgs determines
-  whether we:
+  Called once we have a complete set of arguments to send and/or save to the queue.
+  NextQosnArgs determines whether we:
   1. continue to publish the current set of args
   2. pull a different set of args of the pending queue and send those instead,
   queuing our current set
@@ -187,9 +170,9 @@ be onData(basePacket : BasePacket val) =>
 /********************************************************************************/
 fun sendToRouter(args: PublishArgs val) =>
   """
-  Make a publish packet with the passed arguments and send it to router
+  Make a publish packet with the passed arguments and send it via the router
   """
-    _reg[Router](KeyRouter()).next[None]({(router) => router.onPublish(_publisher, args.topic, args.cid, PublishPacket.compose(args))})
+  _router.send(PublishPacket.compose(args))
 
 
 /********************************************************************************/
@@ -255,7 +238,7 @@ fun ref doPubRel(cid : IdType) =>
   //Debug.err("Inserted id " + id.string() + " in _pubRel at " + __loc.file() + ":" +__loc.method_name() + " line " +  __loc.line().string() )
   
   _pubRelMap.insert(cid,data)
-  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.send(data)})
+  _router.send(data)
 
 
 /********************************************************************************/
@@ -289,7 +272,7 @@ fun ref publishComplete(cid : IdType) =>
   This function should be preceded by deletion of the publish packet in the case
   of QoS 1 publication and by deletion of the PubRel packet in the case of QoS 2.
   """
-  _reg[Router](KeyRouter()).next[None]({(r: Router)=>r.onPublishComplete(cid)})
+  _router.onPublishComplete(cid)
 
 /********************************************************************************/
 be onDuckAndCover() => 

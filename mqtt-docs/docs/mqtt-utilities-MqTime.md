@@ -7,7 +7,7 @@ class ref MqTime
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-utilities/timestamps.md#L-0-10)</span>
+<span class="source-link">[[Source]](src/mqtt-utilities/timestamps.md#L-0-9)</span>
 
 
 ```pony
@@ -21,70 +21,49 @@ new ref create()
 
 ---
 
-### create_at
+## Public Functions
+
+### apply
 <span class="source-link">[[Source]](src/mqtt-utilities/timestamps.md#L-0-13)</span>
 
 
 ```pony
-new ref create_at(
-  s: I64 val,
-  ns: I64 val)
-: MqTime ref^
+fun box apply()
+: Array[U8 val] val
 ```
-#### Parameters
-
-*   s: [I64](builtin-I64.md) val
-*   ns: [I64](builtin-I64.md) val
 
 #### Returns
 
-* [MqTime](mqtt-utilities-MqTime.md) ref^
+* [Array](builtin-Array.md)\[[U8](builtin-U8.md) val\] val
 
 ---
-
-## Public Functions
 
 ### elapsed
-<span class="source-link">[[Source]](src/mqtt-utilities/timestamps.md#L-0-17)</span>
+<span class="source-link">[[Source]](src/mqtt-utilities/timestamps.md#L-0-20)</span>
 
 
 ```pony
-fun box elapsed()
-: String val
+fun ref elapsed()
+: I64 val
 ```
 
 #### Returns
 
-* [String](builtin-String.md) val
-
----
-
-### startTime
-<span class="source-link">[[Source]](src/mqtt-utilities/timestamps.md#L-0-22)</span>
-
-
-```pony
-fun box startTime()
-: String val
-```
-
-#### Returns
-
-* [String](builtin-String.md) val
+* [I64](builtin-I64.md) val
 
 ---
 
 ## Private Functions
 
-### _elapsed
-<span class="source-link">[[Source]](src/mqtt-utilities/timestamps.md#L-0-29)</span>
+### _toNs
+<span class="source-link">[[Source]](src/mqtt-utilities/timestamps.md#L-0-24)</span>
 
 
 ```pony
-fun box _elapsed(
+fun ref _toNs(
   s: I64 val,
   ns: I64 val)
-: (I64 val , I64 val)
+: U128 val
 ```
 #### Parameters
 
@@ -93,7 +72,7 @@ fun box _elapsed(
 
 #### Returns
 
-* ([I64](builtin-I64.md) val , [I64](builtin-I64.md) val)
+* [U128](builtin-U128.md) val
 
 ---
 

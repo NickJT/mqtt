@@ -1,5 +1,5 @@
 # RlByteCount
-<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-171)</span>
+<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-167)</span>
 ```pony
 primitive val RlByteCount
 ```
@@ -7,7 +7,7 @@ primitive val RlByteCount
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-171)</span>
+<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-167)</span>
 
 
 ```pony
@@ -24,7 +24,7 @@ new val create()
 ## Public Functions
 
 ### apply
-<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-171)</span>
+<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-167)</span>
 
 
 Returns the number of bytes in the remaining length field of the fixed header  
@@ -46,7 +46,7 @@ fun box apply(
 ---
 
 ### eq
-<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-171)</span>
+<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-167)</span>
 
 
 ```pony
@@ -65,7 +65,7 @@ fun box eq(
 ---
 
 ### ne
-<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-171)</span>
+<span class="source-link">[[Source]](src/mqtt-utilities/functions.md#L-0-167)</span>
 
 
 ```pony

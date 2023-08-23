@@ -46,7 +46,6 @@ with the client application.
 * [primitive InvalidFlags](mqtt-primitives-InvalidFlags.md)
 * [primitive InvalidRemainingLength](mqtt-primitives-InvalidRemainingLength.md)
 * [primitive InvalidType](mqtt-primitives-InvalidType.md)
-* [primitive KeyClient](mqtt-primitives-KeyClient.md)
 * [primitive KeyDisplay](mqtt-primitives-KeyDisplay.md)
 * [primitive KeyIssuer](mqtt-primitives-KeyIssuer.md)
 * [primitive KeyNetwork](mqtt-primitives-KeyNetwork.md)

@@ -13,6 +13,4 @@ SUBACK or UNSUBACK.
 
 ## Public Types
 
-* [actor IdIssuer](mqtt-idIssuer-IdIssuer.md)
-* [interface IdNotifyPub](mqtt-idIssuer-IdNotifyPub.md)
-* [interface IdNotifySub](mqtt-idIssuer-IdNotifySub.md)
+* [class IdIssuer](mqtt-idIssuer-IdIssuer.md)

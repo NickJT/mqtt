@@ -52,17 +52,17 @@ new iso create(env: Env, router : Router) =>
   // assembler is only used by client so don't add it to reg
 
 fun ref connecting(conn: TCPConnection ref, count: U32) =>
-  _router.showStatus("Connection attempt " + count.string())
+  _router.onStatus("Connection attempt " + count.string())
   None
 
 fun ref accepted(conn: TCPConnection ref) =>
-  _router.showStatus("Connection Accepted")
+  _router.onStatus("Connection Accepted")
   None
 
 fun ref connected(conn: TCPConnection ref) =>
   try
     (let host, let service) = conn.remote_address().name()?
-    _router.showStatus("Client connected to " + host + ":" + service)
+    _router.onStatus("Client connected to " + host + ":" + service)
   end
   conn.set_nodelay(true)
   conn.set_keepalive(10)
@@ -74,7 +74,7 @@ fun ref received(conn: TCPConnection ref, data: Array[U8 val] iso, times: USize)
   
 fun ref connect_failed(conn: TCPConnection ref) =>
   try (let host, let service) = conn.remote_address().name()?
-    _router.showStatus("Connection failed " + host + ":" + service)
+    _router.onStatus("Connection failed " + host + ":" + service)
   end
 
 fun ref closed(conn: TCPConnection ref) =>
