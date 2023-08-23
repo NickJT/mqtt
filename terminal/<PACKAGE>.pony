@@ -9,4 +9,8 @@ The keyboard handler actor - takes ownership of stdin and routes messages to the
 An ANSI character-based display that enables messages and status to be displayed. Note that the ANSI
 codes don't work on windows terminals.
 
+## Usage ##
+
+![Operation](assets/Interface.png)
+
 """

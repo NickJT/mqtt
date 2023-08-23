@@ -145,22 +145,20 @@ fun onSubAck(basePacket : BasePacket val)  =>
   """
   Our subscription has been acknowledged so we need to notify the app of the
   result.
-  TODO - Why don't we respond directly to main instead of going via router?
   """
-  var accepted : Bool = true
   var subAckPacket : SubAckPacket val = SubAckPacket(basePacket)
-  var approvedQos : (Qos | None) =  subAckPacket.approvedQos() 
-  var subAckResult : String val = recover val
-    var resultString : String iso = "Requested " + _qos.string() 
-    match approvedQos
-    | let q : Qos =>  resultString.append(" Approved " + q.string())
-    | None => resultString.append(" Rejected"); accepted = false
-    end
-    consume resultString
-  end
-  _router.onSubscribeComplete(_this, subAckPacket.id(), accepted)
-  _router.onMessage(_topic, subAckResult.array())
+  var approved : (String val | None) = None
+  var message : String trn = "Requested " + _qos.string()
 
+  try
+    var q : Qos = (subAckPacket.approvedQos() as Qos)
+    approved = q.string()
+    message.append(" Approved " + q.string())
+  else
+    message.append(" Rejected")
+  end  
+
+  _router.onSubscribeComplete(_this, _topic, subAckPacket.id(), consume message, approved)
 
 /********************************************************************************/
 fun ref onUnsubAck(basePacket : BasePacket val)  =>

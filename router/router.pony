@@ -395,7 +395,7 @@ be onSubscribe(topic: String, qos: Qos) =>
   sub.subscribe(cid)
 
 /*********************************************************************************/
-be onSubscribeComplete(sub : Subscriber tag, id : IdType, accepted : Bool) =>
+be onSubscribeComplete(sub : Subscriber tag, topic: String val, id : IdType, msg: String val, approvedQos : (String val | None)) =>
   """
   Called by a subscriber to indicate that it has received a SubAck and so has finished
   processing its subscribe request. Subscribers can subscribe and unsubscribe 
@@ -407,17 +407,19 @@ be onSubscribeComplete(sub : Subscriber tag, id : IdType, accepted : Bool) =>
   """
   // If we were rejected then remove the preemptive insertion of subcriber into the
   //subscriberByTopic map
-  if (not accepted) then _removeSubscriber(sub) end
+  if (approvedQos is None) then _removeSubscriber(sub) end
 
   try
     _actorById.remove(id)? // always do this because the transaction is complete 
-    //Debug.err("Removing id " + id.string() + " from _actorById at " + __loc.file() + ":" +__loc.method_name())
   else
     Debug.err("Router can't remove id " + id.string() + " from subscriber map at " + __loc.file() + ":" +__loc.method_name())
   end  
   // Whatever, we've finished with the id
     _idIssuer.checkIn(id)
-
+    
+  // Tell the Mqtt actor that we have finished subscribing  
+  _mqtt.onSubscribed(topic, approvedQos)  
+  onMessage(topic, msg.array())  
 
 /*********************************************************************************/
 be onUnsubscribe(topic : String val) =>
