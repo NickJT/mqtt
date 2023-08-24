@@ -10,7 +10,7 @@ codes don't work on windows terminals.
 
 ## Usage ##
 
-![Operation](assets/Interface.png)
+![Operation](../assets/Interface.png)
 
 
 

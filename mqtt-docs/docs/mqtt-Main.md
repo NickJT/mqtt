@@ -1,5 +1,5 @@
 # Main
-<span class="source-link">[[Source]](src/mqtt/main.md#L-0-4)</span>
+<span class="source-link">[[Source]](src/mqtt/main.md#L-0-20)</span>
 
 Minimal example of an application to connect, subscribe, publish and disconnect. An application or actor
 must implement the following trait (defined in the mqtt package):
@@ -28,7 +28,7 @@ actor tag Main is
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt/main.md#L-0-26)</span>
+<span class="source-link">[[Source]](src/mqtt/main.md#L-0-42)</span>
 
 
 ```pony
@@ -49,7 +49,7 @@ new tag create(
 ## Public Behaviours
 
 ### onConnection
-<span class="source-link">[[Source]](src/mqtt/main.md#L-0-32)</span>
+<span class="source-link">[[Source]](src/mqtt/main.md#L-0-48)</span>
 
 
 ```pony
@@ -63,7 +63,7 @@ be onConnection(
 ---
 
 ### onSubscribed
-<span class="source-link">[[Source]](src/mqtt/main.md#L-0-36)</span>
+<span class="source-link">[[Source]](src/mqtt/main.md#L-0-52)</span>
 
 
 ```pony
@@ -79,7 +79,7 @@ be onSubscribed(
 ---
 
 ### onMessage
-<span class="source-link">[[Source]](src/mqtt/main.md#L-0-41)</span>
+<span class="source-link">[[Source]](src/mqtt/main.md#L-0-57)</span>
 
 
 ```pony
@@ -95,7 +95,7 @@ be onMessage(
 ---
 
 ### onStatus
-<span class="source-link">[[Source]](src/mqtt/main.md#L-0-55)</span>
+<span class="source-link">[[Source]](src/mqtt/main.md#L-0-71)</span>
 
 
 ```pony
@@ -111,7 +111,7 @@ be onStatus(
 ## Public Functions
 
 ### dateStamp
-<span class="source-link">[[Source]](src/mqtt/main.md#L-0-59)</span>
+<span class="source-link">[[Source]](src/mqtt/main.md#L-0-75)</span>
 
 
 An aribtrary function to generate some changing data to publish. Not part of the 
@@ -130,7 +130,7 @@ fun box dateStamp()
 ---
 
 ### runtime_override_defaults
-<span class="source-link">[[Source]](src/mqtt/main.md#L-0-4)</span>
+<span class="source-link">[[Source]](src/mqtt/main.md#L-0-20)</span>
 
 
 ```pony
