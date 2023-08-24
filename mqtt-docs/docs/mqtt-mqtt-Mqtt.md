@@ -1,5 +1,5 @@
 # Mqtt
-<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-26)</span>
+<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-90)</span>
 
 Provides message access to the MQTT broker identified in config.ini or, if no config.ini can be
 found, to localhost:1883.
@@ -12,7 +12,7 @@ actor tag Mqtt
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-40)</span>
+<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-104)</span>
 
 
 ```pony
@@ -35,7 +35,7 @@ new tag create(
 ## Public Behaviours
 
 ### connect
-<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-55)</span>
+<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-119)</span>
 
 
 cmd: true - Connect to the Broker initialised during instantiation. Takes a callback that is called with 
@@ -66,7 +66,7 @@ be connect(
 ---
 
 ### publish
-<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-83)</span>
+<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-147)</span>
 
 
 This is just a passthrough to the router.
@@ -87,7 +87,7 @@ be publish(
 ---
 
 ### subscribe
-<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-96)</span>
+<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-160)</span>
 
 
 Subscribe or unsubscribe to the passed topic, requesting messages be returned with the passed qos. 
@@ -107,7 +107,7 @@ be subscribe(
 ---
 
 ### onConnection
-<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-109)</span>
+<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-173)</span>
 
 
 ```pony
@@ -121,7 +121,7 @@ be onConnection(
 ---
 
 ### onSubscribed
-<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-113)</span>
+<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-177)</span>
 
 
 ```pony
@@ -137,7 +137,7 @@ be onSubscribed(
 ---
 
 ### onMessage
-<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-116)</span>
+<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-180)</span>
 
 
 ```pony
@@ -153,7 +153,7 @@ be onMessage(
 ---
 
 ### onStatus
-<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-119)</span>
+<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-183)</span>
 
 
 ```pony

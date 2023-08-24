@@ -1,5 +1,5 @@
 # Publisher
-<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-11)</span>
+<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-16)</span>
 
 Represents an application level publication topic. Provides a public Publish topic
 that:
@@ -31,7 +31,7 @@ actor tag Publisher is
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-57)</span>
+<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-62)</span>
 
 
 ```pony
@@ -54,7 +54,7 @@ new tag create(
 ## Public Behaviours
 
 ### publish
-<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-66)</span>
+<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-71)</span>
 
 
 Called once we have a complete set of arguments to send and/or save to the queue.
@@ -78,7 +78,7 @@ be publish(
 ---
 
 ### onData
-<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-149)</span>
+<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-154)</span>
 
 
 Called by router via the findPublisherById map [Cid,Published] when it receives
@@ -96,7 +96,7 @@ be onData(
 ---
 
 ### onTick
-<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-172)</span>
+<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-177)</span>
 
 
 ```pony
@@ -110,7 +110,7 @@ be onTick(
 ---
 
 ### onDuckAndCover
-<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-271)</span>
+<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-276)</span>
 
 
 We need to save state because the broker is disconnecting or something has gone awry.   
@@ -125,7 +125,7 @@ be onDuckAndCover()
 ## Public Functions
 
 ### nextQos1Args
-<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-84)</span>
+<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-89)</span>
 
 
 Manages the in-flight window for QoS 1 messages and saves the packet in case we
@@ -156,7 +156,7 @@ fun ref nextQos1Args(
 ---
 
 ### inFlightLimitReached
-<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-126)</span>
+<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-131)</span>
 
 
 Returns true if there are fewer messages in-flight than our in-flight limit
@@ -174,7 +174,7 @@ fun box inFlightLimitReached()
 ---
 
 ### nextQos2Args
-<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-133)</span>
+<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-138)</span>
 
 
 For protocol Vsn 3.1.1 there is no in-flight limit for QoS 2 messages. This means 
@@ -199,7 +199,7 @@ fun ref nextQos2Args(
 ---
 
 ### sendToRouter
-<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-164)</span>
+<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-169)</span>
 
 
 Make a publish packet with the passed arguments and send it via the router
@@ -221,7 +221,7 @@ fun box sendToRouter(
 ---
 
 ### onPubAck
-<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-180)</span>
+<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-185)</span>
 
 
 The single ack packet for QoS 1 messages. Once we get this we can discard the 
@@ -245,7 +245,7 @@ fun ref onPubAck(
 ---
 
 ### onPubRec
-<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-204)</span>
+<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-209)</span>
 
 
 The first of the two acknowledgements for a QoS 2 transaction. Once we get a
@@ -268,7 +268,7 @@ fun ref onPubRec(
 ---
 
 ### doPubRel
-<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-226)</span>
+<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-231)</span>
 
 
 Send a PubRelPacket with the passed Cid to the router.
@@ -290,7 +290,7 @@ fun ref doPubRel(
 ---
 
 ### onPubComp
-<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-238)</span>
+<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-243)</span>
 
 
 The second of the two acknowledgement messages of the QoS 2 transaction. Once we
@@ -314,7 +314,7 @@ fun ref onPubComp(
 ---
 
 ### publishComplete
-<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-260)</span>
+<span class="source-link">[[Source]](src/mqtt-publisher/publisher.md#L-0-265)</span>
 
 
 Called when we have received our last publish acknowledgement. We can now

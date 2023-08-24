@@ -1,5 +1,5 @@
 # Pinger
-<span class="source-link">[[Source]](src/mqtt-pinger/pinger.md#L-0-28)</span>
+<span class="source-link">[[Source]](src/mqtt-pinger/pinger.md#L-0-35)</span>
 
 Keep alive pinger. Starts a timer that calls .doPing() on the router tag
 stored in _reg.  
@@ -12,7 +12,7 @@ actor tag Pinger
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-pinger/pinger.md#L-0-37)</span>
+<span class="source-link">[[Source]](src/mqtt-pinger/pinger.md#L-0-44)</span>
 
 
 ```pony
@@ -37,7 +37,7 @@ new tag create(
 ## Public Behaviours
 
 ### cancel
-<span class="source-link">[[Source]](src/mqtt-pinger/pinger.md#L-0-45)</span>
+<span class="source-link">[[Source]](src/mqtt-pinger/pinger.md#L-0-52)</span>
 
 
 ```pony

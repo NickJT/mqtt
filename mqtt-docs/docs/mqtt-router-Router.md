@@ -1,5 +1,5 @@
 # Router
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-24)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-62)</span>
 
 Router accepts incomming MQTT packets and routes these by type to the appropriate 
 handler actor. Router is also responsible for writing bytes back out to the Broker
@@ -42,7 +42,7 @@ actor tag Router
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-90)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-128)</span>
 
 
 ```pony
@@ -65,7 +65,7 @@ new tag create(
 ## Public Behaviours
 
 ### route
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-97)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-135)</span>
 
 
 This function demultiplexes the incomming packet stream according to packet type.
@@ -87,7 +87,7 @@ be route(
 ---
 
 ### onPayloadComplete
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-295)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-333)</span>
 
 
 Called by a subscriber when it has completed processing of an incomming message
@@ -108,7 +108,7 @@ be onPayloadComplete(
 ---
 
 ### onPublish
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-313)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-351)</span>
 
 
 Called by the MQTT actor to publish payload on topic. Requires a Client allocated
@@ -131,7 +131,7 @@ be onPublish(
 ---
 
 ### onPublishQos0
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-340)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-378)</span>
 
 
 Called by a publisher to publish a QoS 0 packet on topic. Because there is no id and 
@@ -151,7 +151,7 @@ be onPublishQos0(
 ---
 
 ### onPublishComplete
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-349)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-387)</span>
 
 
 Called by a publisher when an id has completed its processing. This tells router
@@ -170,7 +170,7 @@ be onPublishComplete(
 ---
 
 ### onSubscribe
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-363)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-401)</span>
 
 
 Called by a subscriber to subscribe to a new topic. Comes through router so we have
@@ -208,7 +208,7 @@ be onSubscribe(
 ---
 
 ### onSubscribeComplete
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-398)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-436)</span>
 
 
 Called by a subscriber to indicate that it has received a SubAck and so has finished
@@ -239,7 +239,7 @@ be onSubscribeComplete(
 ---
 
 ### onUnsubscribe
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-425)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-463)</span>
 
 
 Called by the mqtt actor to unsubscribe to a topic. Subscribers can subscribe and
@@ -261,7 +261,7 @@ be onUnsubscribe(
 ---
 
 ### onUnsubscribeComplete
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-442)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-480)</span>
 
 
 Called by a Subscriber when the subscriber has got confirmation that its Unsubscribe
@@ -285,7 +285,7 @@ be onUnsubscribeComplete(
 ---
 
 ### onTick
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-488)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-526)</span>
 
 
 OnTick is called on every system tick by Ticker. Router then calls all of the
@@ -305,7 +305,7 @@ be onTick(
 ---
 
 ### doPing
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-501)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-539)</span>
 
 
 Ask the Broker for a pingResp and debit the number of times we have asked without
@@ -322,7 +322,7 @@ be doPing()
 ---
 
 ### onTcpConnect
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-529)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-567)</span>
 
 
 Once we know that we have a TCP connection we can safely start the Connector 
@@ -341,7 +341,7 @@ be onTcpConnect(
 ---
 
 ### onBrokerConnect
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-540)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-578)</span>
 
 
 When this is called we should have a valid Broker connection with our local 
@@ -355,7 +355,7 @@ be onBrokerConnect()
 ---
 
 ### onBrokerRestore
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-551)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-589)</span>
 
 
 This behaviour is called by connector if the Broker has accepted a connection with
@@ -395,7 +395,7 @@ be onBrokerRestore()
 ---
 
 ### onBrokerStateNotFound
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-598)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-636)</span>
 
 
 This behaviour is called by connector if the Broker has accepted a connection with
@@ -411,7 +411,7 @@ be onBrokerStateNotFound()
 ---
 
 ### onBrokerRefusal
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-612)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-650)</span>
 
 
 Called by Connector if the Broker has refused the connection
@@ -430,7 +430,7 @@ be onBrokerRefusal(
 ---
 
 ### onTCPDisconnect
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-621)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-659)</span>
 
 
 Called if the TCP connection is closed in client
@@ -459,7 +459,7 @@ be onTCPDisconnect(
 ---
 
 ### disconnectBroker
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-629)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-667)</span>
 
 
 Most of the disconnect work is done by the Mqtt actor now. We'll keep this in just
@@ -474,7 +474,7 @@ be disconnectBroker()
 ---
 
 ### cancelKeepAlive
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-655)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-693)</span>
 
 
 We make this a behaviour so that main can cancel it in the event of an error. Otherwise
@@ -488,7 +488,7 @@ be cancelKeepAlive()
 ---
 
 ### send
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-688)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-726)</span>
 
 
 Check the TCP connection is valid and use it to send our packet
@@ -505,7 +505,7 @@ be send(
 ---
 
 ### onMessage
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-701)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-739)</span>
 
 
 The final message release behaviour that send the broker message to the client 
@@ -525,7 +525,7 @@ be onMessage(
 ---
 
 ### onStatus
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-709)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-747)</span>
 
 
 Provides an out of band channel for the library functions to notify the app of 
@@ -545,7 +545,7 @@ be onStatus(
 ## Public Functions
 
 ### saveState
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-664)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-702)</span>
 
 
 Called when we have lost connection with the Broker and need to save our state in
@@ -564,7 +564,7 @@ fun box saveState()
 ---
 
 ### onControlConnect
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-721)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-759)</span>
 
 
 Mock Broker - for testing only
@@ -586,7 +586,7 @@ fun box onControlConnect(
 ---
 
 ### onControlSubscribe
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-732)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-770)</span>
 
 
 Mock Broker - for testing only
@@ -608,7 +608,7 @@ fun ref onControlSubscribe(
 ---
 
 ### onControlUnsubscribe
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-747)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-785)</span>
 
 
 Mock Broker - for testing only
@@ -630,7 +630,7 @@ fun box onControlUnsubscribe(
 ---
 
 ### onControlPingReq
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-753)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-791)</span>
 
 
 Mock Broker - for testing only
@@ -652,7 +652,7 @@ fun box onControlPingReq(
 ---
 
 ### onControlDisconnect
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-761)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-799)</span>
 
 
 Mock Broker - for testing only
@@ -676,7 +676,7 @@ fun box onControlDisconnect(
 ## Private Functions
 
 ### _findActorById
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-136)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-174)</span>
 
 
 Get the packet id from a PubAck, PubRel, PubRec, PubComp and UnsubAck packets. For
@@ -704,7 +704,7 @@ fun box _findActorById(
 ---
 
 ### _findSubscriberByTopic
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-156)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-194)</span>
 
 
 Process a Publish Packet and route to the appropriate subscriber. All publish packets
@@ -741,7 +741,7 @@ fun ref _findSubscriberByTopic(
 ---
 
 ### _findPayloadById
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-201)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-239)</span>
 
 
 We search the payload map by Bid to find the subscriber who is working this Bid.
@@ -763,7 +763,7 @@ fun box _findPayloadById(
 ---
 
 ### _doAssignedSubscription
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-214)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-252)</span>
 
 
 Only called if we receive a Publish message and we have no record of a Subscriber that
@@ -840,7 +840,7 @@ fun ref _doAssignedSubscription(
 ---
 
 ### _removeSubscriber
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-467)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-505)</span>
 
 
 This function enables us to do a reverse lookup on the _subscriberByTopic map to
@@ -864,7 +864,7 @@ fun ref _removeSubscriber(
 ---
 
 ### _onPingResp
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-517)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-555)</span>
 
 
 When the broker responds to a ping response we credit the token count. This value 
@@ -885,7 +885,7 @@ fun ref _onPingResp()
 ---
 
 ### _cleanup
-<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-640)</span>
+<span class="source-link">[[Source]](src/mqtt-router/router.md#L-0-678)</span>
 
 
 ```pony

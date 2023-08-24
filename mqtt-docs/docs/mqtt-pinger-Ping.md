@@ -1,5 +1,5 @@
 # Ping
-<span class="source-link">[[Source]](src/mqtt-pinger/pinger.md#L-0-8)</span>
+<span class="source-link">[[Source]](src/mqtt-pinger/pinger.md#L-0-15)</span>
 
 Simple timerNotify class to provide a keepalive ping 
 
@@ -18,7 +18,7 @@ class ref Ping is
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-pinger/pinger.md#L-0-16)</span>
+<span class="source-link">[[Source]](src/mqtt-pinger/pinger.md#L-0-23)</span>
 
 
 ```pony
@@ -39,7 +39,7 @@ new iso create(
 ## Public Functions
 
 ### apply
-<span class="source-link">[[Source]](src/mqtt-pinger/pinger.md#L-0-20)</span>
+<span class="source-link">[[Source]](src/mqtt-pinger/pinger.md#L-0-27)</span>
 
 
 ```pony
@@ -60,7 +60,7 @@ fun ref apply(
 ---
 
 ### cancel
-<span class="source-link">[[Source]](src/mqtt-pinger/pinger.md#L-0-24)</span>
+<span class="source-link">[[Source]](src/mqtt-pinger/pinger.md#L-0-31)</span>
 
 
 ```pony

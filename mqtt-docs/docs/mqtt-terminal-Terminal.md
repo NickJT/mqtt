@@ -1,5 +1,5 @@
 # Terminal
-<span class="source-link">[[Source]](src/mqtt-terminal/terminal.md#L-0-11)</span>
+<span class="source-link">[[Source]](src/mqtt-terminal/terminal.md#L-0-28)</span>
 ```pony
 actor tag Terminal is
   MqttApplication ref
@@ -14,7 +14,7 @@ actor tag Terminal is
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-terminal/terminal.md#L-0-19)</span>
+<span class="source-link">[[Source]](src/mqtt-terminal/terminal.md#L-0-36)</span>
 
 
 ```pony
@@ -37,7 +37,7 @@ new tag create(
 ## Public Behaviours
 
 ### connect
-<span class="source-link">[[Source]](src/mqtt-terminal/terminal.md#L-0-38)</span>
+<span class="source-link">[[Source]](src/mqtt-terminal/terminal.md#L-0-55)</span>
 
 
 Tells the MQTT actor to connect to the Broker
@@ -50,7 +50,7 @@ be connect()
 ---
 
 ### disconnect
-<span class="source-link">[[Source]](src/mqtt-terminal/terminal.md#L-0-44)</span>
+<span class="source-link">[[Source]](src/mqtt-terminal/terminal.md#L-0-61)</span>
 
 
 Tells the MQTT actor to send a disconnect message to the Broker and then release
@@ -64,7 +64,7 @@ be disconnect()
 ---
 
 ### startService
-<span class="source-link">[[Source]](src/mqtt-terminal/terminal.md#L-0-51)</span>
+<span class="source-link">[[Source]](src/mqtt-terminal/terminal.md#L-0-68)</span>
 
 
 ```pony
@@ -78,7 +78,7 @@ be startService(
 ---
 
 ### stopService
-<span class="source-link">[[Source]](src/mqtt-terminal/terminal.md#L-0-55)</span>
+<span class="source-link">[[Source]](src/mqtt-terminal/terminal.md#L-0-72)</span>
 
 
 ```pony
@@ -92,7 +92,7 @@ be stopService(
 ---
 
 ### clear
-<span class="source-link">[[Source]](src/mqtt-terminal/terminal.md#L-0-59)</span>
+<span class="source-link">[[Source]](src/mqtt-terminal/terminal.md#L-0-76)</span>
 
 
 Tells the display actor to clear the message section of the screen
@@ -105,7 +105,7 @@ be clear()
 ---
 
 ### onExit
-<span class="source-link">[[Source]](src/mqtt-terminal/terminal.md#L-0-65)</span>
+<span class="source-link">[[Source]](src/mqtt-terminal/terminal.md#L-0-82)</span>
 
 
 Called by the terminal actor in response to a user request to exit. Releases the
@@ -126,7 +126,7 @@ be onExit(
 ---
 
 ### onConnection
-<span class="source-link">[[Source]](src/mqtt-terminal/terminal.md#L-0-78)</span>
+<span class="source-link">[[Source]](src/mqtt-terminal/terminal.md#L-0-95)</span>
 
 
 Called by the MQTT actor when the Broker is connected
@@ -143,7 +143,7 @@ be onConnection(
 ---
 
 ### onSubscribed
-<span class="source-link">[[Source]](src/mqtt-terminal/terminal.md#L-0-84)</span>
+<span class="source-link">[[Source]](src/mqtt-terminal/terminal.md#L-0-101)</span>
 
 
 Called by the MQTT actor with the result of a subscription request
@@ -162,7 +162,7 @@ be onSubscribed(
 ---
 
 ### onMessage
-<span class="source-link">[[Source]](src/mqtt-terminal/terminal.md#L-0-96)</span>
+<span class="source-link">[[Source]](src/mqtt-terminal/terminal.md#L-0-113)</span>
 
 
 Called by the MQTT actor when it has recieved a message on a subscribed channel or 
@@ -182,7 +182,7 @@ be onMessage(
 ---
 
 ### onStatus
-<span class="source-link">[[Source]](src/mqtt-terminal/terminal.md#L-0-104)</span>
+<span class="source-link">[[Source]](src/mqtt-terminal/terminal.md#L-0-121)</span>
 
 
 Called by the MQTT actor when it has recieved a status message

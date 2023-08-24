@@ -1,12 +1,3 @@
-use "debug"
-use "collections"
-
-use "package:../primitives"
-use "package:../router"
-use "package:../utilities"
-use ".."
-
-actor Connector
 """
 Responsible for:
 1. building the connection packet and sending it to the Broker via router.send
@@ -32,6 +23,23 @@ on router.
 Note - Because we are still early in the connection process we will pass connector a
 tag to router when it is created and let it call the router behaviours directly instead
 of going through the registrar.
+"""
+
+use "debug"
+use "collections"
+
+use "package:../primitives"
+use "package:../router"
+use "package:../utilities"
+use ".."
+
+actor Connector
+"""
+Responsible for:
+1. building the connection packet and sending it to the Broker via router.send
+2. receiving and interpreting the returned ConnAck packet
+3. telling router whether to start a new session or to restore an established
+session.
 """
   let _router : Router
   var _cleanSessionRequested : Bool = true  

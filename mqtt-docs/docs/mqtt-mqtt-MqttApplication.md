@@ -1,5 +1,5 @@
 # MqttApplication
-<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-16)</span>
+<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-80)</span>
 ```pony
 trait ref MqttApplication
 ```
@@ -7,7 +7,7 @@ trait ref MqttApplication
 ## Public Behaviours
 
 ### onConnection
-<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-17)</span>
+<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-81)</span>
 
 
 ```pony
@@ -21,7 +21,7 @@ be onConnection(
 ---
 
 ### onSubscribed
-<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-18)</span>
+<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-82)</span>
 
 
 ```pony
@@ -37,7 +37,7 @@ be onSubscribed(
 ---
 
 ### onMessage
-<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-19)</span>
+<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-83)</span>
 
 
 ```pony
@@ -53,7 +53,7 @@ be onMessage(
 ---
 
 ### onStatus
-<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-20)</span>
+<span class="source-link">[[Source]](src/mqtt-mqtt/mqtt.md#L-0-84)</span>
 
 
 ```pony

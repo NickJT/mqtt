@@ -1,5 +1,5 @@
 # Assembler
-<span class="source-link">[[Source]](src/mqtt-assembler/assembler.md#L-0-9)</span>
+<span class="source-link">[[Source]](src/mqtt-assembler/assembler.md#L-0-21)</span>
 
 We're using a ring buffer for packet assembly because:
 - it implies copying on and copying off individual bytes
@@ -21,7 +21,7 @@ actor tag Assembler
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-assembler/assembler.md#L-0-28)</span>
+<span class="source-link">[[Source]](src/mqtt-assembler/assembler.md#L-0-40)</span>
 
 
 ```pony
@@ -42,7 +42,7 @@ new tag create(
 ## Public Behaviours
 
 ### assemble
-<span class="source-link">[[Source]](src/mqtt-assembler/assembler.md#L-0-32)</span>
+<span class="source-link">[[Source]](src/mqtt-assembler/assembler.md#L-0-44)</span>
 
 
 We need to handle the case where we receive only the first byte of the packet OR
@@ -64,7 +64,7 @@ be assemble(
 ## Private Functions
 
 ### _split
-<span class="source-link">[[Source]](src/mqtt-assembler/assembler.md#L-0-64)</span>
+<span class="source-link">[[Source]](src/mqtt-assembler/assembler.md#L-0-76)</span>
 
 
 ```pony

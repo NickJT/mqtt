@@ -1,5 +1,5 @@
 # Subscriber
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-12)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-19)</span>
 
 Represents an application level subscription to one topic. 
 Note - We're not implementing the multi-subscribe capability in the specification
@@ -33,7 +33,7 @@ actor tag Subscriber is
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-37)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-44)</span>
 
 
 ```pony
@@ -58,7 +58,7 @@ new tag create(
 ## Public Behaviours
 
 ### subscribe
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-48)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-55)</span>
 
 
 The packet id is the last piece of the jigsaw. Once we have this we can build our 
@@ -76,7 +76,7 @@ be subscribe(
 ---
 
 ### unsubscribe
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-56)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-63)</span>
 
 
 The packet id is the last piece of the jigsaw. Once we have this we can build our 
@@ -94,7 +94,7 @@ be unsubscribe(
 ---
 
 ### onTick
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-64)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-71)</span>
 
 
 This is the target for the TickListener trait that is called by the system tick
@@ -112,7 +112,7 @@ be onTick(
 ---
 
 ### onDuckAndCover
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-73)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-80)</span>
 
 
 We need to save state because the broker is disconnecting or something has gone awry.   
@@ -125,7 +125,7 @@ be onDuckAndCover()
 ---
 
 ### onDisconnect
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-80)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-87)</span>
 
 
 All Subscribers get informed of a broker disconnect with a call to the onDisconnect behaviour.
@@ -147,7 +147,7 @@ be onDisconnect()
 ---
 
 ### onData
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-103)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-110)</span>
 
 
 The Router sends data packets from the Broker, to actors who have requested it, using the
@@ -192,7 +192,7 @@ be onData(
 ## Public Functions
 
 ### onSubAck
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-144)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-151)</span>
 
 
 Our subscription has been acknowledged so we need to notify the app of the
@@ -215,7 +215,7 @@ fun box onSubAck(
 ---
 
 ### onUnsubAck
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-164)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-171)</span>
 
 
 Our unsubscribe has been acknowledged so we need to tell router to remove us from
@@ -241,7 +241,7 @@ fun ref onUnsubAck(
 ---
 
 ### onPayload
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-185)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-192)</span>
 
 
 Note - We name this function onPayload to avoid confusion with message publication.
@@ -273,7 +273,7 @@ fun ref onPayload(
 ---
 
 ### doPubAck
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-216)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-223)</span>
 
 
 All we have is an id, so make the pubAck packet and send it. No look-ups with id
@@ -297,7 +297,7 @@ fun box doPubAck(
 ---
 
 ### doPubRec
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-231)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-238)</span>
 
 
 We have received a publish message with QoS 2. We acknowledge this with a 
@@ -321,7 +321,7 @@ fun ref doPubRec(
 ---
 
 ### onPubRel
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-246)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-253)</span>
 
 
 We have received a publish release message for a QoS 2 packet. Send a pubComp
@@ -349,7 +349,7 @@ fun ref onPubRel(
 ---
 
 ### doPubComp
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-272)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-279)</span>
 
 
 We have received a PubRel from a sender so we acknowledge this with a PubComp 
@@ -373,7 +373,7 @@ fun box doPubComp(
 ---
 
 ### releasePkt
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-281)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-288)</span>
 
 
 We are at an appropriate place in the protocol to release the message to the 
@@ -399,7 +399,7 @@ fun box releasePkt(
 ---
 
 ### payloadComplete
-<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-297)</span>
+<span class="source-link">[[Source]](src/mqtt-subscriber/subscriber.md#L-0-304)</span>
 
 
 Informs router that we have finished processing this id.

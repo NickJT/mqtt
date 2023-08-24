@@ -1,5 +1,5 @@
 # IdIssuer
-<span class="source-link">[[Source]](src/mqtt-idIssuer/idIssuer.md#L-0-3)</span>
+<span class="source-link">[[Source]](src/mqtt-idIssuer/idIssuer.md#L-0-16)</span>
 
 Our approach for reissuing returned ids:    
 - create an array of returned numbers (empty on creation)   
@@ -16,7 +16,7 @@ class ref IdIssuer
 ## Constructors
 
 ### create
-<span class="source-link">[[Source]](src/mqtt-idIssuer/idIssuer.md#L-0-3)</span>
+<span class="source-link">[[Source]](src/mqtt-idIssuer/idIssuer.md#L-0-16)</span>
 
 
 ```pony
@@ -33,7 +33,7 @@ new iso create()
 ## Public Functions
 
 ### checkOut
-<span class="source-link">[[Source]](src/mqtt-idIssuer/idIssuer.md#L-0-49)</span>
+<span class="source-link">[[Source]](src/mqtt-idIssuer/idIssuer.md#L-0-62)</span>
 
 
 Returns the next available Id. Because ids are returned and reassigned subsequent
@@ -52,7 +52,7 @@ fun ref checkOut()
 ---
 
 ### checkIn
-<span class="source-link">[[Source]](src/mqtt-idIssuer/idIssuer.md#L-0-57)</span>
+<span class="source-link">[[Source]](src/mqtt-idIssuer/idIssuer.md#L-0-70)</span>
 
 
 Called when the transaction the id was used for has been completed and the 
@@ -77,7 +77,7 @@ fun ref checkIn(
 ## Private Functions
 
 ### _nextId
-<span class="source-link">[[Source]](src/mqtt-idIssuer/idIssuer.md#L-0-28)</span>
+<span class="source-link">[[Source]](src/mqtt-idIssuer/idIssuer.md#L-0-41)</span>
 
 
 Returns the next available id from the array of returned Ids and if there are  
