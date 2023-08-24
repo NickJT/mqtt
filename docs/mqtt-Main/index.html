@@ -16065,7 +16065,7 @@
 
 
 <h1 id="main">Main<a class="headerlink" href="#main" title="Permanent link">&para;</a></h1>
-<p><span class="source-link"><a href="../src/mqtt/main/#L-0-4">[Source]</a></span></p>
+<p><span class="source-link"><a href="../src/mqtt/main/#L-0-20">[Source]</a></span></p>
 <p>Minimal example of an application to connect, subscribe, publish and disconnect. An application or actor
 must implement the following trait (defined in the mqtt package):</p>
 <div class="highlight"><pre><span></span><code><a id="L-0-1" name="L-0-1" href="#L-0-1"></a>trait MqttApplication
@@ -16084,7 +16084,7 @@ must implement the following trait (defined in the mqtt package):</p>
 <hr />
 <h2 id="constructors">Constructors<a class="headerlink" href="#constructors" title="Permanent link">&para;</a></h2>
 <h3 id="create">create<a class="headerlink" href="#create" title="Permanent link">&para;</a></h3>
-<p><span class="source-link"><a href="../src/mqtt/main/#L-0-26">[Source]</a></span></p>
+<p><span class="source-link"><a href="../src/mqtt/main/#L-0-42">[Source]</a></span></p>
 <div class="highlight"><pre><span></span><code><a id="L-2-1" name="L-2-1" href="#L-2-1"></a><span class="k">new</span> <span class="k">tag</span> <span class="nf">create</span><span class="p">(</span>
 <a id="L-2-2" name="L-2-2" href="#L-2-2"></a>  <span class="n">env</span><span class="p">:</span> <span class="n n-Type">Env</span> <span class="k">val</span><span class="p">)</span>
 <a id="L-2-3" name="L-2-3" href="#L-2-3"></a><span class="p">:</span> <span class="n n-Type">Main</span> <span class="k">tag</span><span class="p">^</span>
@@ -16100,7 +16100,7 @@ must implement the following trait (defined in the mqtt package):</p>
 <hr />
 <h2 id="public-behaviours">Public Behaviours<a class="headerlink" href="#public-behaviours" title="Permanent link">&para;</a></h2>
 <h3 id="onconnection">onConnection<a class="headerlink" href="#onconnection" title="Permanent link">&para;</a></h3>
-<p><span class="source-link"><a href="../src/mqtt/main/#L-0-32">[Source]</a></span></p>
+<p><span class="source-link"><a href="../src/mqtt/main/#L-0-48">[Source]</a></span></p>
 <div class="highlight"><pre><span></span><code><a id="L-3-1" name="L-3-1" href="#L-3-1"></a><span class="k">be</span> <span class="nf">onConnection</span><span class="p">(</span>
 <a id="L-3-2" name="L-3-2" href="#L-3-2"></a>  <span class="n">connected</span><span class="p">:</span> <span class="nb nb-Type">Bool</span> <span class="k">val</span><span class="p">)</span>
 </code></pre></div>
@@ -16110,7 +16110,7 @@ must implement the following trait (defined in the mqtt package):</p>
 </ul>
 <hr />
 <h3 id="onsubscribed">onSubscribed<a class="headerlink" href="#onsubscribed" title="Permanent link">&para;</a></h3>
-<p><span class="source-link"><a href="../src/mqtt/main/#L-0-36">[Source]</a></span></p>
+<p><span class="source-link"><a href="../src/mqtt/main/#L-0-52">[Source]</a></span></p>
 <div class="highlight"><pre><span></span><code><a id="L-4-1" name="L-4-1" href="#L-4-1"></a><span class="k">be</span> <span class="nf">onSubscribed</span><span class="p">(</span>
 <a id="L-4-2" name="L-4-2" href="#L-4-2"></a>  <span class="n">topic</span><span class="p">:</span> <span class="nb nb-Type">String</span> <span class="k">val</span><span class="p">,</span>
 <a id="L-4-3" name="L-4-3" href="#L-4-3"></a>  <span class="n">qos</span><span class="p">:</span> <span class="p">(</span><span class="nb nb-Type">String</span> <span class="k">val</span> <span class="p">|</span> <span class="nb nb-Type">None</span> <span class="k">val</span><span class="p">))</span>
@@ -16122,7 +16122,7 @@ must implement the following trait (defined in the mqtt package):</p>
 </ul>
 <hr />
 <h3 id="onmessage">onMessage<a class="headerlink" href="#onmessage" title="Permanent link">&para;</a></h3>
-<p><span class="source-link"><a href="../src/mqtt/main/#L-0-41">[Source]</a></span></p>
+<p><span class="source-link"><a href="../src/mqtt/main/#L-0-57">[Source]</a></span></p>
 <div class="highlight"><pre><span></span><code><a id="L-5-1" name="L-5-1" href="#L-5-1"></a><span class="k">be</span> <span class="nf">onMessage</span><span class="p">(</span>
 <a id="L-5-2" name="L-5-2" href="#L-5-2"></a>  <span class="n">topic</span><span class="p">:</span> <span class="nb nb-Type">String</span> <span class="k">val</span><span class="p">,</span>
 <a id="L-5-3" name="L-5-3" href="#L-5-3"></a>  <span class="n">content</span><span class="p">:</span> <span class="nb nb-Type">Array</span><span class="p">[</span><span class="nb nb-Type">U8</span> <span class="k">val</span><span class="p">]</span> <span class="k">val</span><span class="p">)</span>
@@ -16134,7 +16134,7 @@ must implement the following trait (defined in the mqtt package):</p>
 </ul>
 <hr />
 <h3 id="onstatus">onStatus<a class="headerlink" href="#onstatus" title="Permanent link">&para;</a></h3>
-<p><span class="source-link"><a href="../src/mqtt/main/#L-0-55">[Source]</a></span></p>
+<p><span class="source-link"><a href="../src/mqtt/main/#L-0-71">[Source]</a></span></p>
 <div class="highlight"><pre><span></span><code><a id="L-6-1" name="L-6-1" href="#L-6-1"></a><span class="k">be</span> <span class="nf">onStatus</span><span class="p">(</span>
 <a id="L-6-2" name="L-6-2" href="#L-6-2"></a>  <span class="n">content</span><span class="p">:</span> <span class="nb nb-Type">String</span> <span class="k">val</span><span class="p">)</span>
 </code></pre></div>
@@ -16145,7 +16145,7 @@ must implement the following trait (defined in the mqtt package):</p>
 <hr />
 <h2 id="public-functions">Public Functions<a class="headerlink" href="#public-functions" title="Permanent link">&para;</a></h2>
 <h3 id="datestamp">dateStamp<a class="headerlink" href="#datestamp" title="Permanent link">&para;</a></h3>
-<p><span class="source-link"><a href="../src/mqtt/main/#L-0-59">[Source]</a></span></p>
+<p><span class="source-link"><a href="../src/mqtt/main/#L-0-75">[Source]</a></span></p>
 <p>An aribtrary function to generate some changing data to publish. Not part of the 
 Mqtt trait</p>
 <div class="highlight"><pre><span></span><code><a id="L-7-1" name="L-7-1" href="#L-7-1"></a><span class="k">fun</span> <span class="k">box</span> <span class="nf">dateStamp</span><span class="p">()</span>
@@ -16157,7 +16157,7 @@ Mqtt trait</p>
 </ul>
 <hr />
 <h3 id="runtime_override_defaults">runtime_override_defaults<a class="headerlink" href="#runtime_override_defaults" title="Permanent link">&para;</a></h3>
-<p><span class="source-link"><a href="../src/mqtt/main/#L-0-4">[Source]</a></span></p>
+<p><span class="source-link"><a href="../src/mqtt/main/#L-0-20">[Source]</a></span></p>
 <div class="highlight"><pre><span></span><code><a id="L-8-1" name="L-8-1" href="#L-8-1"></a><span class="k">fun</span> <span class="nf">runtime_override_defaults</span><span class="p">(</span>
 <a id="L-8-2" name="L-8-2" href="#L-8-2"></a>  <span class="n">rto</span><span class="p">:</span> <span class="n n-Type">RuntimeOptions</span> <span class="k">ref</span><span class="p">)</span>
 <a id="L-8-3" name="L-8-3" href="#L-8-3"></a><span class="p">:</span> <span class="nb nb-Type">None</span> <span class="k">val</span>

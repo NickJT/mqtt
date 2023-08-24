@@ -15915,75 +15915,107 @@
 <span class="normal"><a href="#L-0-66">66</a></span>
 <span class="normal"><a href="#L-0-67">67</a></span>
 <span class="normal"><a href="#L-0-68">68</a></span>
-<span class="normal"><a href="#L-0-69">69</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="L-0-1" name="L-0-1"></a><span class="k">use</span> <span class="s">&quot;time&quot;</span>
-<a id="L-0-2" name="L-0-2"></a><span class="k">use</span> <span class="s">&quot;package:mqtt&quot;</span>
+<span class="normal"><a href="#L-0-69">69</a></span>
+<span class="normal"><a href="#L-0-70">70</a></span>
+<span class="normal"><a href="#L-0-71">71</a></span>
+<span class="normal"><a href="#L-0-72">72</a></span>
+<span class="normal"><a href="#L-0-73">73</a></span>
+<span class="normal"><a href="#L-0-74">74</a></span>
+<span class="normal"><a href="#L-0-75">75</a></span>
+<span class="normal"><a href="#L-0-76">76</a></span>
+<span class="normal"><a href="#L-0-77">77</a></span>
+<span class="normal"><a href="#L-0-78">78</a></span>
+<span class="normal"><a href="#L-0-79">79</a></span>
+<span class="normal"><a href="#L-0-80">80</a></span>
+<span class="normal"><a href="#L-0-81">81</a></span>
+<span class="normal"><a href="#L-0-82">82</a></span>
+<span class="normal"><a href="#L-0-83">83</a></span>
+<span class="normal"><a href="#L-0-84">84</a></span>
+<span class="normal"><a href="#L-0-85">85</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="L-0-1" name="L-0-1"></a><span class="sd">&quot;&quot;&quot;</span>
+<a id="L-0-2" name="L-0-2"></a><span class="sd"># Pony MQTT Client #</span>
 <a id="L-0-3" name="L-0-3"></a>
-<a id="L-0-4" name="L-0-4"></a><span class="k">actor</span> <span class="nc">Main</span> <span class="ow">is</span> <span class="n n-Type">MqttApplication</span>
-<a id="L-0-5" name="L-0-5"></a>  <span class="sd">&quot;&quot;&quot;</span>
-<a id="L-0-6" name="L-0-6"></a><span class="sd">  Minimal example of an application to connect, subscribe, publish and disconnect. An application or actor</span>
-<a id="L-0-7" name="L-0-7"></a><span class="sd">  must implement the following trait (defined in the mqtt package):</span>
-<a id="L-0-8" name="L-0-8"></a>
-<a id="L-0-9" name="L-0-9"></a><span class="sd">  ```</span>
-<a id="L-0-10" name="L-0-10"></a><span class="sd">  trait MqttApplication</span>
-<a id="L-0-11" name="L-0-11"></a><span class="sd">  be onConnection(connected : Bool)</span>
-<a id="L-0-12" name="L-0-12"></a><span class="sd">  be onSubscribed(topic: String val, qos: (String val | None))</span>
-<a id="L-0-13" name="L-0-13"></a><span class="sd">  be onMessage(topic: String val, content: Array[U8] val)</span>
-<a id="L-0-14" name="L-0-14"></a><span class="sd">  be onStatus(content: String val)</span>
-<a id="L-0-15" name="L-0-15"></a><span class="sd">  ```</span>
-<a id="L-0-16" name="L-0-16"></a>
-<a id="L-0-17" name="L-0-17"></a><span class="sd">  &quot;&quot;&quot;</span>
-<a id="L-0-18" name="L-0-18"></a>  <span class="k">let</span> <span class="n">_out</span> <span class="p">:</span> <span class="n n-Type">OutStream</span>
-<a id="L-0-19" name="L-0-19"></a>  <span class="k">let</span> <span class="n">_mqtt</span> <span class="p">:</span> <span class="n n-Type">Mqtt</span>
-<a id="L-0-20" name="L-0-20"></a>  <span class="k">let</span> <span class="n">_</span><span class="k">this</span> <span class="p">:</span> <span class="n n-Type">MqttApplication</span> <span class="k">tag</span> <span class="o">=</span> <span class="k">this</span> 
-<a id="L-0-21" name="L-0-21"></a>  <span class="k">var</span> <span class="n">_reps</span> <span class="p">:</span> <span class="nb nb-Type">U8</span> <span class="o">=</span> <span class="mi">10</span>
-<a id="L-0-22" name="L-0-22"></a>
-<a id="L-0-23" name="L-0-23"></a>  <span class="k">let</span> <span class="n">_systemTopic</span> <span class="p">:</span> <span class="nb nb-Type">String</span> <span class="k">val</span> <span class="o">=</span> <span class="s">&quot;$SYS/broker/messages/received&quot;</span>
-<a id="L-0-24" name="L-0-24"></a>  <span class="k">let</span> <span class="n">_appTopic</span> <span class="p">:</span> <span class="nb nb-Type">String</span> <span class="k">val</span> <span class="o">=</span> <span class="s">&quot;timestamp&quot;</span>
-<a id="L-0-25" name="L-0-25"></a>
-<a id="L-0-26" name="L-0-26"></a>  <span class="k">new</span> <span class="nf">create</span><span class="p">(</span><span class="n">env</span><span class="p">:</span> <span class="n n-Type">Env</span><span class="p">)</span> <span class="p">=&gt;</span>
-<a id="L-0-27" name="L-0-27"></a>    <span class="n">_out</span> <span class="o">=</span> <span class="n">env</span><span class="p">.</span><span class="n">out</span>
-<a id="L-0-28" name="L-0-28"></a>    <span class="n">_mqtt</span> <span class="o">=</span> <span class="n n-Type">Mqtt</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">_</span><span class="k">this</span><span class="p">)</span>
-<a id="L-0-29" name="L-0-29"></a>
-<a id="L-0-30" name="L-0-30"></a>    <span class="n">_mqtt</span><span class="p">.</span><span class="n">connect</span><span class="p">(</span><span class="nb">true</span><span class="p">)</span>
-<a id="L-0-31" name="L-0-31"></a>
-<a id="L-0-32" name="L-0-32"></a>  <span class="k">be</span> <span class="nf">onConnection</span><span class="p">(</span><span class="n">connected</span> <span class="p">:</span> <span class="nb nb-Type">Bool</span><span class="p">)</span> <span class="p">=&gt;</span>
-<a id="L-0-33" name="L-0-33"></a>    <span class="n">_mqtt</span><span class="p">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">_systemTopic</span><span class="p">,</span> <span class="s">&quot;QOS0&quot;</span><span class="p">)</span>
-<a id="L-0-34" name="L-0-34"></a>    <span class="n">_mqtt</span><span class="p">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">_appTopic</span><span class="p">,</span> <span class="s">&quot;qos1&quot;</span><span class="p">)</span>
-<a id="L-0-35" name="L-0-35"></a>
-<a id="L-0-36" name="L-0-36"></a>  <span class="k">be</span> <span class="nf">onSubscribed</span><span class="p">(</span><span class="n">topic</span><span class="p">:</span> <span class="nb nb-Type">String</span> <span class="k">val</span><span class="p">,</span> <span class="n">qos</span><span class="p">:</span> <span class="p">(</span><span class="nb nb-Type">String</span> <span class="k">val</span> <span class="p">|</span> <span class="nb nb-Type">None</span><span class="p">))</span> <span class="p">=&gt;</span>
-<a id="L-0-37" name="L-0-37"></a>    <span class="k">if</span> <span class="p">(</span><span class="n">topic</span> <span class="o">==</span> <span class="n">_systemTopic</span><span class="p">)</span> <span class="k">then</span>
-<a id="L-0-38" name="L-0-38"></a>      <span class="n">_mqtt</span><span class="p">.</span><span class="n">publish</span><span class="p">(</span><span class="n">_appTopic</span><span class="p">,</span> <span class="n">dateStamp</span><span class="p">(),</span> <span class="s">&quot;Qos2&quot;</span><span class="p">)</span>
-<a id="L-0-39" name="L-0-39"></a>    <span class="k">end</span>
-<a id="L-0-40" name="L-0-40"></a>
-<a id="L-0-41" name="L-0-41"></a>  <span class="k">be</span> <span class="nf">onMessage</span><span class="p">(</span><span class="n">topic</span><span class="p">:</span> <span class="nb nb-Type">String</span> <span class="k">val</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="nb nb-Type">Array</span><span class="p">[</span><span class="nb nb-Type">U8</span><span class="p">]</span> <span class="k">val</span><span class="p">)</span> <span class="p">=&gt;</span>
-<a id="L-0-42" name="L-0-42"></a>    <span class="n">_out</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="n">_reps</span><span class="p">.</span><span class="n">string</span><span class="p">()</span> <span class="o">+</span> <span class="s">&quot; Topic: &quot;</span> <span class="o">+</span> <span class="n">topic</span> <span class="o">+</span> <span class="s">&quot; - &quot;</span> <span class="o">+</span> <span class="nb nb-Type">String</span><span class="p">.</span><span class="n">from_array</span><span class="p">(</span><span class="n">content</span><span class="p">))</span>
-<a id="L-0-43" name="L-0-43"></a>
-<a id="L-0-44" name="L-0-44"></a>    <span class="k">if</span> <span class="p">(</span><span class="n">topic</span> <span class="o">==</span> <span class="n">_systemTopic</span><span class="p">)</span> <span class="k">then</span> 
-<a id="L-0-45" name="L-0-45"></a>      <span class="n">_mqtt</span><span class="p">.</span><span class="n">publish</span><span class="p">(</span><span class="n">_appTopic</span><span class="p">,</span> <span class="n">dateStamp</span><span class="p">(),</span> <span class="s">&quot;qos0&quot;</span><span class="p">)</span>
-<a id="L-0-46" name="L-0-46"></a>      <span class="n">_reps</span> <span class="o">=</span> <span class="n">_reps</span> <span class="o">-</span> <span class="mi">1</span>
-<a id="L-0-47" name="L-0-47"></a>    <span class="k">end</span>
-<a id="L-0-48" name="L-0-48"></a>
-<a id="L-0-49" name="L-0-49"></a>    <span class="k">if</span> <span class="p">(</span><span class="n">_reps</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">then</span> 
-<a id="L-0-50" name="L-0-50"></a>      <span class="n">_mqtt</span><span class="p">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">_systemTopic</span><span class="p">,</span> <span class="nb nb-Type">None</span><span class="p">)</span>
-<a id="L-0-51" name="L-0-51"></a>      <span class="n">_mqtt</span><span class="p">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">_appTopic</span><span class="p">,</span> <span class="nb nb-Type">None</span><span class="p">)</span>
-<a id="L-0-52" name="L-0-52"></a>      <span class="n">_mqtt</span><span class="p">.</span><span class="n">connect</span><span class="p">(</span><span class="nb">false</span><span class="p">)</span>
-<a id="L-0-53" name="L-0-53"></a>    <span class="k">end</span>
-<a id="L-0-54" name="L-0-54"></a>
-<a id="L-0-55" name="L-0-55"></a>  <span class="k">be</span> <span class="nf">onStatus</span><span class="p">(</span><span class="n">content</span><span class="p">:</span> <span class="nb nb-Type">String</span> <span class="k">val</span><span class="p">)</span> <span class="p">=&gt;</span>
-<a id="L-0-56" name="L-0-56"></a>    <span class="n">_out</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="s">&quot;[&quot;</span> <span class="o">+</span> <span class="n">content</span> <span class="o">+</span> <span class="s">&quot;]&quot;</span><span class="p">)</span>
-<a id="L-0-57" name="L-0-57"></a>
-<a id="L-0-58" name="L-0-58"></a>
-<a id="L-0-59" name="L-0-59"></a>  <span class="k">fun</span> <span class="nf">dateStamp</span><span class="p">()</span> <span class="p">:</span> <span class="nb nb-Type">Array</span><span class="p">[</span><span class="nb nb-Type">U8</span><span class="p">]</span> <span class="k">val</span> <span class="p">=&gt;</span>
-<a id="L-0-60" name="L-0-60"></a>    <span class="sd">&quot;&quot;&quot;</span>
-<a id="L-0-61" name="L-0-61"></a><span class="sd">    An aribtrary function to generate some changing data to publish. Not part of the </span>
-<a id="L-0-62" name="L-0-62"></a><span class="sd">    Mqtt trait</span>
-<a id="L-0-63" name="L-0-63"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="L-0-64" name="L-0-64"></a>    <span class="p">(</span><span class="k">var</span> <span class="n">s</span><span class="p">,</span> <span class="k">var</span> <span class="n">ns</span><span class="p">)</span> <span class="o">=</span> <span class="n n-Type">Time</span><span class="p">.</span><span class="n">now</span><span class="p">()</span>
-<a id="L-0-65" name="L-0-65"></a>    <span class="k">var</span> <span class="n">stamp</span> <span class="p">:</span> <span class="nb nb-Type">String</span> <span class="k">val</span> <span class="o">=</span> <span class="nb nb-Type">String</span>
-<a id="L-0-66" name="L-0-66"></a>    <span class="k">try</span>
-<a id="L-0-67" name="L-0-67"></a>      <span class="n">stamp</span> <span class="o">=</span> <span class="n n-Type">PosixDate</span><span class="p">.</span><span class="n">create</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">ns</span><span class="p">).</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;%Y:%m:%d %H:%M:%S&quot;</span><span class="p">)?</span> <span class="o">+</span> <span class="s">&quot; [&quot;</span> <span class="o">+</span> <span class="n">s</span><span class="p">.</span><span class="n">string</span><span class="p">()</span> <span class="o">+</span> <span class="s">&quot;,&quot;</span> <span class="o">+</span> <span class="n">ns</span><span class="p">.</span><span class="n">string</span><span class="p">()</span> <span class="o">+</span> <span class="s">&quot;]&quot;</span> 
-<a id="L-0-68" name="L-0-68"></a>    <span class="k">end</span> 
-<a id="L-0-69" name="L-0-69"></a>    <span class="n">stamp</span><span class="p">.</span><span class="n">array</span><span class="p">()</span>
+<a id="L-0-4" name="L-0-4"></a><span class="sd">A MQTT 3.1.1 client - supports QoS 0/1/2 cleansession only. Currently part-way through release 0.2 (see package doc).</span>
+<a id="L-0-5" name="L-0-5"></a>
+<a id="L-0-6" name="L-0-6"></a><span class="sd">If you haven&#39;t used Pony, this is the best starting point -&gt; [Pony Tutorial](https://tutorial.ponylang.io/index.html)</span>
+<a id="L-0-7" name="L-0-7"></a>
+<a id="L-0-8" name="L-0-8"></a><span class="sd">## How to Run ##</span>
+<a id="L-0-9" name="L-0-9"></a>
+<a id="L-0-10" name="L-0-10"></a><span class="sd">main.pony is a minimal example of an actor implementing the MqttApplication trait to connect, subscribe, publish and disconnect from an MQTT broker.</span>
+<a id="L-0-11" name="L-0-11"></a>
+<a id="L-0-12" name="L-0-12"></a><span class="sd">The broker address and user credentials can be configured in config.ini. If no config.ini is provided the app will attempt an anonymous connection to localhost:1883.</span>
+<a id="L-0-13" name="L-0-13"></a>
+<a id="L-0-14" name="L-0-14"></a><span class="sd">Main will connect to the broker, subscribe to one of its system topics and to an example application topic. It will then publish ten timestamp messages before disconnecting and quiting.</span>
+<a id="L-0-15" name="L-0-15"></a>
+<a id="L-0-16" name="L-0-16"></a><span class="sd">&quot;&quot;&quot;</span>
+<a id="L-0-17" name="L-0-17"></a><span class="k">use</span> <span class="s">&quot;time&quot;</span>
+<a id="L-0-18" name="L-0-18"></a><span class="k">use</span> <span class="s">&quot;package:mqtt&quot;</span>
+<a id="L-0-19" name="L-0-19"></a>
+<a id="L-0-20" name="L-0-20"></a><span class="k">actor</span> <span class="nc">Main</span> <span class="ow">is</span> <span class="n n-Type">MqttApplication</span>
+<a id="L-0-21" name="L-0-21"></a>  <span class="sd">&quot;&quot;&quot;</span>
+<a id="L-0-22" name="L-0-22"></a><span class="sd">  Minimal example of an application to connect, subscribe, publish and disconnect. An application or actor</span>
+<a id="L-0-23" name="L-0-23"></a><span class="sd">  must implement the following trait (defined in the mqtt package):</span>
+<a id="L-0-24" name="L-0-24"></a>
+<a id="L-0-25" name="L-0-25"></a><span class="sd">  ```</span>
+<a id="L-0-26" name="L-0-26"></a><span class="sd">  trait MqttApplication</span>
+<a id="L-0-27" name="L-0-27"></a><span class="sd">  be onConnection(connected : Bool)</span>
+<a id="L-0-28" name="L-0-28"></a><span class="sd">  be onSubscribed(topic: String val, qos: (String val | None))</span>
+<a id="L-0-29" name="L-0-29"></a><span class="sd">  be onMessage(topic: String val, content: Array[U8] val)</span>
+<a id="L-0-30" name="L-0-30"></a><span class="sd">  be onStatus(content: String val)</span>
+<a id="L-0-31" name="L-0-31"></a><span class="sd">  ```</span>
+<a id="L-0-32" name="L-0-32"></a>
+<a id="L-0-33" name="L-0-33"></a><span class="sd">  &quot;&quot;&quot;</span>
+<a id="L-0-34" name="L-0-34"></a>  <span class="k">let</span> <span class="n">_out</span> <span class="p">:</span> <span class="n n-Type">OutStream</span>
+<a id="L-0-35" name="L-0-35"></a>  <span class="k">let</span> <span class="n">_mqtt</span> <span class="p">:</span> <span class="n n-Type">Mqtt</span>
+<a id="L-0-36" name="L-0-36"></a>  <span class="k">let</span> <span class="n">_</span><span class="k">this</span> <span class="p">:</span> <span class="n n-Type">MqttApplication</span> <span class="k">tag</span> <span class="o">=</span> <span class="k">this</span> 
+<a id="L-0-37" name="L-0-37"></a>  <span class="k">var</span> <span class="n">_reps</span> <span class="p">:</span> <span class="nb nb-Type">U8</span> <span class="o">=</span> <span class="mi">10</span>
+<a id="L-0-38" name="L-0-38"></a>
+<a id="L-0-39" name="L-0-39"></a>  <span class="k">let</span> <span class="n">_systemTopic</span> <span class="p">:</span> <span class="nb nb-Type">String</span> <span class="k">val</span> <span class="o">=</span> <span class="s">&quot;$SYS/broker/messages/received&quot;</span>
+<a id="L-0-40" name="L-0-40"></a>  <span class="k">let</span> <span class="n">_appTopic</span> <span class="p">:</span> <span class="nb nb-Type">String</span> <span class="k">val</span> <span class="o">=</span> <span class="s">&quot;timestamp&quot;</span>
+<a id="L-0-41" name="L-0-41"></a>
+<a id="L-0-42" name="L-0-42"></a>  <span class="k">new</span> <span class="nf">create</span><span class="p">(</span><span class="n">env</span><span class="p">:</span> <span class="n n-Type">Env</span><span class="p">)</span> <span class="p">=&gt;</span>
+<a id="L-0-43" name="L-0-43"></a>    <span class="n">_out</span> <span class="o">=</span> <span class="n">env</span><span class="p">.</span><span class="n">out</span>
+<a id="L-0-44" name="L-0-44"></a>    <span class="n">_mqtt</span> <span class="o">=</span> <span class="n n-Type">Mqtt</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">_</span><span class="k">this</span><span class="p">)</span>
+<a id="L-0-45" name="L-0-45"></a>
+<a id="L-0-46" name="L-0-46"></a>    <span class="n">_mqtt</span><span class="p">.</span><span class="n">connect</span><span class="p">(</span><span class="nb">true</span><span class="p">)</span>
+<a id="L-0-47" name="L-0-47"></a>
+<a id="L-0-48" name="L-0-48"></a>  <span class="k">be</span> <span class="nf">onConnection</span><span class="p">(</span><span class="n">connected</span> <span class="p">:</span> <span class="nb nb-Type">Bool</span><span class="p">)</span> <span class="p">=&gt;</span>
+<a id="L-0-49" name="L-0-49"></a>    <span class="n">_mqtt</span><span class="p">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">_systemTopic</span><span class="p">,</span> <span class="s">&quot;QOS0&quot;</span><span class="p">)</span>
+<a id="L-0-50" name="L-0-50"></a>    <span class="n">_mqtt</span><span class="p">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">_appTopic</span><span class="p">,</span> <span class="s">&quot;qos1&quot;</span><span class="p">)</span>
+<a id="L-0-51" name="L-0-51"></a>
+<a id="L-0-52" name="L-0-52"></a>  <span class="k">be</span> <span class="nf">onSubscribed</span><span class="p">(</span><span class="n">topic</span><span class="p">:</span> <span class="nb nb-Type">String</span> <span class="k">val</span><span class="p">,</span> <span class="n">qos</span><span class="p">:</span> <span class="p">(</span><span class="nb nb-Type">String</span> <span class="k">val</span> <span class="p">|</span> <span class="nb nb-Type">None</span><span class="p">))</span> <span class="p">=&gt;</span>
+<a id="L-0-53" name="L-0-53"></a>    <span class="k">if</span> <span class="p">(</span><span class="n">topic</span> <span class="o">==</span> <span class="n">_systemTopic</span><span class="p">)</span> <span class="k">then</span>
+<a id="L-0-54" name="L-0-54"></a>      <span class="n">_mqtt</span><span class="p">.</span><span class="n">publish</span><span class="p">(</span><span class="n">_appTopic</span><span class="p">,</span> <span class="n">dateStamp</span><span class="p">(),</span> <span class="s">&quot;Qos2&quot;</span><span class="p">)</span>
+<a id="L-0-55" name="L-0-55"></a>    <span class="k">end</span>
+<a id="L-0-56" name="L-0-56"></a>
+<a id="L-0-57" name="L-0-57"></a>  <span class="k">be</span> <span class="nf">onMessage</span><span class="p">(</span><span class="n">topic</span><span class="p">:</span> <span class="nb nb-Type">String</span> <span class="k">val</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="nb nb-Type">Array</span><span class="p">[</span><span class="nb nb-Type">U8</span><span class="p">]</span> <span class="k">val</span><span class="p">)</span> <span class="p">=&gt;</span>
+<a id="L-0-58" name="L-0-58"></a>    <span class="n">_out</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="n">_reps</span><span class="p">.</span><span class="n">string</span><span class="p">()</span> <span class="o">+</span> <span class="s">&quot; Topic: &quot;</span> <span class="o">+</span> <span class="n">topic</span> <span class="o">+</span> <span class="s">&quot; - &quot;</span> <span class="o">+</span> <span class="nb nb-Type">String</span><span class="p">.</span><span class="n">from_array</span><span class="p">(</span><span class="n">content</span><span class="p">))</span>
+<a id="L-0-59" name="L-0-59"></a>
+<a id="L-0-60" name="L-0-60"></a>    <span class="k">if</span> <span class="p">(</span><span class="n">topic</span> <span class="o">==</span> <span class="n">_systemTopic</span><span class="p">)</span> <span class="k">then</span> 
+<a id="L-0-61" name="L-0-61"></a>      <span class="n">_mqtt</span><span class="p">.</span><span class="n">publish</span><span class="p">(</span><span class="n">_appTopic</span><span class="p">,</span> <span class="n">dateStamp</span><span class="p">(),</span> <span class="s">&quot;qos0&quot;</span><span class="p">)</span>
+<a id="L-0-62" name="L-0-62"></a>      <span class="n">_reps</span> <span class="o">=</span> <span class="n">_reps</span> <span class="o">-</span> <span class="mi">1</span>
+<a id="L-0-63" name="L-0-63"></a>    <span class="k">end</span>
+<a id="L-0-64" name="L-0-64"></a>
+<a id="L-0-65" name="L-0-65"></a>    <span class="k">if</span> <span class="p">(</span><span class="n">_reps</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">then</span> 
+<a id="L-0-66" name="L-0-66"></a>      <span class="n">_mqtt</span><span class="p">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">_systemTopic</span><span class="p">,</span> <span class="nb nb-Type">None</span><span class="p">)</span>
+<a id="L-0-67" name="L-0-67"></a>      <span class="n">_mqtt</span><span class="p">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">_appTopic</span><span class="p">,</span> <span class="nb nb-Type">None</span><span class="p">)</span>
+<a id="L-0-68" name="L-0-68"></a>      <span class="n">_mqtt</span><span class="p">.</span><span class="n">connect</span><span class="p">(</span><span class="nb">false</span><span class="p">)</span>
+<a id="L-0-69" name="L-0-69"></a>    <span class="k">end</span>
+<a id="L-0-70" name="L-0-70"></a>
+<a id="L-0-71" name="L-0-71"></a>  <span class="k">be</span> <span class="nf">onStatus</span><span class="p">(</span><span class="n">content</span><span class="p">:</span> <span class="nb nb-Type">String</span> <span class="k">val</span><span class="p">)</span> <span class="p">=&gt;</span>
+<a id="L-0-72" name="L-0-72"></a>    <span class="n">_out</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="s">&quot;[&quot;</span> <span class="o">+</span> <span class="n">content</span> <span class="o">+</span> <span class="s">&quot;]&quot;</span><span class="p">)</span>
+<a id="L-0-73" name="L-0-73"></a>
+<a id="L-0-74" name="L-0-74"></a>
+<a id="L-0-75" name="L-0-75"></a>  <span class="k">fun</span> <span class="nf">dateStamp</span><span class="p">()</span> <span class="p">:</span> <span class="nb nb-Type">Array</span><span class="p">[</span><span class="nb nb-Type">U8</span><span class="p">]</span> <span class="k">val</span> <span class="p">=&gt;</span>
+<a id="L-0-76" name="L-0-76"></a>    <span class="sd">&quot;&quot;&quot;</span>
+<a id="L-0-77" name="L-0-77"></a><span class="sd">    An aribtrary function to generate some changing data to publish. Not part of the </span>
+<a id="L-0-78" name="L-0-78"></a><span class="sd">    Mqtt trait</span>
+<a id="L-0-79" name="L-0-79"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="L-0-80" name="L-0-80"></a>    <span class="p">(</span><span class="k">var</span> <span class="n">s</span><span class="p">,</span> <span class="k">var</span> <span class="n">ns</span><span class="p">)</span> <span class="o">=</span> <span class="n n-Type">Time</span><span class="p">.</span><span class="n">now</span><span class="p">()</span>
+<a id="L-0-81" name="L-0-81"></a>    <span class="k">var</span> <span class="n">stamp</span> <span class="p">:</span> <span class="nb nb-Type">String</span> <span class="k">val</span> <span class="o">=</span> <span class="nb nb-Type">String</span>
+<a id="L-0-82" name="L-0-82"></a>    <span class="k">try</span>
+<a id="L-0-83" name="L-0-83"></a>      <span class="n">stamp</span> <span class="o">=</span> <span class="n n-Type">PosixDate</span><span class="p">.</span><span class="n">create</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">ns</span><span class="p">).</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;%Y:%m:%d %H:%M:%S&quot;</span><span class="p">)?</span> <span class="o">+</span> <span class="s">&quot; [&quot;</span> <span class="o">+</span> <span class="n">s</span><span class="p">.</span><span class="n">string</span><span class="p">()</span> <span class="o">+</span> <span class="s">&quot;,&quot;</span> <span class="o">+</span> <span class="n">ns</span><span class="p">.</span><span class="n">string</span><span class="p">()</span> <span class="o">+</span> <span class="s">&quot;]&quot;</span> 
+<a id="L-0-84" name="L-0-84"></a>    <span class="k">end</span> 
+<a id="L-0-85" name="L-0-85"></a>    <span class="n">stamp</span><span class="p">.</span><span class="n">array</span><span class="p">()</span>
 </code></pre></div></td></tr></table></div>
 
 
