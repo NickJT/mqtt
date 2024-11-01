@@ -20,7 +20,7 @@ use "files"
 
 actor Assembler
 """
-We're using a ring buffer for packet assembly because:
+We're not using a ring buffer for packet assembly because:
 - it implies copying on and copying off individual bytes
 - packets would need to be assembled by appending every byte individually
 - the value of the RL bytes would need to be either calculated on the fly (which is complex
